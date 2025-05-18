@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -105,8 +105,6 @@ export default function AssignmentForm({
   });
 
   // Check for a course ID in the URL or localStorage
-  const { useEffect } = require('react');
-  
   useEffect(() => {
     // First check if we have courses from props
     if (propCourses && propCourses.length > 0) {
