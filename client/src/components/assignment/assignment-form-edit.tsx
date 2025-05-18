@@ -68,10 +68,22 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, navigate] = useLocation();
 
-  // Convert dueDate to Date object
-  const dueDateObj = assignment.dueDate instanceof Date 
-    ? assignment.dueDate 
-    : new Date(assignment.dueDate);
+  // Convert dueDate to Date object and ensure it's valid
+  let dueDateObj;
+  try {
+    dueDateObj = assignment.dueDate instanceof Date 
+      ? assignment.dueDate 
+      : new Date(assignment.dueDate);
+    
+    // Check if date is valid
+    if (isNaN(dueDateObj.getTime())) {
+      // If date is invalid, use current date
+      dueDateObj = new Date();
+    }
+  } catch (error) {
+    console.error("Error parsing date:", error);
+    dueDateObj = new Date(); // Fallback to current date
+  }
 
   const form = useForm<AssignmentFormValues>({
     resolver: zodResolver(assignmentSchema),
@@ -205,8 +217,8 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
                               )}
                               disabled={isSubmitting}
                             >
-                              {field.value ? (
-                                format(field.value, "PPP")
+                              {field.value && !isNaN(new Date(field.value).getTime()) ? (
+                                format(new Date(field.value), "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
