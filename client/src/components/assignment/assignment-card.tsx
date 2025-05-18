@@ -104,9 +104,9 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
           variant="ghost" 
           size="icon" 
           className="text-slate-400 hover:text-blue-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8"
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() => {
             if (assignment.id) {
+              // Navigate to the edit page directly
               navigate(`/assignments/edit/${assignment.id}`);
             }
           }}

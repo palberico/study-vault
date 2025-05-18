@@ -77,25 +77,19 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
     return "https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=250&q=80";
   };
 
-  // Function to handle click on the card
-  const handleClick = () => {
-    if (onClick) {
-      onClick();
-    } else if (course.id) {
-      navigate(`/courses/${course.id}`);
-    }
-  };
+  // Removed card click functionality as requested
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-all border border-slate-200 relative" onClick={handleClick}>
+    <Card className="overflow-hidden hover:shadow-md transition-all border border-slate-200 relative">
       <div className="absolute top-2 right-2 z-10 flex space-x-1">
         <Button 
           variant="ghost" 
           size="icon" 
           className="text-white hover:text-blue-400 hover:bg-white/30 z-10 rounded-full h-8 w-8"
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() => {
+            // Use our dedicated edit component
             if (course.id) {
+              // Navigate to edit page directly
               navigate(`/courses/edit/${course.id}`);
             }
           }}
