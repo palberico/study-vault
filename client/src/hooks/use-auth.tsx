@@ -1,12 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { 
   auth, 
-  User, 
   onAuthStateChanged,
   logInWithEmailAndPassword,
   registerWithEmailAndPassword,
   logout as firebaseLogout
 } from "@/lib/firebase";
+import type { User } from "@/types/index";
 import { useLocation, useRouter } from "wouter";
 import { LoaderPinwheel } from "lucide-react";
 

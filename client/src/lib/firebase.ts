@@ -245,4 +245,5 @@ export const deleteFile = async (fileId: string, filePath: string) => {
   return deleteDoc(doc(db, "files", fileId));
 };
 
-export { app, auth, db, storage, onAuthStateChanged, User };
+export { app, auth, db, storage, onAuthStateChanged };
+export type { FirebaseUser as User };
