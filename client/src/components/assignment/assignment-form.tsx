@@ -4,7 +4,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { addAssignment, updateAssignment, getUserCourses, type Assignment, type Course } from "@/lib/firebase";
+import { 
+  addAssignment, 
+  updateAssignment, 
+  getUserCourses, 
+  db, 
+  type Assignment, 
+  type Course 
+} from "@/lib/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +39,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+// useEffect is already imported at the top
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
