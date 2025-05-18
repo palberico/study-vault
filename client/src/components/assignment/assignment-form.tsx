@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
@@ -46,6 +46,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+const resourceLinkSchema = z.object({
+  label: z.string().min(1, {
+    message: "Link label is required."
+  }),
+  url: z.string().url({
+    message: "Please enter a valid URL."
+  })
+});
+
 const assignmentSchema = z.object({
   title: z.string().min(3, {
     message: "Title must be at least 3 characters."
@@ -59,7 +68,8 @@ const assignmentSchema = z.object({
   dueDate: z.date({
     required_error: "Please select a due date."
   }),
-  status: z.enum(["pending", "submitted", "overdue"])
+  status: z.enum(["pending", "submitted", "overdue"]),
+  links: z.array(resourceLinkSchema).optional()
 });
 
 type AssignmentFormValues = z.infer<typeof assignmentSchema>;

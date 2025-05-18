@@ -77,6 +77,11 @@ export interface Course {
   createdAt: Date;
 }
 
+export interface ResourceLink {
+  label: string;
+  url: string;
+}
+
 export interface Assignment {
   id?: string;
   userId: string;
@@ -86,6 +91,7 @@ export interface Assignment {
   dueDate: Date;
   status: 'pending' | 'submitted' | 'overdue';
   createdAt: Date;
+  links?: ResourceLink[];
 }
 
 export interface FileItem {

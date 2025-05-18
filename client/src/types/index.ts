@@ -25,6 +25,12 @@ export interface CreateCourseData {
   term: string;
 }
 
+// Resource Link Type
+export interface ResourceLink {
+  label: string;
+  url: string;
+}
+
 // Assignment Types
 export interface Assignment {
   id?: string;
@@ -35,6 +41,7 @@ export interface Assignment {
   dueDate: Date;
   status: 'pending' | 'submitted' | 'overdue';
   createdAt: Date;
+  links?: ResourceLink[];
 }
 
 export interface CreateAssignmentData {
@@ -44,6 +51,7 @@ export interface CreateAssignmentData {
   description: string;
   dueDate: Date;
   status: 'pending' | 'submitted' | 'overdue';
+  links?: ResourceLink[];
 }
 
 // File Types
