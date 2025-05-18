@@ -35,6 +35,15 @@ import { format } from "date-fns";
 import { ArrowLeft, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const resourceLinkSchema = z.object({
+  label: z.string().min(1, {
+    message: "Link label is required."
+  }),
+  url: z.string().url({
+    message: "Please enter a valid URL."
+  })
+});
+
 const assignmentSchema = z.object({
   title: z.string().min(3, {
     message: "Title must be at least 3 characters long."
@@ -50,7 +59,8 @@ const assignmentSchema = z.object({
   }),
   courseId: z.string().min(1, {
     message: "Please select a course."
-  })
+  }),
+  links: z.array(resourceLinkSchema).optional()
 });
 
 type AssignmentFormValues = z.infer<typeof assignmentSchema>;
@@ -92,8 +102,15 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
       description: assignment.description || "",
       dueDate: dueDateObj,
       status: assignment.status as "pending" | "submitted" | "overdue",
-      courseId: assignment.courseId || ""
+      courseId: assignment.courseId || "",
+      links: assignment.links || [{ label: "", url: "" }]
     }
+  });
+  
+  // Set up field array for resource links
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "links"
   });
   
   async function onSubmit(values: AssignmentFormValues) {
@@ -118,13 +135,24 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
     setIsSubmitting(true);
 
     try {
+      // Filter out empty links
+      const filteredLinks = values.links ? values.links.filter(link => 
+        link.label.trim() !== "" && link.url.trim() !== ""
+      ) : [];
+      
+      // Prepare the update data with filtered links
+      const updateData = {
+        ...values,
+        links: filteredLinks.length > 0 ? filteredLinks : []
+      };
+      
       // Update assignment in Firebase
-      await updateAssignment(assignment.id, values);
+      await updateAssignment(assignment.id, updateData);
       
       // Create updated assignment object
       const updatedAssignment: Assignment = {
         ...assignment,
-        ...values
+        ...updateData
       };
       
       toast({
@@ -299,6 +327,65 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
                   </FormItem>
                 )}
               />
+              
+              {/* Resource Links Section */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-base">Resource Links</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => append({ label: "", url: "" })}
+                    disabled={isSubmitting}
+                  >
+                    Add Link
+                  </Button>
+                </div>
+                
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-end gap-2 bg-secondary/20 p-2 rounded-md">
+                    <FormField
+                      control={form.control}
+                      name={`links.${index}.label`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel className="text-xs">Label</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={isSubmitting} placeholder="e.g., Lecture Video" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name={`links.${index}.url`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel className="text-xs">URL</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={isSubmitting} placeholder="https://..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => remove(index)}
+                      disabled={isSubmitting || fields.length === 1}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
               
               <div className="flex justify-end space-x-2 pt-4">
                 <Button 
