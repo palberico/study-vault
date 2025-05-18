@@ -56,6 +56,8 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
   const [showEditForm, setShowEditForm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  console.log("AssignmentDetailPage rendering with ID:", id);
+
   useEffect(() => {
     async function fetchAssignmentData() {
       if (!user) return;
@@ -73,8 +75,9 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
 
       try {
         setIsLoading(true);
-        console.log("Fetching assignment with ID:", id);
-        const assignmentData = await getAssignment(id.trim());
+        const assignmentId = id.trim();
+        console.log("Fetching assignment with ID:", assignmentId);
+        const assignmentData = await getAssignment(assignmentId);
         
         // Verify the assignment belongs to the user
         if (assignmentData.userId !== user.uid) {

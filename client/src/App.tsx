@@ -57,13 +57,16 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       )} />
-      <Route path="/assignments/:id" component={(params) => (
-        <ProtectedRoute>
-          <AppLayout>
-            <AssignmentDetailPage id={params.id} />
-          </AppLayout>
-        </ProtectedRoute>
-      )} />
+      <Route path="/assignments/:id" component={(params) => {
+        console.log("Route matched with params:", params);
+        return (
+          <ProtectedRoute>
+            <AppLayout>
+              <AssignmentDetailPage id={params.id} />
+            </AppLayout>
+          </ProtectedRoute>
+        );
+      }} />
       <Route path="/assignments" component={() => (
         <ProtectedRoute>
           <AppLayout>
