@@ -29,10 +29,10 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       )} />
-      <Route path="/courses" component={() => (
+      <Route path="/courses/edit/:id" component={(params) => (
         <ProtectedRoute>
           <AppLayout>
-            <CoursesPage />
+            <EditCoursePage id={params.id} />
           </AppLayout>
         </ProtectedRoute>
       )} />
@@ -43,17 +43,17 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       )} />
-      <Route path="/courses/edit/:id" component={(params) => (
+      <Route path="/courses" component={() => (
         <ProtectedRoute>
           <AppLayout>
-            <EditCoursePage id={params.id} />
+            <CoursesPage />
           </AppLayout>
         </ProtectedRoute>
       )} />
-      <Route path="/assignments" component={() => (
+      <Route path="/assignments/edit/:id" component={(params) => (
         <ProtectedRoute>
           <AppLayout>
-            <AssignmentsPage />
+            <EditAssignmentPage id={params.id} />
           </AppLayout>
         </ProtectedRoute>
       )} />
@@ -64,10 +64,10 @@ function Router() {
           </AppLayout>
         </ProtectedRoute>
       )} />
-      <Route path="/assignments/edit/:id" component={(params) => (
+      <Route path="/assignments" component={() => (
         <ProtectedRoute>
           <AppLayout>
-            <EditAssignmentPage id={params.id} />
+            <AssignmentsPage />
           </AppLayout>
         </ProtectedRoute>
       )} />

@@ -144,41 +144,66 @@ export const updateCourse = async (courseId: string, data: Partial<Course>) => {
 };
 
 export const deleteCourse = async (courseId: string) => {
-  // Get all assignments for this course first
-  const assignmentsQuery = query(
-    collection(db, "assignments"),
-    where("courseId", "==", courseId)
-  );
-  const assignmentsSnapshot = await getDocs(assignmentsQuery);
-  
-  // Delete all assignments and their files
-  const batch = writeBatch(db);
-  
-  // Process each assignment
-  for (const assignmentDoc of assignmentsSnapshot.docs) {
-    const assignmentId = assignmentDoc.id;
-    
-    // Find files for this assignment
-    const filesQuery = query(
-      collection(db, "files"),
-      where("assignmentId", "==", assignmentId)
+  try {
+    // Get all assignments for this course first
+    const assignmentsQuery = query(
+      collection(db, "assignments"),
+      where("courseId", "==", courseId)
     );
-    const filesSnapshot = await getDocs(filesQuery);
+    const assignmentsSnapshot = await getDocs(assignmentsQuery);
     
-    // Delete all files for this assignment
-    for (const fileDoc of filesSnapshot.docs) {
-      batch.delete(fileDoc.ref);
+    // Delete all assignments and their files
+    const batch = writeBatch(db);
+    
+    // Process each assignment
+    for (const assignmentDoc of assignmentsSnapshot.docs) {
+      const assignmentId = assignmentDoc.id;
+      
+      // Find files for this assignment
+      const filesQuery = query(
+        collection(db, "files"),
+        where("assignmentId", "==", assignmentId)
+      );
+      const filesSnapshot = await getDocs(filesQuery);
+      
+      // Delete all files for this assignment
+      for (const fileDoc of filesSnapshot.docs) {
+        // Get the file reference from storage and delete it
+        try {
+          const fileData = fileDoc.data();
+          if (fileData.url) {
+            // Extract file path from URL
+            const fileUrl = new URL(fileData.url);
+            const filePath = decodeURIComponent(fileUrl.pathname.split('/o/')[1]);
+            if (filePath) {
+              const storageRef = ref(storage, filePath);
+              await deleteObject(storageRef);
+            }
+          }
+        } catch (error) {
+          console.error("Error deleting file from storage:", error);
+        }
+        
+        // Delete the file document
+        batch.delete(fileDoc.ref);
+      }
+      
+      // Delete the assignment
+      batch.delete(assignmentDoc.ref);
     }
     
-    // Delete the assignment
-    batch.delete(assignmentDoc.ref);
+    // Delete the course itself
+    batch.delete(doc(db, "courses", courseId));
+    
+    // Commit all deletions in a single batch
+    await batch.commit();
+    
+    console.log("Course and related items deleted successfully");
+    return true;
+  } catch (error) {
+    console.error("Error deleting course:", error);
+    throw error;
   }
-  
-  // Delete the course itself
-  batch.delete(doc(db, "courses", courseId));
-  
-  // Commit all deletions in a single batch
-  return batch.commit();
 };
 
 // Assignments
