@@ -12,18 +12,20 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CourseForm from "@/components/course/course-form";
 
 interface SidebarProps {
   courses: Course[];
   isOpen: boolean;
   onClose: () => void;
+  onToggle: () => void;
 }
 
-export default function Sidebar({ courses, isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarProps) {
   const [location] = useLocation();
   const [showCourseForm, setShowCourseForm] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   
   const isActive = (path: string) => {
     if (path === '/' && location === '/') return true;
