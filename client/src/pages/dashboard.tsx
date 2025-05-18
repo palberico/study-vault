@@ -36,21 +36,53 @@ export default function DashboardPage() {
       try {
         setIsLoading(true);
         
-        // Fetch all data in parallel
-        const [coursesData, assignmentsData, filesData] = await Promise.all([
-          getUserCourses(user.uid),
-          getUserAssignments(user.uid),
-          getUserFiles(user.uid)
-        ]);
+        // Fetch data one by one with error handling for each
+        try {
+          console.log("Fetching courses for user:", user.uid);
+          const coursesData = await getUserCourses(user.uid);
+          console.log("Courses data:", coursesData);
+          if (Array.isArray(coursesData)) {
+            setCourses(coursesData);
+          } else {
+            setCourses([]);
+          }
+        } catch (error) {
+          console.error("Error fetching courses:", error);
+          setCourses([]);
+        }
         
-        setCourses(coursesData);
-        setAssignments(assignmentsData);
-        setFiles(filesData);
+        try {
+          console.log("Fetching assignments for user:", user.uid);
+          const assignmentsData = await getUserAssignments(user.uid);
+          console.log("Assignments data:", assignmentsData);
+          if (Array.isArray(assignmentsData)) {
+            setAssignments(assignmentsData);
+          } else {
+            setAssignments([]);
+          }
+        } catch (error) {
+          console.error("Error fetching assignments:", error);
+          setAssignments([]);
+        }
+        
+        try {
+          console.log("Fetching files for user:", user.uid);
+          const filesData = await getUserFiles(user.uid);
+          console.log("Files data:", filesData);
+          if (Array.isArray(filesData)) {
+            setFiles(filesData);
+          } else {
+            setFiles([]);
+          }
+        } catch (error) {
+          console.error("Error fetching files:", error);
+          setFiles([]);
+        }
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        console.error("Error in dashboard data loading:", error);
         toast({
-          title: "Error",
-          description: "Failed to load your dashboard data",
+          title: "Note",
+          description: "Some dashboard data could not be loaded",
           variant: "destructive",
         });
       } finally {
