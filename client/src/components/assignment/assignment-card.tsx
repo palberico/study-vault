@@ -191,7 +191,12 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
           <Button 
             variant="link" 
             className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
-            onClick={() => setShowEditForm(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (assignment.id) {
+                navigate(`/assignments/${assignment.id}`);
+              }
+            }}
           >
             View Details
           </Button>

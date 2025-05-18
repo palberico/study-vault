@@ -1,0 +1,152 @@
+I want to replace the “View Details” link on each assignment card so it navigates to a brand-new Details page instead of opening the edit form. That Details page should show **all** of the assignment data—title, description, formatted due date (using date-fns), any attached files (with thumbnails), and any labeled links—organized into two separate grids.
+
+Please make these changes in my React + Firebase app:
+
+---
+
+1. **AssignmentCard.tsx**  
+   - Remove the code that does `setShowEditForm(true)` for the “View Details” button.  
+   - Import Wouter’s `navigate` and change the button’s onClick to:  
+     ```ts
+     onClick={() => navigate(`/assignments/${assignment.id}`)}
+     ```
+   - Make sure you still prevent event propagation if necessary.
+
+2. **App.tsx (or wherever my routes live)**  
+   - Import:
+     ```ts
+     import { Route } from "wouter";
+     import AssignmentDetails from "@/components/assignment/AssignmentDetails";
+     ```  
+   - Add a new route under your existing `<Route>`s:
+     ```jsx
+     <Route path="/assignments/:id">
+       <AssignmentDetails />
+     </Route>
+     ```
+
+3. **Create a new file** `src/components/assignment/AssignmentDetails.tsx` with this structure:  
+   ```tsx
+   import { useState, useEffect } from "react";
+   import { useParams } from "wouter";
+   import { format } from "date-fns";
+   import {
+     getAssignmentById,
+     getAssignmentFiles,
+     type Assignment
+   } from "@/lib/firebase";
+   import { Card, CardContent } from "@/components/ui/card";
+   import { Spinner } from "@/components/ui/spinner"; // or your loading UI
+
+   export default function AssignmentDetails() {
+     const { id } = useParams<{ id: string }>();
+     const [assignment, setAssignment] = useState<Assignment | null>(null);
+     const [files, setFiles] = useState<Array<{ name: string; url: string }>>([]);
+     const [loading, setLoading] = useState(true);
+     const [error, setError] = useState<string | null>(null);
+
+     useEffect(() => {
+       if (!id) return;
+       setLoading(true);
+       Promise.all([
+         getAssignmentById(id),
+         getAssignmentFiles(id)
+       ])
+       .then(([a, f]) => {
+         setAssignment(a);
+         setFiles(f); // assume f is an array of { name, url }
+       })
+       .catch(err => {
+         console.error(err);
+         setError("Failed to load assignment details.");
+       })
+       .finally(() => setLoading(false));
+     }, [id]);
+
+     if (loading) return <Spinner />;
+     if (error) return <p className="text-red-500">{error}</p>;
+     if (!assignment) return <p>Assignment not found.</p>;
+
+     return (
+       <div className="p-6 space-y-6">
+         <h1 className="text-2xl font-bold">{assignment.title}</h1>
+         <p className="text-sm text-gray-600">
+           Due: {format(new Date(assignment.dueDate), "PPP")}
+         </p>
+         <p className="mt-4">{assignment.description}</p>
+
+         {/* FILE GRID */}
+         {files.length > 0 && (
+           <>
+             <h2 className="text-xl font-semibold mt-6">Files</h2>
+             <div className="grid grid-cols-3 gap-4">
+               {files.map(file => (
+                 <Card key={file.url}>
+                   <CardContent className="p-2">
+                     <img
+                       src={file.url}
+                       alt={file.name}
+                       className="h-32 w-full object-cover mb-2"
+                     />
+                     <p className="text-xs truncate">{file.name}</p>
+                   </CardContent>
+                 </Card>
+               ))}
+             </div>
+           </>
+         )}
+
+         {/* LINKS GRID */}
+         {assignment.links && assignment.links.length > 0 && (
+           <>
+             <h2 className="text-xl font-semibold mt-6">Links</h2>
+             <div className="grid grid-cols-3 gap-4">
+               {assignment.links.map((link, idx) => (
+                 <Card key={idx}>
+                   <CardContent className="p-4">
+                     <p className="font-medium">{link.label}</p>
+                     <a
+                       href={link.url}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="text-sm text-blue-600 break-words"
+                     >
+                       {link.url}
+                     </a>
+                   </CardContent>
+                 </Card>
+               ))}
+             </div>
+           </>
+         )}
+       </div>
+     );
+   }
+Firebase helper
+
+If you don’t already have getAssignmentById(id), add it to lib/firebase.ts:
+
+ts
+Copy
+Edit
+import { doc, getDoc } from "firebase/firestore";
+export async function getAssignmentById(id: string) {
+  const snap = await getDoc(doc(db, "assignments", id));
+  if (!snap.exists()) throw new Error("Not found");
+  const data = snap.data();
+  return {
+    id: snap.id,
+    ...data,
+    dueDate:
+      data.dueDate.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
+    createdAt:
+      data.createdAt.toDate
+        ? data.createdAt.toDate()
+        : new Date(data.createdAt),
+  } as Assignment;
+}
+Verify navigation
+
+Test clicking “View Details” on an assignment card to confirm it opens your new Details page with all the data and two distinct grids for files and links.
+
+Apply these changes carefully so the rest of the app and existing edit flow continue to work without breaking. Thanks!

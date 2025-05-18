@@ -315,6 +315,39 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
         </CardContent>
       </Card>
       
+      {/* Resource Links Section */}
+      {assignment.links && assignment.links.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6">Resource Links</h2>
+          <Card>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {assignment.links.map((link, index) => (
+                  <a 
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex flex-col p-4 border border-slate-200 rounded-lg hover:border-primary hover:shadow-md transition-all bg-white"
+                  >
+                    <div className="flex items-center justify-center h-32 bg-slate-100 rounded-md mb-3 overflow-hidden">
+                      <div className="bg-primary/10 p-4 rounded-full group-hover:bg-primary/20 transition-colors">
+                        <FileText className="h-8 w-8 text-primary" />
+                      </div>
+                    </div>
+                    <h3 className="font-medium text-slate-800 group-hover:text-primary truncate mb-1">
+                      {link.label}
+                    </h3>
+                    <p className="text-sm text-slate-500 truncate">{link.url}</p>
+                  </a>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Files Section */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-slate-800">Files</h2>
@@ -336,40 +369,55 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
                 <p className="text-slate-500 mb-4">Upload files for this assignment using the button above</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        File Name
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Size
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Uploaded
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {files.map((file) => (
-                      <FileItemComponent 
-                        key={file.id} 
-                        file={file}
-                        uploadTime={file.createdAt instanceof Date 
-                          ? format(file.createdAt, 'MMM dd, yyyy') 
-                          : format(new Date(file.createdAt), 'MMM dd, yyyy')}
-                        showCourse={false}
-                        onDelete={() => {
-                          setFiles(prev => prev.filter(f => f.id !== file.id));
-                        }}
-                      />
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {files.map((file) => (
+                  <div key={file.id} className="border border-slate-200 rounded-lg overflow-hidden bg-white hover:shadow-md transition-all">
+                    <div className="flex items-center justify-center h-32 bg-slate-100 overflow-hidden relative">
+                      {file.type.includes('image') ? (
+                        <img src={file.url} alt={file.name} className="object-cover w-full h-full" />
+                      ) : (
+                        <div className="bg-slate-200 p-4 rounded-full">
+                          <FileText className="h-8 w-8 text-slate-600" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 pr-2">
+                          <h3 className="font-medium text-slate-800 truncate mb-1">
+                            {file.name}
+                          </h3>
+                          <p className="text-sm text-slate-500">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB • 
+                            {file.createdAt instanceof Date 
+                              ? format(file.createdAt, ' MMM dd, yyyy') 
+                              : format(new Date(file.createdAt), ' MMM dd, yyyy')}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => window.open(file.url, '_blank')}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              setFiles(prev => prev.filter(f => f.id !== file.id));
+                            }}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
