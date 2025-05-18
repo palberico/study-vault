@@ -110,8 +110,15 @@ export default function AssignmentForm({
       description: assignment?.description || "",
       courseId: assignment?.courseId || courseId || "",
       dueDate: defaultDate,
-      status: assignment?.status || "pending"
+      status: assignment?.status || "pending",
+      links: assignment?.links || [{ label: "", url: "" }]
     }
+  });
+  
+  // Set up field array for resource links
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "links"
   });
 
   // Check for a course ID in the URL or localStorage
@@ -196,13 +203,23 @@ export default function AssignmentForm({
     setIsSubmitting(true);
 
     try {
+      // Filter out empty links
+      const filteredLinks = values.links ? values.links.filter(link => 
+        link.label.trim() !== "" && link.url.trim() !== ""
+      ) : [];
+      
       if (isEditing && assignment.id) {
         // Update existing assignment
-        await updateAssignment(assignment.id, values);
+        const updateData = {
+          ...values,
+          links: filteredLinks.length > 0 ? filteredLinks : []
+        };
+        
+        await updateAssignment(assignment.id, updateData);
         
         const updatedAssignment: Assignment = {
           ...assignment,
-          ...values
+          ...updateData
         };
         
         toast({
@@ -215,7 +232,8 @@ export default function AssignmentForm({
         // Create new assignment
         const assignmentData = {
           userId: user.uid,
-          ...values
+          ...values,
+          links: filteredLinks.length > 0 ? filteredLinks : []
         };
         
         const docRef = await addAssignment(assignmentData);
@@ -397,6 +415,65 @@ export default function AssignmentForm({
                 </FormItem>
               )}
             />
+            
+            {/* Resource Links Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <FormLabel className="text-base">Resource Links</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({ label: "", url: "" })}
+                  disabled={isSubmitting}
+                >
+                  Add Link
+                </Button>
+              </div>
+              
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex items-end gap-2 bg-secondary/20 p-2 rounded-md">
+                  <FormField
+                    control={form.control}
+                    name={`links.${index}.label`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel className="text-xs">Label</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={isSubmitting} placeholder="e.g., Lecture Video" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name={`links.${index}.url`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel className="text-xs">URL</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={isSubmitting} placeholder="https://..." />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => remove(index)}
+                    disabled={isSubmitting || fields.length === 1}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+            </div>
             
             <DialogFooter className="pt-2">
               <Button 
