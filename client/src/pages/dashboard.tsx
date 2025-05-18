@@ -12,7 +12,7 @@ import {
 } from "@/lib/firebase";
 import CourseCard from "@/components/course/course-card";
 import AssignmentCard from "@/components/assignment/assignment-card";
-import FileItem from "@/components/file/file-item";
+import FileItemComponent from "@/components/file/file-item";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, Calendar, FileText } from "lucide-react";
 import CourseForm from "@/components/course/course-form";
@@ -159,57 +159,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Assignments Section */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-800">Recent Assignments</h2>
-          <Button 
-            variant="link" 
-            onClick={() => navigate("/assignments")}
-            className="text-primary hover:text-blue-700"
-          >
-            View All
-          </Button>
-        </div>
-        
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 h-52 animate-pulse">
-                <div className="bg-slate-200 h-4 w-20 mb-3 rounded"></div>
-                <div className="bg-slate-200 h-6 w-4/5 mb-2 rounded"></div>
-                <div className="bg-slate-200 h-4 w-full mb-1 rounded"></div>
-                <div className="bg-slate-200 h-4 w-3/4 mb-4 rounded"></div>
-                <div className="flex items-center mt-auto">
-                  <div className="bg-slate-200 h-4 w-24 rounded"></div>
-                  <div className="bg-slate-200 h-4 w-16 ml-4 rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : recentAssignments.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-            <FileText className="mx-auto h-12 w-12 text-slate-400 mb-3" />
-            <h3 className="text-lg font-medium text-slate-900 mb-1">No assignments yet</h3>
-            <p className="text-slate-500 mb-4">Start adding assignments to your courses</p>
-            <Button onClick={() => navigate("/assignments")}>
-              Create Assignment
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentAssignments.map((assignment) => (
-              <AssignmentCard 
-                key={assignment.id} 
-                assignment={assignment} 
-                courses={courses}
-                onClick={() => navigate(`/assignments/${assignment.id}`)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Your Courses Section */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
@@ -255,6 +204,57 @@ export default function DashboardPage() {
                 course={course} 
                 assignmentCount={assignments.filter(a => a.courseId === course.id).length}
                 onClick={() => navigate(`/courses/${course.id}`)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {/* Recent Assignments Section */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-slate-800">Recent Assignments</h2>
+          <Button 
+            variant="link" 
+            onClick={() => navigate("/assignments")}
+            className="text-primary hover:text-blue-700"
+          >
+            View All
+          </Button>
+        </div>
+        
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 h-52 animate-pulse">
+                <div className="bg-slate-200 h-4 w-20 mb-3 rounded"></div>
+                <div className="bg-slate-200 h-6 w-4/5 mb-2 rounded"></div>
+                <div className="bg-slate-200 h-4 w-full mb-1 rounded"></div>
+                <div className="bg-slate-200 h-4 w-3/4 mb-4 rounded"></div>
+                <div className="flex items-center mt-auto">
+                  <div className="bg-slate-200 h-4 w-24 rounded"></div>
+                  <div className="bg-slate-200 h-4 w-16 ml-4 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : recentAssignments.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
+            <FileText className="mx-auto h-12 w-12 text-slate-400 mb-3" />
+            <h3 className="text-lg font-medium text-slate-900 mb-1">No assignments yet</h3>
+            <p className="text-slate-500 mb-4">Start adding assignments to your courses</p>
+            <Button onClick={() => navigate("/assignments")}>
+              Create Assignment
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recentAssignments.map((assignment) => (
+              <AssignmentCard 
+                key={assignment.id} 
+                assignment={assignment} 
+                courses={courses}
+                onClick={() => navigate(`/assignments/${assignment.id}`)}
               />
             ))}
           </div>
