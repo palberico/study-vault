@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useLocation, useRoute } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { getAssignment, getUserCourses } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AssignmentForm from "@/components/assignment/assignment-form";
-import { ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import AssignmentFormEdit from "@/components/assignment/assignment-form-edit";
 
 export default function EditAssignmentPage({ id }: { id: string }) {
   const [, navigate] = useLocation();
@@ -88,29 +87,11 @@ export default function EditAssignmentPage({ id }: { id: string }) {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <Button 
-        variant="ghost" 
-        onClick={() => navigate(`/assignments/${id}`)} 
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Assignment
-      </Button>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit Assignment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AssignmentForm 
-            assignment={assignment} 
-            courseId={assignment.courseId}
-            courses={courses}
-            onClose={() => navigate(`/assignments/${id}`)} 
-            onSuccess={handleSuccess} 
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <AssignmentFormEdit
+      assignment={assignment}
+      courses={courses}
+      onCancel={() => navigate(`/assignments/${id}`)}
+      onSuccess={handleSuccess}
+    />
   );
 }

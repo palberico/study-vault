@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useLocation, useRoute } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { getCourse } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import CourseForm from "@/components/course/course-form";
-import { ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import CourseFormEdit from "@/components/course/course-form-edit";
 
 export default function EditCoursePage({ id }: { id: string }) {
   const [, navigate] = useLocation();
@@ -80,27 +79,10 @@ export default function EditCoursePage({ id }: { id: string }) {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <Button 
-        variant="ghost" 
-        onClick={() => navigate(`/courses/${id}`)} 
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Course
-      </Button>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit Course</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CourseForm 
-            course={course} 
-            onClose={() => navigate(`/courses/${id}`)} 
-            onSuccess={handleSuccess} 
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <CourseFormEdit 
+      course={course} 
+      onCancel={() => navigate(`/courses/${id}`)} 
+      onSuccess={handleSuccess} 
+    />
   );
 }

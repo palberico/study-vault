@@ -1,0 +1,313 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { updateAssignment, Course, Assignment } from "@/lib/firebase";
+import { useLocation } from "wouter";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
+import { ArrowLeft, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const assignmentSchema = z.object({
+  title: z.string().min(3, {
+    message: "Title must be at least 3 characters long."
+  }),
+  description: z.string().min(10, {
+    message: "Description must be at least 10 characters long."
+  }),
+  dueDate: z.date({
+    required_error: "Please select a due date."
+  }),
+  status: z.enum(["pending", "submitted", "overdue"], {
+    required_error: "Please select a status."
+  }),
+  courseId: z.string().min(1, {
+    message: "Please select a course."
+  })
+});
+
+type AssignmentFormValues = z.infer<typeof assignmentSchema>;
+
+interface AssignmentEditFormProps {
+  assignment: Assignment;
+  courses: Course[];
+  onCancel: () => void;
+  onSuccess: (assignment: Assignment) => void;
+}
+
+export default function AssignmentFormEdit({ assignment, courses, onCancel, onSuccess }: AssignmentEditFormProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, navigate] = useLocation();
+
+  // Convert dueDate to Date object
+  const dueDateObj = assignment.dueDate instanceof Date 
+    ? assignment.dueDate 
+    : new Date(assignment.dueDate);
+
+  const form = useForm<AssignmentFormValues>({
+    resolver: zodResolver(assignmentSchema),
+    defaultValues: {
+      title: assignment.title || "",
+      description: assignment.description || "",
+      dueDate: dueDateObj,
+      status: assignment.status as "pending" | "submitted" | "overdue",
+      courseId: assignment.courseId || ""
+    }
+  });
+  
+  async function onSubmit(values: AssignmentFormValues) {
+    if (!user) {
+      toast({
+        title: "Authentication error",
+        description: "You must be logged in to update an assignment",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!assignment.id) {
+      toast({
+        title: "Error",
+        description: "Cannot update assignment without ID",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Update assignment in Firebase
+      await updateAssignment(assignment.id, values);
+      
+      // Create updated assignment object
+      const updatedAssignment: Assignment = {
+        ...assignment,
+        ...values
+      };
+      
+      toast({
+        title: "Assignment updated",
+        description: `${values.title} has been updated successfully`
+      });
+      
+      onSuccess(updatedAssignment);
+    } catch (error) {
+      console.error("Error updating assignment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update assignment",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="container mx-auto py-6">
+      <Button 
+        variant="ghost" 
+        onClick={onCancel}
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Assignment
+      </Button>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Assignment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assignment Title</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g. Final Project" 
+                        {...field} 
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Describe the assignment requirements..."
+                        className="resize-none h-24"
+                        {...field} 
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Due Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                              disabled={isSubmitting}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        disabled={isSubmitting}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="submitted">Submitted</SelectItem>
+                          <SelectItem value="overdue">Overdue</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="courseId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Course</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      disabled={isSubmitting}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a course" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id || ""}>
+                            {course.code} - {course.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={onCancel}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Updating..." : "Update Assignment"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

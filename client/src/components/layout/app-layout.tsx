@@ -16,10 +16,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
   
-  useEffect(() => {
-    // Close mobile sidebar when location changes
-    setMobileSidebarOpen(false);
-  }, [location]);
+  // We don't want to close the sidebar on location changes
+  // This way the sidebar stays in its current state when navigating
   
   // Load saved sidebar state from localStorage
   useEffect(() => {
