@@ -86,7 +86,18 @@ export default function CourseCard({ course, assignmentCount, onClick }: CourseC
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-all border border-slate-200" onClick={handleClick}>
+    <Card className="overflow-hidden hover:shadow-md transition-all border border-slate-200 relative" onClick={handleClick}>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="absolute top-2 right-2 text-white hover:text-red-500 hover:bg-white/30 z-10 rounded-full h-8 w-8"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsDeleteDialogOpen(true);
+        }}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
       <div className="h-36 bg-cover bg-center" style={{ backgroundImage: `url('${getCourseBackgroundImage()}')` }}>
         <div className={`w-full h-full flex items-center justify-center bg-gradient-to-b ${getBackgroundColor()}`}>
           <span className="text-white font-bold text-xl">{course.code}</span>
@@ -124,18 +135,9 @@ export default function CourseCard({ course, assignmentCount, onClick }: CourseC
             Add Assignment
           </Button>
           <Button 
-            variant="outline"
-            size="sm"
-            className="text-xs text-red-500 border-red-200 hover:bg-red-50"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsDeleteDialogOpen(true);
-            }}
+            variant="link" 
+            className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
           >
-            <Trash2 className="h-3 w-3 mr-1" />
-            Delete
-          </Button>
-          <Button variant="link" className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto">
             View Course
           </Button>
         </div>

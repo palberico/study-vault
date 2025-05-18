@@ -96,11 +96,22 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
 
   return (
     <Card 
-      className="border border-slate-200 overflow-hidden hover:shadow-md transition-all"
+      className="border border-slate-200 overflow-hidden hover:shadow-md transition-all relative"
       onClick={onClick}
     >
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="absolute top-2 right-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsDeleteDialogOpen(true);
+        }}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
       <CardContent className="p-5">
-        <div className="flex justify-between items-start mb-3">
+        <div className="flex items-start mb-3">
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className={getCourseColor()}>
               {course?.code || "Unknown"}
@@ -110,13 +121,6 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
                assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
             </Badge>
           </div>
-          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 h-8 w-8">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="1" />
-              <circle cx="12" cy="5" r="1" />
-              <circle cx="12" cy="19" r="1" />
-            </svg>
-          </Button>
         </div>
         
         <h3 className="font-semibold text-lg mb-2">{assignment.title}</h3>
@@ -162,21 +166,8 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
             Add Files
           </Button>
           <Button 
-            variant="outline"
-            size="sm"
-            className="text-xs text-red-500 border-red-200 hover:bg-red-50"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsDeleteDialogOpen(true);
-            }}
-          >
-            <Trash2 className="h-3 w-3 mr-1" />
-            Delete
-          </Button>
-          <Button 
             variant="link" 
             className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
-            onClick={onClick}
           >
             View Details
           </Button>
