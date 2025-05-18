@@ -10,6 +10,7 @@ import CourseDetailPage from "@/pages/courses/course-detail";
 import EditCoursePage from "@/pages/courses/edit-course";
 import AssignmentsPage from "@/pages/assignments/assignments";
 import AssignmentDetailPage from "@/pages/assignments/assignment-detail";
+import EditAssignmentPage from "@/pages/assignments/edit-assignment";
 import FilesPage from "@/pages/files/files";
 import FileUploadPage from "@/pages/files/upload";
 import NotFound from "@/pages/not-found";
@@ -60,6 +61,13 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <AssignmentDetailPage id={params.id} />
+          </AppLayout>
+        </ProtectedRoute>
+      )} />
+      <Route path="/assignments/edit/:id" component={(params) => (
+        <ProtectedRoute>
+          <AppLayout>
+            <EditAssignmentPage id={params.id} />
           </AppLayout>
         </ProtectedRoute>
       )} />
