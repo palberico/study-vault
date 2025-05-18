@@ -5,6 +5,7 @@ import { Calendar, BookOpen, Trash2, FilePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import CourseFormEdit from "@/components/course/course-form-edit";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +28,7 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
   const [, navigate] = useLocation();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const { toast } = useToast();
 
   // Generate background image and color based on course code
@@ -87,11 +89,7 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
           size="icon" 
           className="text-white hover:text-blue-400 hover:bg-white/30 z-10 rounded-full h-8 w-8"
           onClick={() => {
-            // Use our dedicated edit component
-            if (course.id) {
-              // Navigate to edit page directly
-              navigate(`/courses/edit/${course.id}`);
-            }
+            setShowEditForm(true);
           }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
@@ -217,6 +215,28 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Edit Course Form */}
+      {showEditForm && course && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full mx-auto" onClick={(e) => e.stopPropagation()}>
+            <CourseFormEdit 
+              course={course}
+              onCancel={() => setShowEditForm(false)}
+              onSuccess={(updatedCourse: Course) => {
+                // Handle the updated course - we might need to refresh the page or update the local state
+                toast({
+                  title: "Success",
+                  description: "Course updated successfully",
+                });
+                setShowEditForm(false);
+                // Refresh the page to show updated data
+                window.location.reload();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

@@ -7,6 +7,7 @@ import { Calendar, FileText, Trash2, Upload, FilePlus, FileUp } from "lucide-rea
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import AssignmentFormEdit from "@/components/assignment/assignment-form-edit";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +29,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
   const [fileCount, setFileCount] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [, navigate] = useLocation();
   const { toast } = useToast();
   
@@ -105,10 +107,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
           size="icon" 
           className="text-slate-400 hover:text-blue-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8"
           onClick={() => {
-            if (assignment.id) {
-              // Navigate to the edit page directly
-              navigate(`/assignments/edit/${assignment.id}`);
-            }
+            setShowEditForm(true);
           }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
@@ -235,6 +234,28 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Edit Assignment Form */}
+      {showEditForm && assignment && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full mx-auto" onClick={(e) => e.stopPropagation()}>
+            <AssignmentFormEdit 
+              assignment={assignment}
+              courses={courses}
+              onCancel={() => setShowEditForm(false)}
+              onSuccess={(updatedAssignment: Assignment) => {
+                toast({
+                  title: "Success",
+                  description: "Assignment updated successfully",
+                });
+                setShowEditForm(false);
+                // Refresh the page to show updated data
+                window.location.reload();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
