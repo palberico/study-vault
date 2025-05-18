@@ -1,9 +1,22 @@
 import { formatDistanceToNow } from "date-fns";
-import { Assignment, Course } from "@/lib/firebase";
+import { Assignment, Course, deleteAssignment, getAssignmentFiles } from "@/lib/firebase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileText } from "lucide-react";
+import { Calendar, FileText, Trash2, Upload, FilePlus, FileUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -12,8 +25,30 @@ interface AssignmentCardProps {
 }
 
 export default function AssignmentCard({ assignment, courses, onClick }: AssignmentCardProps) {
+  const [fileCount, setFileCount] = useState(0);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  
   // Find the course this assignment belongs to
   const course = courses.find(c => c.id === assignment.courseId);
+  
+  // Load file count
+  useEffect(() => {
+    async function loadFileCount() {
+      if (!assignment.id) return;
+      
+      try {
+        const files = await getAssignmentFiles(assignment.id);
+        setFileCount(files.length);
+      } catch (error) {
+        console.error("Error loading files:", error);
+      }
+    }
+    
+    loadFileCount();
+  }, [assignment.id]);
   
   // Format the due date
   const formatDueDate = () => {

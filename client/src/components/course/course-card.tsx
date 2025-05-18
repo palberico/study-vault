@@ -1,8 +1,20 @@
 import { useLocation } from "wouter";
-import { Course } from "@/lib/firebase";
+import { Course, deleteCourse } from "@/lib/firebase";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, BookOpen } from "lucide-react";
+import { Calendar, BookOpen, Trash2, FilePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CourseCardProps {
   course: Course;
@@ -12,6 +24,9 @@ interface CourseCardProps {
 
 export default function CourseCard({ course, assignmentCount, onClick }: CourseCardProps) {
   const [, navigate] = useLocation();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   // Generate background image and color based on course code
   const getBackgroundColor = () => {
@@ -108,11 +123,70 @@ export default function CourseCard({ course, assignmentCount, onClick }: CourseC
           >
             Add Assignment
           </Button>
+          <Button 
+            variant="outline"
+            size="sm"
+            className="text-xs text-red-500 border-red-200 hover:bg-red-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsDeleteDialogOpen(true);
+            }}
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Delete
+          </Button>
           <Button variant="link" className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto">
             View Course
           </Button>
         </div>
       </div>
+      
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this course?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will permanently delete the course "{course.name}" ({course.code}), 
+              all its assignments, and any files attached to those assignments. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!course.id) return;
+                
+                try {
+                  setIsDeleting(true);
+                  await deleteCourse(course.id);
+                  toast({
+                    title: "Course deleted",
+                    description: "The course and all its content has been deleted",
+                  });
+                  // Force page refresh to update UI
+                  window.location.reload();
+                } catch (error) {
+                  console.error("Error deleting course:", error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to delete the course. Please try again.",
+                    variant: "destructive",
+                  });
+                } finally {
+                  setIsDeleting(false);
+                  setIsDeleteDialogOpen(false);
+                }
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              {isDeleting ? "Deleting..." : "Delete Course"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
