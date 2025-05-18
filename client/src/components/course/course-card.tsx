@@ -87,17 +87,30 @@ export default function CourseCard({ course, assignmentCount, onClick }: CourseC
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-all border border-slate-200 relative" onClick={handleClick}>
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="absolute top-2 right-2 text-white hover:text-red-500 hover:bg-white/30 z-10 rounded-full h-8 w-8"
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsDeleteDialogOpen(true);
-        }}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      <div className="absolute top-2 right-2 z-10 flex space-x-1">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-white hover:text-blue-400 hover:bg-white/30 z-10 rounded-full h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/courses/edit/${course.id}`);
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-white hover:text-red-500 hover:bg-white/30 z-10 rounded-full h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsDeleteDialogOpen(true);
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
       <div className="h-36 bg-cover bg-center" style={{ backgroundImage: `url('${getCourseBackgroundImage()}')` }}>
         <div className={`w-full h-full flex items-center justify-center bg-gradient-to-b ${getBackgroundColor()}`}>
           <span className="text-white font-bold text-xl">{course.code}</span>

@@ -7,6 +7,7 @@ import RegisterPage from "@/pages/auth/register";
 import DashboardPage from "@/pages/dashboard";
 import CoursesPage from "@/pages/courses/courses";
 import CourseDetailPage from "@/pages/courses/course-detail";
+import EditCoursePage from "@/pages/courses/edit-course";
 import AssignmentsPage from "@/pages/assignments/assignments";
 import AssignmentDetailPage from "@/pages/assignments/assignment-detail";
 import FilesPage from "@/pages/files/files";
@@ -38,6 +39,13 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <CourseDetailPage id={params.id} />
+          </AppLayout>
+        </ProtectedRoute>
+      )} />
+      <Route path="/courses/edit/:id" component={(params) => (
+        <ProtectedRoute>
+          <AppLayout>
+            <EditCoursePage id={params.id} />
           </AppLayout>
         </ProtectedRoute>
       )} />

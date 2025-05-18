@@ -18,6 +18,7 @@ import {
   getDocs,
   query,
   where,
+  writeBatch,
   orderBy 
 } from "firebase/firestore";
 import { 
@@ -143,7 +144,41 @@ export const updateCourse = async (courseId: string, data: Partial<Course>) => {
 };
 
 export const deleteCourse = async (courseId: string) => {
-  return deleteDoc(doc(db, "courses", courseId));
+  // Get all assignments for this course first
+  const assignmentsQuery = query(
+    collection(db, "assignments"),
+    where("courseId", "==", courseId)
+  );
+  const assignmentsSnapshot = await getDocs(assignmentsQuery);
+  
+  // Delete all assignments and their files
+  const batch = writeBatch(db);
+  
+  // Process each assignment
+  for (const assignmentDoc of assignmentsSnapshot.docs) {
+    const assignmentId = assignmentDoc.id;
+    
+    // Find files for this assignment
+    const filesQuery = query(
+      collection(db, "files"),
+      where("assignmentId", "==", assignmentId)
+    );
+    const filesSnapshot = await getDocs(filesQuery);
+    
+    // Delete all files for this assignment
+    for (const fileDoc of filesSnapshot.docs) {
+      batch.delete(fileDoc.ref);
+    }
+    
+    // Delete the assignment
+    batch.delete(assignmentDoc.ref);
+  }
+  
+  // Delete the course itself
+  batch.delete(doc(db, "courses", courseId));
+  
+  // Commit all deletions in a single batch
+  return batch.commit();
 };
 
 // Assignments
