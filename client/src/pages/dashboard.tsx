@@ -8,11 +8,11 @@ import {
   getUserFiles,
   type Course,
   type Assignment,
-  type FileItem
+  type FileItem as FileItemType
 } from "@/lib/firebase";
 import CourseCard from "@/components/course/course-card";
 import AssignmentCard from "@/components/assignment/assignment-card";
-import FileItemComponent from "@/components/file/file-item";
+import FileItem from "@/components/file/file-item";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, Calendar, FileText } from "lucide-react";
 import CourseForm from "@/components/course/course-form";
@@ -25,7 +25,7 @@ export default function DashboardPage() {
   
   const [courses, setCourses] = useState<Course[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [files, setFiles] = useState<FileItem[]>([]);
+  const [files, setFiles] = useState<FileItemType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCourseForm, setShowCourseForm] = useState(false);
   

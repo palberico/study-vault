@@ -20,9 +20,10 @@ interface CourseCardProps {
   course: Course;
   assignmentCount: number;
   onClick?: () => void;
+  onDelete?: (courseId: string) => void;
 }
 
-export default function CourseCard({ course, assignmentCount, onClick }: CourseCardProps) {
+export default function CourseCard({ course, assignmentCount, onClick, onDelete }: CourseCardProps) {
   const [, navigate] = useLocation();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -181,8 +182,11 @@ export default function CourseCard({ course, assignmentCount, onClick }: CourseC
                     title: "Course deleted",
                     description: "The course and all its content has been deleted",
                   });
-                  // Force page refresh to update UI
-                  window.location.reload();
+                  
+                  // Call onDelete callback if provided
+                  if (onDelete) {
+                    onDelete(course.id);
+                  }
                 } catch (error) {
                   console.error("Error deleting course:", error);
                   toast({
