@@ -103,15 +103,24 @@ export default function AssignmentForm({
       
       try {
         setIsLoadingCourses(true);
+        console.log("Fetching courses for user:", user.uid);
         const coursesData = await getUserCourses(user.uid);
-        setCourses(coursesData);
+        console.log("Courses retrieved:", coursesData);
+        
+        if (Array.isArray(coursesData)) {
+          setCourses(coursesData);
+        } else {
+          console.error("Invalid courses data format:", coursesData);
+          setCourses([]);
+        }
       } catch (error) {
         console.error("Error fetching courses:", error);
         toast({
-          title: "Error",
-          description: "Failed to load courses",
+          title: "Error loading courses",
+          description: "Please try again or add a course first",
           variant: "destructive"
         });
+        setCourses([]);
       } finally {
         setIsLoadingCourses(false);
       }
