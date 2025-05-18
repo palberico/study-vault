@@ -77,7 +77,15 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
     "Spring 2026",
     "Summer 2026",
     "Fall 2026",
-    "Winter 2026"
+    "Winter 2026",
+    "Spring 2027",
+    "Summer 2027",
+    "Fall 2027",
+    "Winter 2027",
+    "Spring 2028",
+    "Summer 2028",
+    "Fall 2028",
+    "Winter 2028"
   ];
 
   async function onSubmit(values: CourseFormValues) {

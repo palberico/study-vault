@@ -97,37 +97,59 @@ export default function AssignmentForm({
   });
 
   // Fetch courses if not provided
+  // Use prop courses if provided, otherwise fetch from Firebase
   useEffect(() => {
+    if (propCourses && propCourses.length > 0) {
+      console.log("Using provided courses:", propCourses);
+      setCourses(propCourses);
+      return;
+    }
+    
     async function fetchCourses() {
-      if (!user || propCourses) return;
+      if (!user) return;
       
       try {
         setIsLoadingCourses(true);
         console.log("Fetching courses for user:", user.uid);
-        const coursesData = await getUserCourses(user.uid);
-        console.log("Courses retrieved:", coursesData);
         
-        if (Array.isArray(coursesData)) {
-          setCourses(coursesData);
+        // Try to get courses directly from Firestore collection
+        const coursesCollectionRef = collection(db, "courses");
+        const q = query(coursesCollectionRef, where("userId", "==", user.uid));
+        
+        const querySnapshot = await getDocs(q);
+        const fetchedCourses = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Course[];
+        
+        console.log("Directly fetched courses:", fetchedCourses);
+        
+        if (fetchedCourses && fetchedCourses.length > 0) {
+          setCourses(fetchedCourses);
         } else {
-          console.error("Invalid courses data format:", coursesData);
+          console.log("No courses found");
           setCourses([]);
+          toast({
+            title: "No courses found",
+            description: "Please create a course first",
+            variant: "destructive"
+          });
         }
       } catch (error) {
         console.error("Error fetching courses:", error);
+        setCourses([]);
         toast({
           title: "Error loading courses",
           description: "Please try again or add a course first",
           variant: "destructive"
         });
-        setCourses([]);
       } finally {
         setIsLoadingCourses(false);
       }
     }
     
     fetchCourses();
-  }, [user, toast, propCourses]);
+  }, [user, toast, propCourses, db]);
 
   async function onSubmit(values: AssignmentFormValues) {
     if (!user) {

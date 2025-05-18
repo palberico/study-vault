@@ -108,17 +108,22 @@ export const addCourse = async (courseData: Omit<Course, 'id' | 'createdAt'>) =>
 };
 
 export const getUserCourses = async (userId: string) => {
-  const q = query(
-    collection(db, "courses"),
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc")
-  );
-  
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as Course[];
+  try {
+    // Simplified query - remove the orderBy to avoid requiring a composite index
+    const q = query(
+      collection(db, "courses"),
+      where("userId", "==", userId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Course[];
+  } catch (error) {
+    console.error("Error in getUserCourses:", error);
+    return [];
+  }
 };
 
 export const getCourse = async (courseId: string) => {
@@ -150,17 +155,22 @@ export const addAssignment = async (assignmentData: Omit<Assignment, 'id' | 'cre
 };
 
 export const getUserAssignments = async (userId: string) => {
-  const q = query(
-    collection(db, "assignments"),
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc")
-  );
-  
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as Assignment[];
+  try {
+    // Simplified query without orderBy to avoid index requirement
+    const q = query(
+      collection(db, "assignments"),
+      where("userId", "==", userId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Assignment[];
+  } catch (error) {
+    console.error("Error in getUserAssignments:", error);
+    return [];
+  }
 };
 
 export const getCourseAssignments = async (courseId: string) => {
@@ -234,17 +244,22 @@ export const getAssignmentFiles = async (assignmentId: string) => {
 };
 
 export const getUserFiles = async (userId: string) => {
-  const q = query(
-    collection(db, "files"),
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc")
-  );
-  
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as FileItem[];
+  try {
+    // Simplified query without orderBy to avoid index requirement
+    const q = query(
+      collection(db, "files"),
+      where("userId", "==", userId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as FileItem[];
+  } catch (error) {
+    console.error("Error in getUserFiles:", error);
+    return [];
+  }
 };
 
 export const deleteFile = async (fileId: string, filePath: string) => {

@@ -29,6 +29,28 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showCourseForm, setShowCourseForm] = useState(false);
   
+  // Store courses in localStorage when they're fetched
+  useEffect(() => {
+    if (courses && courses.length > 0) {
+      console.log("Storing courses in localStorage:", courses);
+      localStorage.setItem('userCourses', JSON.stringify(courses));
+    } else {
+      // Try to load from localStorage if no courses are loaded
+      const storedCourses = localStorage.getItem('userCourses');
+      if (storedCourses && (!courses || courses.length === 0)) {
+        try {
+          const parsedCourses = JSON.parse(storedCourses);
+          if (Array.isArray(parsedCourses) && parsedCourses.length > 0) {
+            console.log("Loaded courses from localStorage:", parsedCourses);
+            setCourses(parsedCourses);
+          }
+        } catch (e) {
+          console.error("Error parsing stored courses:", e);
+        }
+      }
+    }
+  }, [courses]);
+  
   useEffect(() => {
     async function fetchData() {
       if (!user) return;
