@@ -13,12 +13,26 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [location] = useLocation();
   const { user } = useAuth();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
   
   useEffect(() => {
     // Close mobile sidebar when location changes
     setMobileSidebarOpen(false);
   }, [location]);
+  
+  // Load saved sidebar state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebarExpanded');
+    if (savedState !== null) {
+      setSidebarExpanded(savedState === 'true');
+    }
+  }, []);
+  
+  // Save sidebar state when it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarExpanded', sidebarExpanded.toString());
+  }, [sidebarExpanded]);
   
   useEffect(() => {
     async function fetchCourses() {
@@ -34,6 +48,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
     
     fetchCourses();
   }, [user]);
+  
+  const toggleSidebar = () => {
+    setSidebarExpanded(prev => !prev);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -46,12 +64,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {/* Sidebar - desktop (fixed) and mobile (absolute) */}
         <Sidebar 
           courses={courses} 
-          isOpen={mobileSidebarOpen}
+          isOpen={mobileSidebarOpen || sidebarExpanded}
           onClose={() => setMobileSidebarOpen(false)}
+          onToggle={toggleSidebar}
         />
         
         {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-8">
+        <main className={`flex-1 p-4 lg:p-8 transition-all duration-300 ${!sidebarExpanded ? "lg:ml-0" : ""}`}>
           {children}
         </main>
       </div>

@@ -57,11 +57,13 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
   
   // Sidebar for larger screens (fixed)
   const sidebarContent = (
-    <nav className="px-4 py-6 space-y-6">
+    <nav className={cn("py-6 space-y-6", isOpen ? "px-4" : "px-2")}>
       <div>
-        <div className="px-2 mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Main
-        </div>
+        {isOpen && (
+          <div className="px-2 mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Main
+          </div>
+        )}
         <ul className="space-y-1">
           <li>
             <Link href="/">
@@ -69,13 +71,15 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                 "flex items-center px-2 py-2 text-sm font-medium rounded-md",
                 isActive('/') 
                   ? "bg-primary text-white" 
-                  : "text-slate-700 hover:bg-slate-100"
+                  : "text-slate-700 hover:bg-slate-100",
+                !isOpen && "justify-center"
               )}>
                 <Home className={cn(
-                  "w-5 h-5 mr-3",
+                  "w-5 h-5",
+                  isOpen ? "mr-3" : "",
                   isActive('/') ? "text-white" : "text-slate-500"
                 )} />
-                Dashboard
+                {isOpen && "Dashboard"}
               </a>
             </Link>
           </li>
@@ -85,13 +89,15 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                 "flex items-center px-2 py-2 text-sm font-medium rounded-md",
                 isActive('/courses') 
                   ? "bg-primary text-white" 
-                  : "text-slate-700 hover:bg-slate-100"
+                  : "text-slate-700 hover:bg-slate-100",
+                !isOpen && "justify-center"
               )}>
                 <BookOpen className={cn(
-                  "w-5 h-5 mr-3",
+                  "w-5 h-5",
+                  isOpen ? "mr-3" : "",
                   isActive('/courses') ? "text-white" : "text-slate-500"
                 )} />
-                Courses
+                {isOpen && "Courses"}
               </a>
             </Link>
           </li>
@@ -101,13 +107,15 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                 "flex items-center px-2 py-2 text-sm font-medium rounded-md",
                 isActive('/assignments') 
                   ? "bg-primary text-white" 
-                  : "text-slate-700 hover:bg-slate-100"
+                  : "text-slate-700 hover:bg-slate-100",
+                !isOpen && "justify-center"
               )}>
                 <FileText className={cn(
-                  "w-5 h-5 mr-3",
+                  "w-5 h-5",
+                  isOpen ? "mr-3" : "",
                   isActive('/assignments') ? "text-white" : "text-slate-500"
                 )} />
-                Assignments
+                {isOpen && "Assignments"}
               </a>
             </Link>
           </li>
@@ -117,13 +125,15 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                 "flex items-center px-2 py-2 text-sm font-medium rounded-md",
                 isActive('/files') 
                   ? "bg-primary text-white" 
-                  : "text-slate-700 hover:bg-slate-100"
+                  : "text-slate-700 hover:bg-slate-100",
+                !isOpen && "justify-center"
               )}>
                 <Folder className={cn(
-                  "w-5 h-5 mr-3",
+                  "w-5 h-5",
+                  isOpen ? "mr-3" : "",
                   isActive('/files') ? "text-white" : "text-slate-500"
                 )} />
-                All Files
+                {isOpen && "All Files"}
               </a>
             </Link>
           </li>
@@ -132,9 +142,11 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
       
       {courses.length > 0 && (
         <div>
-          <div className="px-2 mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Your Courses
-          </div>
+          {isOpen && (
+            <div className="px-2 mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Your Courses
+            </div>
+          )}
           <ScrollArea className="h-[calc(100vh-22rem)]">
             <ul className="space-y-1 pr-2">
               {courses.map((course) => (
@@ -144,10 +156,15 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                       "flex items-center px-2 py-2 text-sm font-medium rounded-md",
                       isActive(`/courses/${course.id}`) 
                         ? "bg-slate-100 text-slate-900 font-medium" 
-                        : "text-slate-700 hover:bg-slate-100"
+                        : "text-slate-700 hover:bg-slate-100",
+                      !isOpen && "justify-center"
                     )}>
-                      <span className={cn("w-2 h-2 mr-3 rounded-full", getCourseColor(course.code))}></span>
-                      {course.code} - {course.name}
+                      <span className={cn(
+                        "rounded-full", 
+                        isOpen ? "w-2 h-2 mr-3" : "w-5 h-5",
+                        getCourseColor(course.code)
+                      )}></span>
+                      {isOpen && `${course.code} - ${course.name}`}
                     </a>
                   </Link>
                 </li>
@@ -157,14 +174,17 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
         </div>
       )}
       
-      <div className="pt-4 border-t border-slate-200">
+      <div className={cn("pt-4 border-t border-slate-200", !isOpen && "flex justify-center")}>
         <Button
           onClick={() => setShowCourseForm(true)}
           variant="ghost"
-          className="flex items-center w-full px-2 py-2 text-sm font-medium rounded-md text-primary hover:bg-blue-50"
+          className={cn(
+            "flex items-center px-2 py-2 text-sm font-medium rounded-md text-primary hover:bg-blue-50",
+            isOpen ? "w-full" : "w-10 h-10 p-0"
+          )}
         >
-          <Plus className="w-5 h-5 mr-3" />
-          Add New Course
+          <Plus className={cn("w-5 h-5", isOpen && "mr-3")} />
+          {isOpen && "Add New Course"}
         </Button>
       </div>
     </nav>
