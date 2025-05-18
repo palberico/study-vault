@@ -204,6 +204,16 @@ export default function DashboardPage() {
                 course={course} 
                 assignmentCount={assignments.filter(a => a.courseId === course.id).length}
                 onClick={() => navigate(`/courses/${course.id}`)}
+                onDelete={(courseId) => {
+                  // Update courses state
+                  setCourses(prevCourses => prevCourses.filter(c => c.id !== courseId));
+                  
+                  // Update assignments state - remove all assignments for this course
+                  setAssignments(prevAssignments => prevAssignments.filter(a => a.courseId !== courseId));
+                  
+                  // Update files state - remove all files associated with this course
+                  setFiles(prevFiles => prevFiles.filter(f => f.courseId !== courseId));
+                }}
               />
             ))}
           </div>
