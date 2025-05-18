@@ -10,7 +10,7 @@ import {
   updateAssignment,
   type Assignment,
   type Course,
-  type FileItem
+  type FileItem as FirebaseFileItem
 } from "@/lib/firebase";
 import FileUploader from "@/components/file/file-uploader";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ import { format } from "date-fns";
 import AssignmentFormEdit from "@/components/assignment/assignment-form-edit";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import FileItem from "@/components/file/file-item";
+import FileItemComponent from "@/components/file/file-item";
 
 interface AssignmentDetailPageProps {
   id: string;
@@ -50,7 +50,7 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
-  const [files, setFiles] = useState<FileItem[]>([]);
+  const [files, setFiles] = useState<FirebaseFileItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -125,7 +125,7 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
     }
   };
 
-  const handleFileUpload = (newFile: FileItem) => {
+  const handleFileUpload = (newFile: FirebaseFileItem) => {
     setFiles(prev => [newFile, ...prev]);
   };
 
@@ -356,7 +356,7 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
                   </thead>
                   <tbody className="bg-white divide-y divide-slate-200">
                     {files.map((file) => (
-                      <FileItem 
+                      <FileItemComponent 
                         key={file.id} 
                         file={file}
                         uploadTime={file.createdAt instanceof Date 
@@ -399,17 +399,21 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Edit Assignment Form Dialog */}
+      {/* Edit Assignment Form */}
       {showEditForm && assignment && (
-        <AssignmentForm 
-          assignment={assignment}
-          onClose={() => setShowEditForm(false)}
-          onSuccess={(updatedAssignment) => {
-            setAssignment(updatedAssignment);
-            setShowEditForm(false);
-          }}
-          courses={course ? [course] : []}
-        />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full mx-auto" onClick={(e) => e.stopPropagation()}>
+            <AssignmentFormEdit 
+              assignment={assignment}
+              courses={course ? [course] : []}
+              onCancel={() => setShowEditForm(false)}
+              onSuccess={(updatedAssignment: Assignment) => {
+                setAssignment(updatedAssignment);
+                setShowEditForm(false);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
