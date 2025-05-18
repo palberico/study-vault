@@ -56,11 +56,21 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
   const formatDueDate = () => {
     if (!assignment.dueDate) return "No due date";
     
-    const dueDate = assignment.dueDate instanceof Date 
-      ? assignment.dueDate 
-      : new Date(assignment.dueDate);
-    
-    return formatDistanceToNow(dueDate, { addSuffix: true });
+    try {
+      const dueDate = assignment.dueDate instanceof Date 
+        ? assignment.dueDate 
+        : new Date(assignment.dueDate);
+      
+      // Check if date is valid
+      if (isNaN(dueDate.getTime())) {
+        return "Invalid date";
+      }
+      
+      return formatDistanceToNow(dueDate, { addSuffix: true });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
   
   // Determine badge colors based on status
