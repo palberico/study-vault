@@ -110,6 +110,7 @@ export const addCourse = async (courseData: Omit<Course, 'id' | 'createdAt'>) =>
 
 export const getUserCourses = async (userId: string) => {
   try {
+    console.log("Getting courses from Firebase for user:", userId);
     // Simplified query - remove the orderBy to avoid requiring a composite index
     const q = query(
       collection(db, "courses"),
@@ -117,10 +118,13 @@ export const getUserCourses = async (userId: string) => {
     );
     
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
+    const courses = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as Course[];
+    
+    console.log("Courses fetched from Firebase:", courses);
+    return courses;
   } catch (error) {
     console.error("Error in getUserCourses:", error);
     return [];

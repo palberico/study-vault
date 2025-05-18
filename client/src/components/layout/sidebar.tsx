@@ -71,8 +71,8 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
         <ul className="space-y-1">
           <li>
             <Link href="/">
-              <a className={cn(
-                "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+              <div className={cn(
+                "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                 isActive('/') 
                   ? "bg-primary text-white" 
                   : "text-slate-700 hover:bg-slate-100",
@@ -84,13 +84,13 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                   isActive('/') ? "text-white" : "text-slate-500"
                 )} />
                 {showContent && "Dashboard"}
-              </a>
+              </div>
             </Link>
           </li>
           <li>
             <Link href="/courses">
-              <a className={cn(
-                "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+              <div className={cn(
+                "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                 isActive('/courses') 
                   ? "bg-primary text-white" 
                   : "text-slate-700 hover:bg-slate-100",
@@ -102,13 +102,13 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                   isActive('/courses') ? "text-white" : "text-slate-500"
                 )} />
                 {showContent && "Courses"}
-              </a>
+              </div>
             </Link>
           </li>
           <li>
             <Link href="/assignments">
-              <a className={cn(
-                "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+              <div className={cn(
+                "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                 isActive('/assignments') 
                   ? "bg-primary text-white" 
                   : "text-slate-700 hover:bg-slate-100",
@@ -120,13 +120,13 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                   isActive('/assignments') ? "text-white" : "text-slate-500"
                 )} />
                 {showContent && "Assignments"}
-              </a>
+              </div>
             </Link>
           </li>
           <li>
             <Link href="/files">
-              <a className={cn(
-                "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+              <div className={cn(
+                "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                 isActive('/files') 
                   ? "bg-primary text-white" 
                   : "text-slate-700 hover:bg-slate-100",
@@ -138,7 +138,7 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                   isActive('/files') ? "text-white" : "text-slate-500"
                 )} />
                 {showContent && "All Files"}
-              </a>
+              </div>
             </Link>
           </li>
         </ul>
@@ -156,8 +156,8 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
               {courses.map((course) => (
                 <li key={course.id}>
                   <Link href={`/courses/${course.id}`}>
-                    <a className={cn(
-                      "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+                    <div className={cn(
+                      "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                       isActive(`/courses/${course.id}`) 
                         ? "bg-slate-100 text-slate-900 font-medium" 
                         : "text-slate-700 hover:bg-slate-100",
@@ -169,7 +169,7 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
                         getCourseColor(course.code)
                       )}></span>
                       {showContent && `${course.code} - ${course.name}`}
-                    </a>
+                    </div>
                   </Link>
                 </li>
               ))}

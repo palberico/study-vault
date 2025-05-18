@@ -186,6 +186,21 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
                   // Call onDelete callback if provided
                   if (onDelete) {
                     onDelete(course.id);
+                    
+                    // Also remove from localStorage to prevent caching issues
+                    try {
+                      const storedCourses = localStorage.getItem('userCourses');
+                      if (storedCourses) {
+                        const parsedCourses = JSON.parse(storedCourses);
+                        if (Array.isArray(parsedCourses)) {
+                          const updatedCourses = parsedCourses.filter(c => c.id !== course.id);
+                          localStorage.setItem('userCourses', JSON.stringify(updatedCourses));
+                          console.log("Updated localStorage after course deletion");
+                        }
+                      }
+                    } catch (error) {
+                      console.error("Error updating localStorage after deletion:", error);
+                    }
                   }
                 } catch (error) {
                   console.error("Error deleting course:", error);

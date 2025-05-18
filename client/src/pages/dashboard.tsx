@@ -29,29 +29,18 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showCourseForm, setShowCourseForm] = useState(false);
   
-  // Store courses in localStorage when they're fetched
+  // Don't load from localStorage automatically anymore
   useEffect(() => {
     if (courses && courses.length > 0) {
       console.log("Storing courses in localStorage:", courses);
       localStorage.setItem('userCourses', JSON.stringify(courses));
-    } else {
-      // Try to load from localStorage if no courses are loaded
-      const storedCourses = localStorage.getItem('userCourses');
-      if (storedCourses && (!courses || courses.length === 0)) {
-        try {
-          const parsedCourses = JSON.parse(storedCourses);
-          if (Array.isArray(parsedCourses) && parsedCourses.length > 0) {
-            console.log("Loaded courses from localStorage:", parsedCourses);
-            setCourses(parsedCourses);
-          }
-        } catch (e) {
-          console.error("Error parsing stored courses:", e);
-        }
-      }
     }
   }, [courses]);
   
   useEffect(() => {
+    // Clear localStorage when component mounts to prevent stale data
+    localStorage.removeItem('userCourses');
+    
     async function fetchData() {
       if (!user) return;
       
@@ -62,7 +51,7 @@ export default function DashboardPage() {
         try {
           console.log("Fetching courses for user:", user.uid);
           const coursesData = await getUserCourses(user.uid);
-          console.log("Courses data:", coursesData);
+          console.log("Courses data received from Firebase:", coursesData);
           if (Array.isArray(coursesData)) {
             setCourses(coursesData);
           } else {
@@ -205,11 +194,14 @@ export default function DashboardPage() {
                 assignmentCount={assignments.filter(a => a.courseId === course.id).length}
                 onClick={() => navigate(`/courses/${course.id}`)}
                 onDelete={(courseId) => {
+                  // Force refresh from server
+                  setIsLoading(true);
+                  
                   // Update courses state
                   setCourses(prevCourses => {
                     const updatedCourses = prevCourses.filter(c => c.id !== courseId);
-                    // Update localStorage to match the current state
-                    localStorage.setItem('userCourses', JSON.stringify(updatedCourses));
+                    // Clear localStorage completely to ensure fresh data on next load
+                    localStorage.removeItem('userCourses');
                     return updatedCourses;
                   });
                   
@@ -218,6 +210,20 @@ export default function DashboardPage() {
                   
                   // Update files state - remove all files associated with this course
                   setFiles(prevFiles => prevFiles.filter(f => f.courseId !== courseId));
+                  
+                  // Refetch data after a short delay
+                  setTimeout(async () => {
+                    if (user) {
+                      try {
+                        const coursesData = await getUserCourses(user.uid);
+                        setCourses(coursesData);
+                      } catch (error) {
+                        console.error("Error refreshing courses after deletion:", error);
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }
+                  }, 1000);
                 }}
               />
             ))}
