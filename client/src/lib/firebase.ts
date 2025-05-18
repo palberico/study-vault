@@ -120,7 +120,7 @@ export const getUserCourses = async (userId: string) => {
     const querySnapshot = await getDocs(q);
     const courses = querySnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...convertTimestamps(doc.data())
     })) as Course[];
     
     console.log("Courses fetched from Firebase:", courses);
@@ -136,7 +136,7 @@ export const getCourse = async (courseId: string) => {
   const docSnap = await getDoc(docRef);
   
   if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() } as Course;
+    return { id: docSnap.id, ...convertTimestamps(docSnap.data()) } as Course;
   } else {
     throw new Error("Course not found");
   }
@@ -218,6 +218,22 @@ export const addAssignment = async (assignmentData: Omit<Assignment, 'id' | 'cre
   });
 };
 
+// Helper function to convert Firestore timestamps to Date objects
+const convertTimestamps = (data: any) => {
+  const result = { ...data };
+  
+  // Convert specific known timestamp fields
+  if (result.createdAt && typeof result.createdAt.toDate === 'function') {
+    result.createdAt = result.createdAt.toDate();
+  }
+  
+  if (result.dueDate && typeof result.dueDate.toDate === 'function') {
+    result.dueDate = result.dueDate.toDate();
+  }
+  
+  return result;
+};
+
 export const getUserAssignments = async (userId: string) => {
   try {
     // Simplified query without orderBy to avoid index requirement
@@ -229,7 +245,7 @@ export const getUserAssignments = async (userId: string) => {
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...convertTimestamps(doc.data())
     })) as Assignment[];
   } catch (error) {
     console.error("Error in getUserAssignments:", error);
@@ -247,7 +263,7 @@ export const getCourseAssignments = async (courseId: string) => {
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({
     id: doc.id,
-    ...doc.data()
+    ...convertTimestamps(doc.data())
   })) as Assignment[];
 };
 
@@ -256,7 +272,7 @@ export const getAssignment = async (assignmentId: string) => {
   const docSnap = await getDoc(docRef);
   
   if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() } as Assignment;
+    return { id: docSnap.id, ...convertTimestamps(docSnap.data()) } as Assignment;
   } else {
     throw new Error("Assignment not found");
   }
