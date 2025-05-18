@@ -94,9 +94,24 @@ export default function CourseCard({ course, assignmentCount, onClick }: CourseC
           <span className={`inline-block w-2 h-2 rounded-full ${getCourseStatusColor()} mr-2`}></span>
           Active
         </span>
-        <Button variant="link" className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto">
-          View Course
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Store course ID in localStorage for assignment form
+              localStorage.setItem('selectedCourseId', course.id || '');
+              navigate(`/assignments/new?courseId=${course.id}`);
+            }}
+          >
+            Add Assignment
+          </Button>
+          <Button variant="link" className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto">
+            View Course
+          </Button>
+        </div>
       </div>
     </Card>
   );

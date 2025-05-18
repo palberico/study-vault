@@ -104,15 +104,35 @@ export default function AssignmentForm({
     }
   });
 
-  // Fetch courses if not provided
-  // Use prop courses if provided, otherwise fetch from Firebase
+  // Check for a course ID in the URL or localStorage
+  const { useEffect } = require('react');
+  
   useEffect(() => {
+    // First check if we have courses from props
     if (propCourses && propCourses.length > 0) {
       console.log("Using provided courses:", propCourses);
       setCourses(propCourses);
       return;
     }
     
+    // Then check URL parameters for courseId
+    const params = new URLSearchParams(window.location.search);
+    const urlCourseId = params.get('courseId');
+    
+    // Or check localStorage for a selected course
+    const storedCourseId = localStorage.getItem('selectedCourseId');
+    
+    if (urlCourseId || storedCourseId) {
+      const courseId = urlCourseId || storedCourseId;
+      console.log("Found course ID in params/storage:", courseId);
+      
+      // If we have a courseId, set it in the form
+      if (courseId) {
+        form.setValue("courseId", courseId);
+      }
+    }
+    
+    // Always fetch courses to populate the dropdown
     async function fetchCourses() {
       if (!user) return;
       
@@ -120,20 +140,11 @@ export default function AssignmentForm({
         setIsLoadingCourses(true);
         console.log("Fetching courses for user:", user.uid);
         
-        // Try to get courses directly from Firestore collection
-        const coursesCollectionRef = collection(db, "courses");
-        const q = query(coursesCollectionRef, where("userId", "==", user.uid));
+        const coursesData = await getUserCourses(user.uid);
+        console.log("Fetched courses:", coursesData);
         
-        const querySnapshot = await getDocs(q);
-        const fetchedCourses = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Course[];
-        
-        console.log("Directly fetched courses:", fetchedCourses);
-        
-        if (fetchedCourses && fetchedCourses.length > 0) {
-          setCourses(fetchedCourses);
+        if (Array.isArray(coursesData) && coursesData.length > 0) {
+          setCourses(coursesData);
         } else {
           console.log("No courses found");
           setCourses([]);
@@ -157,7 +168,12 @@ export default function AssignmentForm({
     }
     
     fetchCourses();
-  }, [user, toast, propCourses, db]);
+    
+    // Clean up localStorage after use
+    return () => {
+      localStorage.removeItem('selectedCourseId');
+    };
+  }, [user, toast, propCourses, form]);
 
   async function onSubmit(values: AssignmentFormValues) {
     if (!user) {
