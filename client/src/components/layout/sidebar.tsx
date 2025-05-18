@@ -165,22 +165,23 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
             <ul className="space-y-1 pr-2">
               {courses.map((course) => (
                 <li key={course.id}>
-                  <Link href={`/courses/${course.id}`}>
-                    <div className={cn(
+                  <div 
+                    onClick={handleNavigation(`/courses/${course.id}`)}
+                    className={cn(
                       "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                       isActive(`/courses/${course.id}`) 
                         ? "bg-slate-100 text-slate-900 font-medium" 
                         : "text-slate-700 hover:bg-slate-100",
                       !showContent && "justify-center"
-                    )}>
-                      <span className={cn(
-                        "rounded-full", 
-                        showContent ? "w-2 h-2 mr-3" : "w-5 h-5",
-                        getCourseColor(course.code)
-                      )}></span>
-                      {showContent && `${course.code} - ${course.name}`}
-                    </div>
-                  </Link>
+                    )}
+                  >
+                    <span className={cn(
+                      "rounded-full", 
+                      showContent ? "w-2 h-2 mr-3" : "w-5 h-5",
+                      getCourseColor(course.code)
+                    )}></span>
+                    {showContent && `${course.code} - ${course.name}`}
+                  </div>
                 </li>
               ))}
             </ul>
