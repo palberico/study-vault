@@ -27,20 +27,6 @@ interface SidebarProps {
 export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarProps) {
   const [location] = useLocation();
   const [showCourseForm, setShowCourseForm] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  
-  // Handle hover behavior
-  const handleMouseEnter = () => {
-    if (!isOpen) {
-      setIsHovered(true);
-    }
-  };
-  
-  const handleMouseLeave = () => {
-    if (!isOpen) {
-      setIsHovered(false);
-    }
-  };
   
   const isActive = (path: string) => {
     if (path === '/' && location === '/') return true;
@@ -70,8 +56,8 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
     return "bg-gray-500"; // Default color
   };
   
-  // Determine whether to show content (when open or hovered)
-  const showContent = isOpen || isHovered;
+  // Content is shown when sidebar is open
+  const showContent = isOpen;
   
   // Sidebar for larger screens (fixed)
   const sidebarContent = (
@@ -213,6 +199,7 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
           variant="ghost"
           size="sm"
           className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:bg-slate-100"
+          aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
           {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </Button>
@@ -226,10 +213,8 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
       <aside 
         className={cn(
           "hidden lg:block bg-white border-r border-slate-200 h-[calc(100vh-57px)] sticky top-[57px] overflow-y-auto transition-all duration-300",
-          isOpen || isHovered ? "w-64" : "w-16"
+          isOpen ? "w-64" : "w-16"
         )}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
       >
         {sidebarContent}
       </aside>

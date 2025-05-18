@@ -206,7 +206,12 @@ export default function DashboardPage() {
                 onClick={() => navigate(`/courses/${course.id}`)}
                 onDelete={(courseId) => {
                   // Update courses state
-                  setCourses(prevCourses => prevCourses.filter(c => c.id !== courseId));
+                  setCourses(prevCourses => {
+                    const updatedCourses = prevCourses.filter(c => c.id !== courseId);
+                    // Update localStorage to match the current state
+                    localStorage.setItem('userCourses', JSON.stringify(updatedCourses));
+                    return updatedCourses;
+                  });
                   
                   // Update assignments state - remove all assignments for this course
                   setAssignments(prevAssignments => prevAssignments.filter(a => a.courseId !== courseId));
