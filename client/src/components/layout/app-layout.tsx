@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import Header from "./header";
-import Sidebar from "./sidebar";
+import NewSidebar from "./new-sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { getUserCourses, type Course } from "@/lib/firebase";
 
@@ -12,14 +12,10 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const [location] = useLocation();
   const { user } = useAuth();
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false); // Default to collapsed
   const [courses, setCourses] = useState<Course[]>([]);
   
-  // We don't want to close the sidebar on location changes
-  // This way the sidebar stays in its current state when navigating
-  
-  // Load saved sidebar state from localStorage
+  // Load saved sidebar state from localStorage on initial load
   useEffect(() => {
     const savedState = localStorage.getItem('sidebarExpanded');
     if (savedState !== null) {
@@ -55,16 +51,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <Header 
-        onMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)} 
+        onMenuToggle={toggleSidebar} 
       />
       
       <div className="flex flex-1">
-        {/* Sidebar - desktop (fixed) and mobile (absolute) */}
-        <Sidebar 
+        {/* New Sidebar - both desktop and mobile */}
+        <NewSidebar 
           courses={courses} 
-          isOpen={mobileSidebarOpen || sidebarExpanded}
-          onClose={() => setMobileSidebarOpen(false)}
-          onToggle={toggleSidebar}
+          isExpanded={sidebarExpanded}
+          toggleSidebar={toggleSidebar}
         />
         
         {/* Main Content */}

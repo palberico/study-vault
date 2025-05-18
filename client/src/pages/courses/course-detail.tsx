@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import CourseForm from "@/components/course/course-form";
+import CourseFormEdit from "@/components/course/course-form-edit";
 
 interface CourseDetailPageProps {
   id: string;
@@ -337,16 +337,20 @@ export default function CourseDetailPage({ id }: CourseDetailPageProps) {
         />
       )}
       
-      {/* Edit Course Form Dialog */}
+      {/* Edit Course Form */}
       {showEditForm && course && (
-        <CourseForm 
-          course={course}
-          onClose={() => setShowEditForm(false)}
-          onSuccess={(updatedCourse) => {
-            setCourse(updatedCourse);
-            setShowEditForm(false);
-          }}
-        />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full mx-auto" onClick={(e) => e.stopPropagation()}>
+            <CourseFormEdit 
+              course={course}
+              onCancel={() => setShowEditForm(false)}
+              onSuccess={(updatedCourse: Course) => {
+                setCourse(updatedCourse);
+                setShowEditForm(false);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

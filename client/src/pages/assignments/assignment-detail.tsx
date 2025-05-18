@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import AssignmentForm from "@/components/assignment/assignment-form";
+import AssignmentFormEdit from "@/components/assignment/assignment-form-edit";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import FileItem from "@/components/file/file-item";
