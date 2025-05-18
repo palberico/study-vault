@@ -99,7 +99,6 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
   return (
     <Card 
       className="border border-slate-200 overflow-hidden hover:shadow-md transition-all relative"
-      onClick={onClick}
     >
       <div className="absolute top-2 right-2 z-10 flex space-x-1">
         <Button 
@@ -182,6 +181,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
           <Button 
             variant="link" 
             className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
+            onClick={() => setShowEditForm(true)}
           >
             View Details
           </Button>
