@@ -20,75 +20,78 @@ import { ProtectedRoute } from "@/hooks/use-auth";
 function Router() {
   return (
     <Switch>
-      <Route path="/login" component={LoginPage} />
-      <Route path="/register" component={RegisterPage} />
-      <Route path="/" component={() => (
+      <Route path="/login">
+        <LoginPage />
+      </Route>
+      <Route path="/register">
+        <RegisterPage />
+      </Route>
+      <Route path="/">
         <ProtectedRoute>
           <AppLayout>
             <DashboardPage />
           </AppLayout>
         </ProtectedRoute>
-      )} />
-      <Route path="/courses/edit/:id" component={(params) => (
+      </Route>
+      <Route path="/courses/edit/:id">
         <ProtectedRoute>
           <AppLayout>
-            <EditCoursePage id={params.id} />
+            <EditCoursePage />
           </AppLayout>
         </ProtectedRoute>
-      )} />
-      <Route path="/courses/:id" component={(params) => (
+      </Route>
+      <Route path="/courses/:id">
         <ProtectedRoute>
           <AppLayout>
-            <CourseDetailPage id={params.id} />
+            <CourseDetailPage />
           </AppLayout>
         </ProtectedRoute>
-      )} />
-      <Route path="/courses" component={() => (
+      </Route>
+      <Route path="/courses">
         <ProtectedRoute>
           <AppLayout>
             <CoursesPage />
           </AppLayout>
         </ProtectedRoute>
-      )} />
-      <Route path="/assignments/edit/:id" component={(params) => (
+      </Route>
+      <Route path="/assignments/edit/:id">
         <ProtectedRoute>
           <AppLayout>
-            <EditAssignmentPage id={params.id} />
+            <EditAssignmentPage />
           </AppLayout>
         </ProtectedRoute>
-      )} />
-      <Route path="/assignments/:id" component={(params) => {
-        console.log("Route matched with params:", params);
-        return (
-          <ProtectedRoute>
-            <AppLayout>
-              <AssignmentDetailPage id={params.id} />
-            </AppLayout>
-          </ProtectedRoute>
-        );
-      }} />
-      <Route path="/assignments" component={() => (
+      </Route>
+      <Route path="/assignments/:id">
+        <ProtectedRoute>
+          <AppLayout>
+            <AssignmentDetailPage />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/assignments">
         <ProtectedRoute>
           <AppLayout>
             <AssignmentsPage />
           </AppLayout>
         </ProtectedRoute>
-      )} />
-      <Route path="/files" component={() => (
+      </Route>
+      <Route path="/files">
         <ProtectedRoute>
           <AppLayout>
             <FilesPage />
           </AppLayout>
         </ProtectedRoute>
-      )} />
-      <Route path="/files/upload" component={() => (
+      </Route>
+      <Route path="/files/upload">
         <ProtectedRoute>
           <AppLayout>
             <FileUploadPage />
           </AppLayout>
         </ProtectedRoute>
-      )} />
-      <Route component={NotFound} />
+      </Route>
+      <Route>
+        <NotFound />
+      </Route>
     </Switch>
   );
 }

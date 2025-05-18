@@ -1,0 +1,109 @@
+````
+Hi Replit,
+
+I’m seeing an “Invalid Assignment — The assignment ID is invalid or missing.” error whenever I click “View Details.” The console shows I’m navigating to `/assignments/UCuB0q96aVwgjWg9YtKd` and the card logs a full assignment object, but my Details page never sees the `id` param. That means my route, my `navigate()` call, and my `useParams()` destructuring don’t match exactly.
+
+Please make these changes so that the Details page receives and uses the `id` correctly:
+
+---
+
+## 1) Verify and correct the route path
+
+Open **`src/App.tsx`** (or wherever you define your Wouter `<Route>`s) and ensure you have:
+
+```tsx
+import { Route, Router } from "wouter";
+import AssignmentDetails from "@/components/assignment/AssignmentDetails";
+// …other imports
+
+export default function App() {
+  return (
+    <Router>
+      {/* …other routes */}
+      <Route path="/assignments/:id">
+        <AssignmentDetails />
+      </Route>
+    </Router>
+  );
+}
+````
+
+* **Must** be `path="/assignments/:id"` (plural “assignments” and param named `id`).
+* If it’s currently `/assignment/:id` or `/assignments/:assignmentId`, change it to `/assignments/:id`.
+
+---
+
+## 2) Confirm your `navigate()` call
+
+In **`AssignmentCard.tsx`**, you should have:
+
+```ts
+import { useLocation } from "wouter";
+// …
+const [, navigate] = useLocation();
+// …
+<Button
+  variant="link"
+  onClick={(e) => {
+    e.stopPropagation();
+    if (assignment.id) {
+      console.log("Navigating to assignment with ID:", assignment.id);
+      navigate(`/assignments/${assignment.id}`);
+    }
+  }}
+>
+  View Details
+</Button>
+```
+
+* Make sure the URL you pass to `navigate()` is exactly `/assignments/${assignment.id}` (with the leading slash and the plural).
+
+---
+
+## 3) Match `useParams` to the route
+
+Open **`src/components/assignment/AssignmentDetails.tsx`** and at the top:
+
+```ts
+import { useParams } from "wouter";
+
+export default function AssignmentDetails() {
+  // THIS MUST MATCH ":id" in your route above
+  const { id } = useParams<{ id: string }>();
+  console.log("useParams()", useParams());
+  
+  if (!id) {
+    return <p>Invalid Assignment – The assignment ID is invalid or missing.</p>;
+  }
+
+  // …rest of your fetch & render logic
+}
+```
+
+* If you previously used `const { assignmentId } = useParams()`, change it to `const { id } = useParams()`.
+* The key you destructure (`id`) must be exactly the same as the `:id` in your route path.
+
+---
+
+## 4) Add a quick debug log
+
+Right after you call `useParams()`, add:
+
+```ts
+console.log("Route parameters:", useParams());
+```
+
+* Reload the app, click “View Details,” and verify you see `{ id: "UCuB0q96aVwgjWg9YtKd" }` in the console.
+* That confirms the router is passing the value correctly.
+
+---
+
+## 5) Test end-to-end
+
+1. Run the app.
+2. Open an assignment card and click **View Details**.
+3. Confirm the browser URL changes to `/assignments/UCuB0q96aVwgjWg9YtKd`.
+4. Confirm the console log shows `useParams()` with the `id`.
+5. Confirm the Details page now fetches and renders the assignment data instead of displaying the “Invalid Assignment” message.
+
+With those three pieces—the matching route declaration (`/assignments/:id`), the correct `navigate()` target, and `useParams<{ id }>`—your Details page will receive the assignment ID and render the content as expected. Thank you!\`\`\`

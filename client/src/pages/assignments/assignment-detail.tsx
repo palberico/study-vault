@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -39,11 +39,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import FileItemComponent from "@/components/file/file-item";
 
-interface AssignmentDetailPageProps {
-  id: string;
-}
-
-export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) {
+export default function AssignmentDetailPage() {
+  // Get the id from route parameters
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -56,7 +56,7 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
   const [showEditForm, setShowEditForm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  console.log("AssignmentDetailPage rendering with ID:", id);
+  console.log("AssignmentDetailPage rendering with params:", params);
 
   useEffect(() => {
     async function fetchAssignmentData() {
