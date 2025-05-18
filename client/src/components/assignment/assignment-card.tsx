@@ -133,7 +133,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
             }
           </span>
           <span className="ml-4">
-            <FileText className="inline mr-1 h-3 w-3" /> {assignment.id ? "Files attached" : "No files"}
+            <FileText className="inline mr-1 h-3 w-3" /> {fileCount > 0 ? `${fileCount} file${fileCount !== 1 ? 's' : ''} attached` : "No files"}
           </span>
         </div>
       </CardContent>
@@ -146,14 +146,89 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
               : new Date(assignment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           }
         </span>
-        <Button 
-          variant="link" 
-          className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
-          onClick={onClick}
-        >
-          View Details
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (assignment.id && course?.id) {
+                navigate(`/files/upload?assignmentId=${assignment.id}&courseId=${course.id}`);
+              }
+            }}
+          >
+            <FilePlus className="h-3 w-3 mr-1" />
+            Add Files
+          </Button>
+          <Button 
+            variant="outline"
+            size="sm"
+            className="text-xs text-red-500 border-red-200 hover:bg-red-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsDeleteDialogOpen(true);
+            }}
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Delete
+          </Button>
+          <Button 
+            variant="link" 
+            className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
+            onClick={onClick}
+          >
+            View Details
+          </Button>
+        </div>
       </div>
+      
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this assignment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will permanently delete the assignment "{assignment.title}" 
+              and all its attached files. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!assignment.id) return;
+                
+                try {
+                  setIsDeleting(true);
+                  await deleteAssignment(assignment.id);
+                  toast({
+                    title: "Assignment deleted",
+                    description: "The assignment and all its files have been deleted",
+                  });
+                  // Force page refresh to update UI
+                  window.location.reload();
+                } catch (error) {
+                  console.error("Error deleting assignment:", error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to delete the assignment. Please try again.",
+                    variant: "destructive",
+                  });
+                } finally {
+                  setIsDeleting(false);
+                  setIsDeleteDialogOpen(false);
+                }
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              {isDeleting ? "Deleting..." : "Delete Assignment"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

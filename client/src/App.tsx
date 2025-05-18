@@ -10,6 +10,7 @@ import CourseDetailPage from "@/pages/courses/course-detail";
 import AssignmentsPage from "@/pages/assignments/assignments";
 import AssignmentDetailPage from "@/pages/assignments/assignment-detail";
 import FilesPage from "@/pages/files/files";
+import FileUploadPage from "@/pages/files/upload";
 import NotFound from "@/pages/not-found";
 import AppLayout from "@/components/layout/app-layout";
 import { ProtectedRoute } from "@/hooks/use-auth";
@@ -58,6 +59,13 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <FilesPage />
+          </AppLayout>
+        </ProtectedRoute>
+      )} />
+      <Route path="/files/upload" component={() => (
+        <ProtectedRoute>
+          <AppLayout>
+            <FileUploadPage />
           </AppLayout>
         </ProtectedRoute>
       )} />
