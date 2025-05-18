@@ -25,8 +25,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarProps) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [showCourseForm, setShowCourseForm] = useState(false);
+  
+  // Function to handle navigation without toggling sidebar
+  const handleNavigation = (to: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate(to);
+  };
   
   const isActive = (path: string) => {
     if (path === '/' && location === '/') return true;
@@ -70,76 +76,80 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
         )}
         <ul className="space-y-1">
           <li>
-            <Link href="/">
-              <div className={cn(
+            <div 
+              onClick={handleNavigation("/")}
+              className={cn(
                 "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                 isActive('/') 
                   ? "bg-primary text-white" 
                   : "text-slate-700 hover:bg-slate-100",
                 !showContent && "justify-center"
-              )}>
-                <Home className={cn(
-                  "w-5 h-5",
-                  showContent ? "mr-3" : "",
-                  isActive('/') ? "text-white" : "text-slate-500"
-                )} />
-                {showContent && "Dashboard"}
-              </div>
-            </Link>
+              )}
+            >
+              <Home className={cn(
+                "w-5 h-5",
+                showContent ? "mr-3" : "",
+                isActive('/') ? "text-white" : "text-slate-500"
+              )} />
+              {showContent && "Dashboard"}
+            </div>
           </li>
           <li>
-            <Link href="/courses">
-              <div className={cn(
+            <div 
+              onClick={handleNavigation("/courses")}
+              className={cn(
                 "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                 isActive('/courses') 
                   ? "bg-primary text-white" 
                   : "text-slate-700 hover:bg-slate-100",
                 !showContent && "justify-center"
-              )}>
-                <BookOpen className={cn(
-                  "w-5 h-5",
-                  showContent ? "mr-3" : "",
-                  isActive('/courses') ? "text-white" : "text-slate-500"
-                )} />
-                {showContent && "Courses"}
-              </div>
-            </Link>
+              )}
+            >
+              <BookOpen className={cn(
+                "w-5 h-5",
+                showContent ? "mr-3" : "",
+                isActive('/courses') ? "text-white" : "text-slate-500"
+              )} />
+              {showContent && "Courses"}
+            </div>
           </li>
           <li>
-            <Link href="/assignments">
-              <div className={cn(
+            <div 
+              onClick={handleNavigation("/assignments")}
+              className={cn(
                 "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                 isActive('/assignments') 
                   ? "bg-primary text-white" 
                   : "text-slate-700 hover:bg-slate-100",
                 !showContent && "justify-center"
-              )}>
-                <FileText className={cn(
-                  "w-5 h-5",
-                  showContent ? "mr-3" : "",
-                  isActive('/assignments') ? "text-white" : "text-slate-500"
-                )} />
-                {showContent && "Assignments"}
-              </div>
-            </Link>
+              )}
+            >
+              <FileText className={cn(
+                "w-5 h-5",
+                showContent ? "mr-3" : "",
+                isActive('/assignments') ? "text-white" : "text-slate-500"
+              )} />
+              {showContent && "Assignments"}
+            </div>
           </li>
           <li>
-            <Link href="/files">
-              <div className={cn(
+            <div 
+              onClick={handleNavigation("/files")}
+              className={cn(
                 "flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
                 isActive('/files') 
                   ? "bg-primary text-white" 
                   : "text-slate-700 hover:bg-slate-100",
                 !showContent && "justify-center"
-              )}>
-                <Folder className={cn(
-                  "w-5 h-5",
-                  showContent ? "mr-3" : "",
-                  isActive('/files') ? "text-white" : "text-slate-500"
-                )} />
-                {showContent && "All Files"}
-              </div>
-            </Link>
+              )}
+            >
+              <Folder className={cn(
+                "w-5 h-5",
+                showContent ? "mr-3" : "",
+                isActive('/files') ? "text-white" : "text-slate-500"
+              )} />
+              {showContent && "All Files"}
+            </div>
           </li>
         </ul>
       </div>
