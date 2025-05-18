@@ -70,14 +70,14 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
   });
 
   const availableTerms = [
-    "Spring 2023",
-    "Summer 2023",
-    "Fall 2023",
-    "Winter 2023",
-    "Spring 2024",
-    "Summer 2024",
-    "Fall 2024",
-    "Winter 2024"
+    "Spring 2025",
+    "Summer 2025",
+    "Fall 2025", 
+    "Winter 2025",
+    "Spring 2026",
+    "Summer 2026",
+    "Fall 2026",
+    "Winter 2026"
   ];
 
   async function onSubmit(values: CourseFormValues) {
