@@ -274,13 +274,21 @@ export const getCourseAssignments = async (courseId: string) => {
 };
 
 export const getAssignment = async (assignmentId: string) => {
-  const docRef = doc(db, "assignments", assignmentId);
-  const docSnap = await getDoc(docRef);
-  
-  if (docSnap.exists()) {
-    return { id: docSnap.id, ...convertTimestamps(docSnap.data()) } as Assignment;
-  } else {
-    throw new Error("Assignment not found");
+  try {
+    console.log("Getting assignment with ID:", assignmentId);
+    const docRef = doc(db, "assignments", assignmentId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      console.log("Assignment found:", docSnap.id);
+      return { id: docSnap.id, ...convertTimestamps(docSnap.data()) } as Assignment;
+    } else {
+      console.error("Assignment not found with ID:", assignmentId);
+      throw new Error("Assignment not found");
+    }
+  } catch (error) {
+    console.error("Error in getAssignment:", error, "for ID:", assignmentId);
+    throw error;
   }
 };
 

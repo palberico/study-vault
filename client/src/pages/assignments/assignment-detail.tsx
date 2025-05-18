@@ -59,10 +59,22 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
   useEffect(() => {
     async function fetchAssignmentData() {
       if (!user) return;
+      
+      // Validate the assignment ID
+      if (!id || typeof id !== 'string' || id.trim() === '') {
+        toast({
+          title: "Invalid Assignment",
+          description: "The assignment ID is invalid or missing",
+          variant: "destructive",
+        });
+        navigate("/assignments");
+        return;
+      }
 
       try {
         setIsLoading(true);
-        const assignmentData = await getAssignment(id);
+        console.log("Fetching assignment with ID:", id);
+        const assignmentData = await getAssignment(id.trim());
         
         // Verify the assignment belongs to the user
         if (assignmentData.userId !== user.uid) {
@@ -78,13 +90,25 @@ export default function AssignmentDetailPage({ id }: AssignmentDetailPageProps) 
         setAssignment(assignmentData);
         
         // Fetch related course and files
-        const [courseData, filesData] = await Promise.all([
-          getCourse(assignmentData.courseId),
-          getAssignmentFiles(id)
-        ]);
+        if (assignmentData.courseId) {
+          try {
+            const courseData = await getCourse(assignmentData.courseId);
+            setCourse(courseData);
+          } catch (courseError) {
+            console.error("Error fetching course data:", courseError);
+            // Continue even if course fetch fails
+          }
+        }
         
-        setCourse(courseData);
-        setFiles(filesData);
+        try {
+          const filesData = await getAssignmentFiles(id);
+          setFiles(filesData);
+        } catch (filesError) {
+          console.error("Error fetching files:", filesError);
+          // Continue even if files fetch fails
+          setFiles([]);
+        }
+        
       } catch (error) {
         console.error("Error fetching assignment data:", error);
         toast({
