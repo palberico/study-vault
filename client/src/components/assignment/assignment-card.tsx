@@ -194,7 +194,11 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
             onClick={(e) => {
               e.stopPropagation();
               if (assignment.id) {
+                console.log("Navigating to assignment with ID:", assignment.id);
+                console.log("Full assignment object:", assignment);
                 navigate(`/assignments/${assignment.id}`);
+              } else {
+                console.error("Assignment has no ID:", assignment);
               }
             }}
           >
