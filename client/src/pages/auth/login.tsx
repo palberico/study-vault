@@ -35,12 +35,18 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
+      console.log("Attempting login with:", data.email);
       await login(data.email, data.password);
-      toast({
-        title: "Login successful",
-        description: "Welcome to StudyVault",
-      });
-      navigate("/");
+      
+      // Add a small delay to ensure Firebase auth state updates
+      setTimeout(() => {
+        toast({
+          title: "Login successful",
+          description: "Welcome to StudyVault",
+        });
+        navigate("/");
+      }, 500);
+      
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -48,7 +54,6 @@ export default function LoginPage() {
         description: "Invalid email or password",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
