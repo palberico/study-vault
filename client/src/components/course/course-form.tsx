@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { UploadCloud, File } from "lucide-react";
+import { UploadCloud, FileText } from "lucide-react";
 
 const courseSchema = z.object({
   code: z.string().min(2, {
@@ -99,6 +99,7 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
       let uploadedSyllabusUrl = syllabusUrl;
       let uploadedSyllabusName = course?.syllabusName || '';
       
+      // Only attempt to upload if there's a syllabus file selected
       if (syllabus) {
         try {
           setUploadProgress(10);
@@ -131,6 +132,9 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
             variant: "destructive"
           });
           // Continue with course creation/update even if syllabus upload fails
+          // Reset syllabus-related variables to ensure we don't save invalid data
+          uploadedSyllabusUrl = null;
+          uploadedSyllabusName = '';
         }
       }
 
@@ -243,7 +247,7 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
             
             <div className="space-y-2">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="syllabus">Upload Syllabus</Label>
+                <Label htmlFor="syllabus">Upload Syllabus (Optional)</Label>
                 <div className="flex items-center gap-2">
                   <input 
                     type="file"
@@ -268,7 +272,7 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
                   >
                     {syllabusUrl || syllabus ? (
                       <>
-                        <File className="h-8 w-8 text-primary" />
+                        <UploadCloud className="h-8 w-8 text-primary" />
                         <span className="text-sm text-center text-slate-500 truncate max-w-full px-2">
                           {syllabus?.name || "Syllabus uploaded"}
                         </span>
@@ -278,11 +282,25 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
                       <>
                         <UploadCloud className="h-8 w-8 text-slate-400" />
                         <span className="text-sm text-slate-500">Click to upload syllabus</span>
-                        <span className="text-xs text-slate-400">(PDF, DOC, DOCX)</span>
+                        <span className="text-xs text-slate-400">(Optional - PDF, DOC, DOCX)</span>
                       </>
                     )}
                   </Button>
                 </div>
+                {syllabus && (
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs text-slate-500">{syllabus.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-red-500 hover:text-red-700 hover:bg-red-50 p-0 px-2"
+                      onClick={() => setSyllabus(null)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
                 {uploadProgress > 0 && uploadProgress < 100 && (
                   <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2">
                     <div
