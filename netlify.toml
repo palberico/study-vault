@@ -1,6 +1,10 @@
-# netlify.toml
+# netlify.toml (repo root)
+
 [build]
-  command = "npm run build"
+  # 🔨 Step 1 & 2: go into client/ and build it
+  base    = "client"
+  command = "npm install && npm run build"
+  # 🔍 Step 3: publish the resulting client/dist folder
   publish = "dist"
 
 [[redirects]]
