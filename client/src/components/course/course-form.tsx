@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { addCourse, updateCourse, type Course } from "@/lib/firebase";
+import { addCourse, updateCourse, uploadFile, type Course } from "@/lib/firebase";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,8 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { UploadCloud, File } from "lucide-react";
 
 const courseSchema = z.object({
   code: z.string().min(2, {
@@ -39,7 +41,6 @@ const courseSchema = z.object({
   name: z.string().min(3, {
     message: "Course name must be at least 3 characters."
   }),
-  description: z.string().optional(),
   term: z.string().min(1, {
     message: "Please select a term."
   })

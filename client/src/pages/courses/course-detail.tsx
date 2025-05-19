@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -12,6 +12,7 @@ import {
 import AssignmentCard from "@/components/assignment/assignment-card";
 import AssignmentForm from "@/components/assignment/assignment-form";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   PlusIcon,
   TrashIcon,
@@ -19,7 +20,8 @@ import {
   ArrowLeftIcon,
   BookOpen,
   AlertTriangle,
-  Calendar
+  Calendar,
+  Search
 } from "lucide-react";
 import {
   AlertDialog,
@@ -33,17 +35,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import CourseFormEdit from "@/components/course/course-form-edit";
 
-interface CourseDetailPageProps {
-  id: string;
-}
-
-export default function CourseDetailPage({ id }: CourseDetailPageProps) {
+export default function CourseDetailPage() {
+  // Get the id from route parameters
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+  
+  console.log("CourseDetailPage rendering with ID:", id);
   const { user } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
@@ -73,6 +78,7 @@ export default function CourseDetailPage({ id }: CourseDetailPageProps) {
         
         const assignmentsData = await getCourseAssignments(id);
         setAssignments(assignmentsData);
+        setFilteredAssignments(assignmentsData);
       } catch (error) {
         console.error("Error fetching course data:", error);
         toast({
@@ -114,9 +120,27 @@ export default function CourseDetailPage({ id }: CourseDetailPageProps) {
   };
 
   const handleAddAssignment = (newAssignment: Assignment) => {
-    setAssignments(prev => [newAssignment, ...prev]);
+    const updatedAssignments = [newAssignment, ...assignments];
+    setAssignments(updatedAssignments);
+    setFilteredAssignments(updatedAssignments);
     setShowAssignmentForm(false);
   };
+  
+  // Handle search functionality
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredAssignments(assignments);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = assignments.filter(
+        assignment => 
+          assignment.title.toLowerCase().includes(query) ||
+          assignment.description.toLowerCase().includes(query) ||
+          assignment.status.toLowerCase().includes(query)
+      );
+      setFilteredAssignments(filtered);
+    }
+  }, [searchQuery, assignments]);
 
   const getBackgroundColor = () => {
     const colors = {
@@ -272,8 +296,20 @@ export default function CourseDetailPage({ id }: CourseDetailPageProps) {
       </div>
       
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-800">Assignments</h2>
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <h2 className="text-xl font-bold text-slate-800">Assignments</h2>
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+              <Input
+                type="text"
+                placeholder="Search assignments..."
+                className="pl-9 w-full"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
           <Button 
             onClick={() => setShowAssignmentForm(true)}
             className="flex items-center"
@@ -291,9 +327,18 @@ export default function CourseDetailPage({ id }: CourseDetailPageProps) {
               Add Assignment
             </Button>
           </div>
+        ) : filteredAssignments.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
+            <Search className="mx-auto h-12 w-12 text-slate-400 mb-3" />
+            <h3 className="text-lg font-medium text-slate-900 mb-1">No matching assignments</h3>
+            <p className="text-slate-500 mb-4">Try a different search term</p>
+            <Button variant="outline" onClick={() => setSearchQuery("")}>
+              Clear Search
+            </Button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assignments.map((assignment) => (
+            {filteredAssignments.map((assignment) => (
               <AssignmentCard 
                 key={assignment.id} 
                 assignment={assignment}
