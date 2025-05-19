@@ -1,11 +1,11 @@
-# netlify.toml (repo root)
+# netlify.toml
 
 [build]
-  # 🔨 Step 1 & 2: go into client/ and build it
-  base    = "client"
+  # this runs your root‐level build script, which uses
+  # your vite.config.ts (pointing at client/) to emit client/dist/
   command = "npm install && npm run build"
-  # 🔍 Step 3: publish the resulting client/dist folder
-  publish = "dist"
+  # now tell Netlify where the built index.html lives
+  publish = "client/dist"
 
 [[redirects]]
   from   = "/*"
