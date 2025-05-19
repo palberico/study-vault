@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { addCourse, updateCourse, uploadFile, type Course } from "@/lib/firebase";
+import { addCourse, updateCourse, uploadGenericFile, type Course } from "@/lib/firebase";
 import {
   Dialog,
   DialogContent,
@@ -107,7 +107,7 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
           const syllabusPath = `syllabi/${user.uid}/${courseIdPrefix}/${Date.now()}_${syllabus.name}`;
           
           // Track upload progress
-          const uploadTask = await uploadFile(
+          const uploadResult = await uploadGenericFile(
             syllabus, 
             syllabusPath,
             (progress) => {
@@ -115,8 +115,8 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
             }
           );
           
-          uploadedSyllabusUrl = uploadTask.url;
-          uploadedSyllabusName = syllabus.name;
+          uploadedSyllabusUrl = uploadResult.url;
+          uploadedSyllabusName = uploadResult.name;
           setUploadProgress(100);
           
           toast({

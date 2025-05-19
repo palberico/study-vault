@@ -145,6 +145,13 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
           <Button 
             variant="link" 
             className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (course.id) {
+                console.log("Navigating to course with ID:", course.id);
+                navigate(`/courses/${course.id}`);
+              }
+            }}
           >
             View Course
           </Button>
