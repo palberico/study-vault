@@ -140,18 +140,28 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
 
       if (isEditing && course?.id) {
         // Update existing course
-        await updateCourse(course.id, {
+        const updateData: any = {
           ...values,
-          syllabusUrl: uploadedSyllabusUrl || undefined,
-          syllabusName: uploadedSyllabusName || undefined,
-        });
+        };
+        
+        // Only add syllabus fields if they have actual values
+        if (uploadedSyllabusUrl) {
+          updateData.syllabusUrl = uploadedSyllabusUrl;
+          updateData.syllabusName = uploadedSyllabusName;
+        }
+        
+        await updateCourse(course.id, updateData);
         
         const updatedCourse: Course = {
           ...course,
           ...values,
-          syllabusUrl: uploadedSyllabusUrl || undefined,
-          syllabusName: uploadedSyllabusName || undefined,
         };
+        
+        // Only add syllabus fields if they have actual values
+        if (uploadedSyllabusUrl) {
+          updatedCourse.syllabusUrl = uploadedSyllabusUrl;
+          updatedCourse.syllabusName = uploadedSyllabusName;
+        }
         
         toast({
           title: "Course updated",
@@ -161,12 +171,16 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
         onSuccess(updatedCourse);
       } else {
         // Create new course
-        const courseData = {
+        const courseData: any = {
           userId: user.uid,
           ...values,
-          syllabusUrl: uploadedSyllabusUrl || undefined,
-          syllabusName: uploadedSyllabusName || undefined,
         };
+        
+        // Only add syllabus fields if they have actual values
+        if (uploadedSyllabusUrl) {
+          courseData.syllabusUrl = uploadedSyllabusUrl;
+          courseData.syllabusName = uploadedSyllabusName;
+        }
         
         const docRef = await addCourse(courseData);
         const newCourse: Course = {
