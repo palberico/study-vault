@@ -1,13 +1,10 @@
-# netlify.toml (at repo root)
-
 [build]
-  # 1) change into client/
-  base    = "client"
-  # 2) install & build *that* package
-  command = "npm install && npm run build"
-  # 3) publish the dist/ *inside* client/
-  publish = "dist"
+  # run your install + vite build from the project root
+  command = "npm ci && npm run build"
+  # publish whatever ended up in dist/public
+  publish = "dist/public"
 
+# SPA fallback so client-side routing won’t 404
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
