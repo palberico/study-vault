@@ -167,7 +167,7 @@ export default function CourseDetailPage() {
   const courseImageUrl = () => {
     const code = course?.code?.split(' ')[0] || "";
     
-    if (code.startsWith("CS") || code.includes("COMPSCI")) {
+    if (code.startsWith("UNSY") || code.includes("COMPSCI")) {
       return "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=250&q=80";
     } 
     if (code.startsWith("MATH")) {

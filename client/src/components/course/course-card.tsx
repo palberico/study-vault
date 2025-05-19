@@ -65,15 +65,16 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
   const getCourseBackgroundImage = () => {
     const code = course.code.split(' ')[0] || "";
     
-    if (code.startsWith("CS")) {
+    if (code.startsWith("UNSY")) {
       return "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=250&q=80";
     } 
-    if (code.startsWith("MATH")) {
+    if (code.startsWith("HUMN")) {
       return "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=250&q=80";
     }
     if (code.startsWith("ENG")) {
       return "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=250&q=80";
     }
+
     
     // Default image - digital organization
     return "https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=250&q=80";
