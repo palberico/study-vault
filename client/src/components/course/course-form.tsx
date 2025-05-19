@@ -58,6 +58,10 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [syllabus, setSyllabus] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [syllabusUrl, setSyllabusUrl] = useState<string | null>(course?.syllabusUrl || null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditing = !!course;
 
   const form = useForm<CourseFormValues>({
@@ -65,7 +69,6 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
     defaultValues: {
       code: course?.code || "",
       name: course?.name || "",
-      description: course?.description || "",
       term: course?.term || ""
     }
   });
@@ -92,13 +95,58 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
     setIsSubmitting(true);
 
     try {
-      if (isEditing && course.id) {
+      // Handle syllabus upload if a file was selected
+      let uploadedSyllabusUrl = syllabusUrl;
+      let uploadedSyllabusName = course?.syllabusName || '';
+      
+      if (syllabus) {
+        try {
+          setUploadProgress(10);
+          // Generate a unique path for the syllabus 
+          const courseIdPrefix = isEditing && course?.id ? course.id : 'new-course';
+          const syllabusPath = `syllabi/${user.uid}/${courseIdPrefix}/${Date.now()}_${syllabus.name}`;
+          
+          // Track upload progress
+          const uploadTask = await uploadFile(
+            syllabus, 
+            syllabusPath,
+            (progress) => {
+              setUploadProgress(Math.round(progress));
+            }
+          );
+          
+          uploadedSyllabusUrl = uploadTask.url;
+          uploadedSyllabusName = syllabus.name;
+          setUploadProgress(100);
+          
+          toast({
+            title: "Syllabus uploaded",
+            description: "Syllabus file has been uploaded successfully"
+          });
+        } catch (uploadError) {
+          console.error("Error uploading syllabus:", uploadError);
+          toast({
+            title: "Upload Error",
+            description: "Failed to upload syllabus file",
+            variant: "destructive"
+          });
+          // Continue with course creation/update even if syllabus upload fails
+        }
+      }
+
+      if (isEditing && course?.id) {
         // Update existing course
-        await updateCourse(course.id, values);
+        await updateCourse(course.id, {
+          ...values,
+          syllabusUrl: uploadedSyllabusUrl || undefined,
+          syllabusName: uploadedSyllabusName || undefined,
+        });
         
         const updatedCourse: Course = {
           ...course,
-          ...values
+          ...values,
+          syllabusUrl: uploadedSyllabusUrl || undefined,
+          syllabusName: uploadedSyllabusName || undefined,
         };
         
         toast({
@@ -111,7 +159,9 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
         // Create new course
         const courseData = {
           userId: user.uid,
-          ...values
+          ...values,
+          syllabusUrl: uploadedSyllabusUrl || undefined,
+          syllabusName: uploadedSyllabusName || undefined,
         };
         
         const docRef = await addCourse(courseData);
@@ -137,6 +187,7 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
       });
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   }
 
@@ -190,24 +241,58 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Course Description (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Brief description of the course"
-                      className="resize-none h-20"
-                      {...field} 
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="syllabus">Upload Syllabus</Label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="file"
+                    id="syllabus"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx"
+                    ref={fileInputRef}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setSyllabus(file);
+                      }
+                    }}
+                    disabled={isSubmitting}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-24 border-dashed flex flex-col items-center justify-center gap-1"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSubmitting}
+                  >
+                    {syllabusUrl || syllabus ? (
+                      <>
+                        <File className="h-8 w-8 text-primary" />
+                        <span className="text-sm text-center text-slate-500 truncate max-w-full px-2">
+                          {syllabus?.name || "Syllabus uploaded"}
+                        </span>
+                        <span className="text-xs text-slate-500">Click to change</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="h-8 w-8 text-slate-400" />
+                        <span className="text-sm text-slate-500">Click to upload syllabus</span>
+                        <span className="text-xs text-slate-400">(PDF, DOC, DOCX)</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2">
+                    <div
+                      className="bg-primary h-1.5 rounded-full"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                )}
+              </div>
+            </div>
             
             <FormField
               control={form.control}

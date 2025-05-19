@@ -75,6 +75,8 @@ export interface Course {
   description?: string;
   term: string;
   createdAt: Date;
+  syllabusUrl?: string;
+  syllabusName?: string;
 }
 
 export interface ResourceLink {
@@ -321,6 +323,41 @@ export const uploadFile = async (file: File, assignmentId: string, courseId: str
     ...fileData,
     createdAt: new Date()
   });
+};
+
+// Generic file upload function for syllabi and other non-assignment files
+export const uploadGenericFile = async (
+  file: File, 
+  path: string, 
+  onProgress?: (progress: number) => void
+) => {
+  const storageRef = ref(storage, path);
+  
+  if (onProgress) {
+    // Upload with progress tracking
+    const uploadTask = uploadBytesResumable(storageRef, file);
+    
+    uploadTask.on('state_changed', 
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        onProgress(progress);
+      }
+    );
+    
+    await uploadTask;
+  } else {
+    // Simple upload without tracking
+    await uploadBytes(storageRef, file);
+  }
+  
+  const downloadUrl = await getDownloadURL(storageRef);
+  
+  return {
+    url: downloadUrl,
+    name: file.name,
+    size: file.size,
+    type: file.type
+  };
 };
 
 export const getAssignmentFiles = async (assignmentId: string) => {

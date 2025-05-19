@@ -21,7 +21,8 @@ import {
   BookOpen,
   AlertTriangle,
   Calendar,
-  Search
+  Search,
+  FileText
 } from "lucide-react";
 import {
   AlertDialog,
@@ -280,8 +281,22 @@ export default function CourseDetailPage() {
             </div>
           </div>
           
-          {course.description && (
-            <p className="text-slate-600 mb-4">{course.description}</p>
+          {course.syllabusUrl && (
+            <div className="flex items-center gap-2 mb-4 mt-2 p-3 border border-slate-200 rounded-md bg-slate-50">
+              <FileText className="h-5 w-5 text-primary" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Course Syllabus</p>
+                <p className="text-xs text-slate-500 truncate">{course.syllabusName || 'syllabus.pdf'}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary"
+                onClick={() => window.open(course.syllabusUrl, '_blank')}
+              >
+                View
+              </Button>
+            </div>
           )}
           
           <div className="flex justify-between items-center text-sm text-slate-500 pt-2 border-t border-slate-100 mt-2">
