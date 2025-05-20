@@ -115,7 +115,7 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
       <CardContent className="p-5">
         <h3 className="font-semibold text-lg mb-1">{course.name}</h3>
         <p className="text-slate-600 text-sm mb-3 line-clamp-1">{course.description || "No description"}</p>
-        <div className="flex justify-between items-center text-sm">
+        <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-1 xs:gap-0 text-sm">
           <span className="text-slate-600">
             <BookOpen className="inline-block h-4 w-4 mr-1" /> {assignmentCount} {assignmentCount === 1 ? 'assignment' : 'assignments'}
           </span>
@@ -124,16 +124,16 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
           </span>
         </div>
       </CardContent>
-      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex justify-between items-center">
-        <span className="text-xs font-medium">
+      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-between sm:items-center">
+        <span className="text-xs font-medium order-2 sm:order-1">
           <span className={`inline-block w-2 h-2 rounded-full ${getCourseStatusColor()} mr-2`}></span>
           Active
         </span>
-        <div className="flex gap-2">
+        <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs"
+            className="text-xs w-full xs:w-auto"
             onClick={(e) => {
               e.stopPropagation();
               // Store course ID in localStorage for assignment form
@@ -145,7 +145,7 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
           </Button>
           <Button 
             variant="link" 
-            className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
+            className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto w-full xs:w-auto text-center sm:text-left"
             onClick={(e) => {
               e.stopPropagation();
               if (course.id) {

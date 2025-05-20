@@ -91,7 +91,7 @@ export default function CoursesPage() {
         </div>
         <Button 
           onClick={() => setShowCourseForm(true)}
-          className="flex items-center"
+          className="flex items-center justify-center w-full md:w-auto"
         >
           <PlusIcon className="mr-2 h-4 w-4" /> Add New Course
         </Button>
