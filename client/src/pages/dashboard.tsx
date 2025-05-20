@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { PlusIcon, Calendar, FileText } from "lucide-react";
 import CourseForm from "@/components/course/course-form";
 import { formatDistanceToNow } from "date-fns";
+import OnboardingController from "@/components/onboarding/onboarding-controller";
 
 export default function DashboardPage() {
   const { user } = useAuth();
