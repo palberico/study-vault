@@ -14,20 +14,19 @@ export default function OnboardingController() {
   // Check if user has completed onboarding
   useEffect(() => {
     try {
-      // We only want to show the tutorial when the user is logged in
-      if (!user) return;
+      console.log("Onboarding controller - user check:", user);
       
-      // Short delay to let the app render first
+      // Force show tutorial for testing
       const timer = setTimeout(() => {
-        // Check if this user has completed the onboarding
-        const onboardingKey = `onboardingCompleted_${user.uid || 'guest'}`;
-        const onboardingCompleted = localStorage.getItem(onboardingKey);
+        console.log("Checking onboarding status for user:", user?.uid);
         
-        // If onboarding hasn't been completed, show the tutorial
-        if (!onboardingCompleted) {
-          setShowOnboarding(true);
-        }
-      }, 1500); // Longer delay to ensure app is fully loaded
+        // Force show the tutorial and help button for testing
+        setShowOnboarding(true);
+        localStorage.removeItem('onboardingCompleted'); // Clear any existing completion
+        localStorage.removeItem(`onboardingCompleted_${user?.uid || 'guest'}`);
+        
+        console.log("Tutorial should be visible now");
+      }, 2000); // Longer delay to ensure app is fully loaded
       
       return () => clearTimeout(timer);
     } catch (error) {
