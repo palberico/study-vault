@@ -125,29 +125,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
       className="border border-slate-200 overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative group"
       // Removed onClick to make card non-clickable, only "View Details" button will navigate
     >
-      <div className="absolute top-2 right-2 z-10 flex space-x-1">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-slate-400 hover:text-blue-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 transform hover:scale-110"
-          onClick={() => {
-            setShowEditForm(true);
-          }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-slate-400 hover:text-red-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 transform hover:scale-110"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsDeleteDialogOpen(true);
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Edit and Delete icons removed as requested */}
       <CardContent className="p-5">
         <div className="flex items-start mb-3">
           <div className="flex flex-wrap gap-2">
