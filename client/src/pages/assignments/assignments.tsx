@@ -175,10 +175,10 @@ export default function AssignmentsPage() {
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-500" />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Filter className="h-4 w-4 text-slate-500 flex-shrink-0" />
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as FilterStatus)}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -190,10 +190,10 @@ export default function AssignmentsPage() {
             </Select>
           </div>
           
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-slate-500" />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <FileText className="h-4 w-4 text-slate-500 flex-shrink-0" />
             <Select value={courseFilter} onValueChange={setCourseFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Select Course" />
               </SelectTrigger>
               <SelectContent>
@@ -209,7 +209,7 @@ export default function AssignmentsPage() {
           
           <Button 
             onClick={() => setShowAssignmentForm(true)}
-            className="flex items-center h-10"
+            className="flex items-center justify-center w-full sm:w-auto h-10"
           >
             <PlusIcon className="mr-2 h-4 w-4" /> Add Assignment
           </Button>
