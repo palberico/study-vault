@@ -273,7 +273,7 @@ export default function AssignmentForm({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] md:max-w-[650px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[550px] md:max-w-[650px] max-h-[85vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Assignment" : "Add New Assignment"}</DialogTitle>
           <DialogDescription>

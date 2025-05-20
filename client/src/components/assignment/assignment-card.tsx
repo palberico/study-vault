@@ -1,9 +1,9 @@
 import { formatDistanceToNow } from "date-fns";
-import { Assignment, Course, deleteAssignment, getAssignmentFiles } from "@/lib/firebase";
+import { Assignment, Course, deleteAssignment, getAssignmentFiles, updateAssignment } from "@/lib/firebase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileText, Trash2, Upload, FilePlus, FileUp, Tag } from "lucide-react";
+import { Calendar, FileText, Trash2, Upload, FilePlus, FileUp, Tag, CheckCircle2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -73,13 +73,26 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
     }
   };
   
+  // Helper function to check if an assignment is due soon (within 3 days)
+  const isAssignmentDueSoon = () => {
+    if (!assignment.dueDate) return false;
+    
+    const today = new Date();
+    const due = new Date(assignment.dueDate);
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 && diffDays <= 3;
+  };
+  
   // Determine badge colors based on status
   const getStatusColor = () => {
     switch (assignment.status) {
       case "submitted":
         return "bg-green-100 text-green-800";
       case "pending":
-        return "bg-amber-100 text-amber-800";
+        return isAssignmentDueSoon() 
+          ? "bg-orange-100 text-orange-800 border-orange-200" 
+          : "bg-amber-100 text-amber-800";
       case "overdue":
         return "bg-red-100 text-red-800";
       default:
@@ -108,13 +121,18 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
 
   return (
     <Card 
-      className="border border-slate-200 overflow-hidden hover:shadow-md transition-all relative"
+      className="border border-slate-200 overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative group cursor-pointer"
+      onClick={() => {
+        if (assignment.id) {
+          navigate(`/assignments/${assignment.id}`);
+        }
+      }}
     >
       <div className="absolute top-2 right-2 z-10 flex space-x-1">
         <Button 
           variant="ghost" 
           size="icon" 
-          className="text-slate-400 hover:text-blue-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8"
+          className="text-slate-400 hover:text-blue-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 transform hover:scale-110"
           onClick={() => {
             setShowEditForm(true);
           }}
@@ -124,7 +142,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
         <Button 
           variant="ghost" 
           size="icon" 
-          className="text-slate-400 hover:text-red-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8"
+          className="text-slate-400 hover:text-red-500 hover:bg-slate-100 z-10 rounded-full h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 transform hover:scale-110"
           onClick={(e) => {
             e.stopPropagation();
             setIsDeleteDialogOpen(true);
@@ -139,9 +157,21 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
             <Badge variant="outline" className={getCourseColor()}>
               {course?.code || "Unknown"}
             </Badge>
-            <Badge variant="outline" className={getStatusColor()}>
-              {assignment.status === "pending" ? `Due ${formatDueDate()}` : 
-               assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+            <Badge variant="outline" className={`${getStatusColor()} ${isAssignmentDueSoon() && assignment.status === "pending" ? "animate-pulse" : ""}`}>
+              {assignment.status === "pending" ? (
+                <div className="flex items-center gap-1">
+                  {isAssignmentDueSoon() && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                    </span>
+                  )}
+                  <span>Due {formatDueDate()}</span>
+                  {isAssignmentDueSoon() && " (Soon)"}
+                </div>
+              ) : (
+                assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)
+              )}
             </Badge>
             
             {/* Display tags if available */}
@@ -184,10 +214,41 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
           }
         </span>
         <div className="flex gap-2">
+          {assignment.status === 'pending' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs transform transition-all duration-200 hover:scale-105 hover:shadow-sm text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (assignment.id) {
+                  try {
+                    await updateAssignment(assignment.id, { status: 'submitted' });
+                    toast({
+                      title: "Assignment updated",
+                      description: "Assignment marked as submitted",
+                    });
+                    // Force page refresh to update UI
+                    window.location.reload();
+                  } catch (error) {
+                    console.error("Error updating assignment:", error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to update assignment status",
+                      variant: "destructive",
+                    });
+                  }
+                }
+              }}
+            >
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Mark as Submitted
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs"
+            className="text-xs transform transition-all duration-200 hover:scale-105 hover:shadow-sm"
             onClick={(e) => {
               e.stopPropagation();
               if (assignment.id && course?.id) {
@@ -200,19 +261,18 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
           </Button>
           <Button 
             variant="link" 
-            className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto"
+            className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto transform transition-all duration-200 hover:translate-x-1 flex items-center gap-1"
             onClick={(e) => {
               e.stopPropagation();
               if (assignment.id) {
-                console.log("Navigating to assignment with ID:", assignment.id);
-                console.log("Full assignment object:", assignment);
                 navigate(`/assignments/${assignment.id}`);
-              } else {
-                console.error("Assignment has no ID:", assignment);
               }
             }}
           >
             View Details
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:translate-x-1">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
           </Button>
         </div>
       </div>

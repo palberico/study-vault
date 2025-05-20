@@ -116,55 +116,23 @@ export default function AssignmentsPage() {
       </div>
       
       <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
-        <div className="relative w-full md:w-1/3">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-slate-400" />
-          </div>
-          <Input
-            type="text"
-            placeholder="Search assignments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-500" />
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as FilterStatus)}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="submitted">Submitted</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="w-full md:w-1/3 space-y-3">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
+            <Input
+              type="text"
+              placeholder="Search assignments..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
           
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-slate-500" />
-            <Select value={courseFilter} onValueChange={setCourseFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Course" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Courses</SelectItem>
-                {courses.map(course => (
-                  <SelectItem key={course.id} value={course.id || ""}>
-                    {course.code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Tag filter */}
+          {/* Tag filter - moved under search bar */}
           {availableTags.length > 0 && (
-            <div className="w-full sm:w-auto">
+            <div>
               <div className="flex items-center mb-2 gap-2">
                 <Tag className="h-4 w-4 text-slate-500" />
                 <span className="text-sm font-medium text-slate-700">Filter by tags:</span>
@@ -204,6 +172,40 @@ export default function AssignmentsPage() {
               </div>
             </div>
           )}
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-slate-500" />
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as FilterStatus)}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="submitted">Submitted</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-slate-500" />
+            <Select value={courseFilter} onValueChange={setCourseFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Course" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Courses</SelectItem>
+                {courses.map(course => (
+                  <SelectItem key={course.id} value={course.id || ""}>
+                    {course.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
           <Button 
             onClick={() => setShowAssignmentForm(true)}

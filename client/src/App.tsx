@@ -13,6 +13,7 @@ import AssignmentDetailPage from "@/pages/assignments/assignment-detail";
 import EditAssignmentPage from "@/pages/assignments/edit-assignment";
 import FilesPage from "@/pages/files/files";
 import FileUploadPage from "@/pages/files/upload";
+import MyAccountPage from "@/pages/my-account";
 import NotFound from "@/pages/not-found";
 import AppLayout from "@/components/layout/app-layout";
 import { ProtectedRoute } from "@/hooks/use-auth";
@@ -34,18 +35,22 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/courses/edit/:id">
-        <ProtectedRoute>
-          <AppLayout>
-            <EditCoursePage />
-          </AppLayout>
-        </ProtectedRoute>
+        {(params) => (
+          <ProtectedRoute>
+            <AppLayout>
+              <EditCoursePage id={params.id} />
+            </AppLayout>
+          </ProtectedRoute>
+        )}
       </Route>
       <Route path="/courses/:id">
-        <ProtectedRoute>
-          <AppLayout>
-            <CourseDetailPage />
-          </AppLayout>
-        </ProtectedRoute>
+        {(params) => (
+          <ProtectedRoute>
+            <AppLayout>
+              <CourseDetailPage id={params.id} />
+            </AppLayout>
+          </ProtectedRoute>
+        )}
       </Route>
       <Route path="/courses">
         <ProtectedRoute>
@@ -55,18 +60,22 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/assignments/edit/:id">
-        <ProtectedRoute>
-          <AppLayout>
-            <EditAssignmentPage />
-          </AppLayout>
-        </ProtectedRoute>
+        {(params) => (
+          <ProtectedRoute>
+            <AppLayout>
+              <EditAssignmentPage id={params.id} />
+            </AppLayout>
+          </ProtectedRoute>
+        )}
       </Route>
       <Route path="/assignments/:id">
-        <ProtectedRoute>
-          <AppLayout>
-            <AssignmentDetailPage />
-          </AppLayout>
-        </ProtectedRoute>
+        {(params) => (
+          <ProtectedRoute>
+            <AppLayout>
+              <AssignmentDetailPage id={params.id} />
+            </AppLayout>
+          </ProtectedRoute>
+        )}
       </Route>
       <Route path="/assignments">
         <ProtectedRoute>
@@ -86,6 +95,13 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <FileUploadPage />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/my-account">
+        <ProtectedRoute>
+          <AppLayout>
+            <MyAccountPage />
           </AppLayout>
         </ProtectedRoute>
       </Route>

@@ -191,7 +191,7 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
         <CardHeader>
           <CardTitle>Edit Assignment</CardTitle>
         </CardHeader>
-        <CardContent className="max-h-[70vh] overflow-y-auto">
+        <CardContent className="max-h-[70vh] overflow-y-auto overflow-x-hidden">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
               <FormField

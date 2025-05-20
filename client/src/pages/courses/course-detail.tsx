@@ -36,10 +36,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import CourseFormEdit from "@/components/course/course-form-edit";
 
-export default function CourseDetailPage() {
-  // Get the id from route parameters
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+export default function CourseDetailPage({ id }: { id: string }) {
+  // ID is now passed as a prop
   
   console.log("CourseDetailPage rendering with ID:", id);
   const { user } = useAuth();

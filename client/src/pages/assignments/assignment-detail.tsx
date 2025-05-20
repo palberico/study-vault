@@ -40,10 +40,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import FileItemComponent from "@/components/file/file-item";
 
-export default function AssignmentDetailPage() {
-  // Get the id from route parameters
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+export default function AssignmentDetailPage({ id }: { id: string }) {
+  // ID is now passed as a prop directly
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -57,7 +55,7 @@ export default function AssignmentDetailPage() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  console.log("AssignmentDetailPage rendering with params:", params);
+  // Component is now using id directly from props
 
   useEffect(() => {
     async function fetchAssignmentData() {

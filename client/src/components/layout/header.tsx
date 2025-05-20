@@ -71,23 +71,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           </div>
         </div>
         
-        {/* Search Input */}
-        <div className="hidden md:flex flex-1 max-w-xl mx-8">
-          <form onSubmit={handleSearch} className="w-full">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-400" />
-              </div>
-              <Input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 rounded-md border border-slate-300"
-                placeholder="Search assignments..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </form>
-        </div>
+        {/* Empty div to maintain spacing */}
+        <div className="hidden md:flex flex-1 max-w-xl mx-8"></div>
         
         {/* User Menu */}
         <div className="flex items-center space-x-4">
@@ -108,14 +93,14 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.email}</p>
+                  <p className="text-sm font-medium leading-none">My Profile</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    My Account
+                    Manage your account
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/")}>
+              <DropdownMenuItem onClick={() => navigate("/my-account")}>
                 <User className="mr-2 h-4 w-4" />
                 <span>My Account</span>
               </DropdownMenuItem>

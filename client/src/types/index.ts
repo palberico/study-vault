@@ -4,6 +4,9 @@ export interface User {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  school?: string;
+  name?: string;
+  isPro?: boolean;
 }
 
 // Course Types
