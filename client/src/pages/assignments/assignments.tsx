@@ -269,7 +269,7 @@ export default function AssignmentsPage() {
               key={assignment.id} 
               assignment={assignment} 
               courses={courses}
-              onClick={() => navigate(`/assignments/${assignment.id}`)}
+              // Removed onClick prop so only the View Details button navigates to the detail page
             />
           ))}
         </div>

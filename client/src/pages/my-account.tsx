@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { updateProfile } from "firebase/auth";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
-import { setDoc } from "firebase/firestore";
+import { getAuth, updateProfile } from "firebase/auth";
+import { doc, updateDoc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -51,12 +50,25 @@ export default function MyAccountPage() {
     try {
       // Update displayName in Firebase Auth
       if (values.name && values.name !== user.displayName) {
-        // Need to cast user to Firebase User type
-        const firebaseUser = user as unknown as {
-          displayName: string | null;
-          updateProfile: (profile: { displayName?: string; photoURL?: string }) => Promise<void>;
-        };
-        await firebaseUser.updateProfile({ displayName: values.name });
+        try {
+          // Using Firebase's updateProfile function properly
+          const auth = getAuth();
+          if (auth.currentUser) {
+            await updateProfile(auth.currentUser, { 
+              displayName: values.name 
+            });
+            
+            // Force refresh local user state since auth state might not update immediately
+            if (auth.currentUser.reload) {
+              await auth.currentUser.reload();
+            }
+          } else {
+            throw new Error("No authenticated user found");
+          }
+        } catch (error) {
+          console.error("Error updating auth profile:", error);
+          throw error;
+        }
       }
       
       // Update additional fields in Firestore

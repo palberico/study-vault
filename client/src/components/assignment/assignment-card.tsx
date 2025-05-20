@@ -26,6 +26,7 @@ interface AssignmentCardProps {
 }
 
 export default function AssignmentCard({ assignment, courses, onClick }: AssignmentCardProps) {
+  // Note: onClick is now unused as we only want the View Details button to navigate
   const [fileCount, setFileCount] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -122,6 +123,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
   return (
     <Card 
       className="border border-slate-200 overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative group"
+      // Removed onClick to make card non-clickable, only "View Details" button will navigate
     >
       <div className="absolute top-2 right-2 z-10 flex space-x-1">
         <Button 
@@ -281,24 +283,32 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Edit Assignment Form */}
+      {/* Edit Assignment Form Modal */}
       {showEditForm && assignment && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="max-w-4xl w-full mx-auto" onClick={(e) => e.stopPropagation()}>
-            <AssignmentFormEdit 
-              assignment={assignment}
-              courses={courses}
-              onCancel={() => setShowEditForm(false)}
-              onSuccess={(updatedAssignment: Assignment) => {
-                toast({
-                  title: "Success",
-                  description: "Assignment updated successfully",
-                });
-                setShowEditForm(false);
-                // Refresh the page to show updated data
-                window.location.reload();
-              }}
-            />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowEditForm(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-slate-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Edit Assignment</h2>
+              <Button variant="ghost" size="sm" className="rounded-full" onClick={() => setShowEditForm(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </Button>
+            </div>
+            <div className="p-4 max-h-[80vh] overflow-y-auto">
+              <AssignmentFormEdit 
+                assignment={assignment}
+                courses={courses}
+                onCancel={() => setShowEditForm(false)}
+                onSuccess={(updatedAssignment: Assignment) => {
+                  toast({
+                    title: "Success",
+                    description: "Assignment updated successfully",
+                  });
+                  setShowEditForm(false);
+                  // Refresh the page to show updated data
+                  window.location.reload();
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

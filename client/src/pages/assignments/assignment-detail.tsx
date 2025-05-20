@@ -287,16 +287,7 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
               </div>
             </div>
             
-            <div className="flex gap-2 mt-2 md:mt-0">
-              {assignment.status !== 'submitted' && (
-                <Button 
-                  variant="outline" 
-                  className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
-                  onClick={() => handleStatusChange('submitted')}
-                >
-                  Mark as Submitted
-                </Button>
-              )}
+            <div className="flex gap-2 mt-2 md:mt-0">{/* Removed "Mark as Submitted" button as requested */}
               
               <Button
                 variant="outline"
@@ -355,11 +346,7 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
                 ? format(assignment.dueDate, 'MMM dd, yyyy') 
                 : format(new Date(assignment.dueDate), 'MMM dd, yyyy')}
             </div>
-            <div>
-              Added: {assignment.createdAt instanceof Date 
-                ? format(assignment.createdAt, 'MMM dd, yyyy') 
-                : format(new Date(assignment.createdAt), 'MMM dd, yyyy')}
-            </div>
+            {/* Removed "Date Added" information as requested */}
           </div>
         </CardContent>
       </Card>

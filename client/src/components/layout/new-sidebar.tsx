@@ -161,20 +161,8 @@ export default function NewSidebar({ courses, isExpanded, toggleSidebar }: Sideb
           
           {/* Removed courses section as requested */}
           
-          {/* Add Course button */}
-          <div className={cn("pt-4 border-t border-slate-200 px-3", !isExpanded && "flex justify-center")}>
-            <Button
-              onClick={() => navigateTo("/courses/new")}
-              variant="ghost"
-              className={cn(
-                "w-full flex items-center justify-start text-sm font-medium rounded-md text-primary hover:bg-blue-50",
-                !isExpanded && "w-10 h-10 p-0 justify-center"
-              )}
-            >
-              <Plus className={cn("w-5 h-5", isExpanded && "mr-3")} />
-              {isExpanded && "Add New Course"}
-            </Button>
-          </div>
+          {/* Simple divider - no Add Course button */}
+          <div className="pt-4 border-t border-slate-200 px-3"></div>
           
           {/* Toggle Button */}
           <div className="pt-4 flex justify-center">
@@ -309,20 +297,8 @@ export default function NewSidebar({ courses, isExpanded, toggleSidebar }: Sideb
           
           {/* Removed courses section as requested */}
           
-          {/* Add Course button */}
-          <div className="pt-4 border-t border-slate-200 px-3">
-            <Button
-              onClick={() => {
-                navigateTo("/courses/new");
-                toggleSidebar();
-              }}
-              variant="ghost"
-              className="w-full flex items-center justify-start text-sm font-medium rounded-md text-primary hover:bg-blue-50"
-            >
-              <Plus className="w-5 h-5 mr-3" />
-              Add New Course
-            </Button>
-          </div>
+          {/* Simple divider - no Add Course button */}
+          <div className="pt-4 border-t border-slate-200 px-3"></div>
         </div>
       </div>
     </>
