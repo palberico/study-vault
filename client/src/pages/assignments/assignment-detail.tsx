@@ -415,10 +415,7 @@ export default function AssignmentDetailPage() {
                             {file.name}
                           </h3>
                           <p className="text-sm text-slate-500">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB • 
-                            {file.createdAt instanceof Date 
-                              ? format(file.createdAt, ' MMM dd, yyyy') 
-                              : format(new Date(file.createdAt), ' MMM dd, yyyy')}
+                            {(file.size / 1024 / 1024).toFixed(2)} MB • Uploaded recently
                           </p>
                         </div>
                         <div className="flex gap-1">

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { getUserFiles, getUserCourses, type FileItem, type Course } from "@/lib/firebase";
-import FileItem from "@/components/file/file-item";
+import FileItemComponent from "@/components/file/file-item";
 import { Search, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +15,34 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format, formatDistanceToNow } from "date-fns";
+
+// Helper function to safely format timestamps from various sources
+const safeRelativeTime = (value: any): string => {
+  try {
+    if (!value) return "Unknown date";
+    
+    // If it's a Firestore Timestamp (has seconds and nanoseconds)
+    if (typeof value === 'object' && 'seconds' in value && typeof value.seconds === 'number') {
+      return formatDistanceToNow(new Date(value.seconds * 1000), { addSuffix: true });
+    }
+    
+    // If it's already a Date object
+    if (value instanceof Date) {
+      return formatDistanceToNow(value, { addSuffix: true });
+    }
+    
+    // Handle string or number timestamp
+    const date = new Date(value);
+    if (isNaN(date.getTime())) {
+      return "Unknown date";
+    }
+    
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "Unknown date";
+  }
+};
 
 export default function FilesPage() {
   const { user } = useAuth();
@@ -261,13 +289,11 @@ export default function FilesPage() {
                   {filteredFiles.map((file) => {
                     const course = courses.find(c => c.id === file.courseId);
                     return (
-                      <FileItem 
+                      <FileItemComponent 
                         key={file.id} 
                         file={file}
                         courseName={course?.name || 'Unknown Course'}
-                        uploadTime={file.createdAt instanceof Date 
-                          ? formatDistanceToNow(file.createdAt, { addSuffix: true }) 
-                          : formatDistanceToNow(new Date(file.createdAt), { addSuffix: true })}
+                        uploadTime={safeRelativeTime(file.createdAt)}
                         onDelete={handleFileDeleted}
                       />
                     );
