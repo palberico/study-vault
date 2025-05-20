@@ -95,6 +95,7 @@ export interface Assignment {
   status: 'pending' | 'submitted' | 'overdue';
   createdAt: Date;
   links?: ResourceLink[];
+  tags?: string[];
 }
 
 export interface FileItem {

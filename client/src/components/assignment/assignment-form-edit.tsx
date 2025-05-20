@@ -32,7 +32,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-import { ArrowLeft, CalendarIcon } from "lucide-react";
+import { ArrowLeft, CalendarIcon, Tag, X, Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const resourceLinkSchema = z.object({
@@ -60,7 +61,8 @@ const assignmentSchema = z.object({
   courseId: z.string().min(1, {
     message: "Please select a course."
   }),
-  links: z.array(resourceLinkSchema).optional()
+  links: z.array(resourceLinkSchema).optional(),
+  tags: z.array(z.string()).optional()
 });
 
 type AssignmentFormValues = z.infer<typeof assignmentSchema>;
@@ -76,6 +78,7 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tagInput, setTagInput] = useState("");
   const [, navigate] = useLocation();
 
   // Convert dueDate to Date object and ensure it's valid
@@ -103,7 +106,8 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
       dueDate: dueDateObj,
       status: assignment.status as "pending" | "submitted" | "overdue",
       courseId: assignment.courseId || "",
-      links: assignment.links || []
+      links: assignment.links || [],
+      tags: assignment.tags || []
     }
   });
   
@@ -323,6 +327,79 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* Tags Section */}
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem className="mb-6">
+                    <FormLabel className="flex items-center gap-1">
+                      <Tag className="h-4 w-4" />
+                      <span>Tags</span>
+                    </FormLabel>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {field.value?.map((tag, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="secondary"
+                          className="px-2 py-1 text-sm"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            className="ml-1 text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              const newTags = [...field.value || []];
+                              newTags.splice(index, 1);
+                              field.onChange(newTags);
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input
+                          placeholder="Add a tag (e.g. 'important', 'research', 'essay')"
+                          value={tagInput}
+                          onChange={(e) => setTagInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && tagInput.trim()) {
+                              e.preventDefault();
+                              const newTag = tagInput.trim();
+                              if (!field.value?.includes(newTag)) {
+                                field.onChange([...(field.value || []), newTag]);
+                              }
+                              setTagInput('');
+                            }
+                          }}
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          if (tagInput.trim()) {
+                            const newTag = tagInput.trim();
+                            if (!field.value?.includes(newTag)) {
+                              field.onChange([...(field.value || []), newTag]);
+                            }
+                            setTagInput('');
+                          }
+                        }}
+                        disabled={isSubmitting || !tagInput.trim()}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

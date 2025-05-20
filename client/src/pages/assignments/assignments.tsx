@@ -6,8 +6,10 @@ import { getUserAssignments, getUserCourses, type Assignment, type Course } from
 import AssignmentCard from "@/components/assignment/assignment-card";
 import AssignmentForm from "@/components/assignment/assignment-form";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, FileText, Filter, Search } from "lucide-react";
+import { PlusIcon, FileText, Filter, Search, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Check, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -30,6 +32,8 @@ export default function AssignmentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [courseFilter, setCourseFilter] = useState<string>("all");
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   
   useEffect(() => {
     async function fetchAssignments() {
@@ -44,6 +48,20 @@ export default function AssignmentsPage() {
         
         setAssignments(assignmentsData);
         setCourses(coursesData);
+        
+        // Extract all unique tags from assignments
+        const allTags = assignmentsData.reduce((tags: string[], assignment) => {
+          if (assignment.tags && assignment.tags.length > 0) {
+            assignment.tags.forEach(tag => {
+              if (!tags.includes(tag)) {
+                tags.push(tag);
+              }
+            });
+          }
+          return tags;
+        }, []);
+        
+        setAvailableTags(allTags);
       } catch (error) {
         console.error("Error fetching assignments:", error);
         toast({
@@ -75,7 +93,12 @@ export default function AssignmentsPage() {
       courseFilter === "all" || 
       assignment.courseId === courseFilter;
     
-    return textMatch && statusMatch && courseMatch;
+    // Tag filter
+    const tagMatch = 
+      tagFilter.length === 0 || // If no tags selected, show all
+      (assignment.tags && tagFilter.some(tag => assignment.tags?.includes(tag)));
+    
+    return textMatch && statusMatch && courseMatch && tagMatch;
   });
   
   const handleAddAssignment = (newAssignment: Assignment) => {
@@ -138,6 +161,49 @@ export default function AssignmentsPage() {
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Tag filter */}
+          {availableTags.length > 0 && (
+            <div className="w-full sm:w-auto">
+              <div className="flex items-center mb-2 gap-2">
+                <Tag className="h-4 w-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-700">Filter by tags:</span>
+              </div>
+              <div className="flex flex-wrap gap-2 max-w-md">
+                {availableTags.map(tag => (
+                  <Badge 
+                    key={tag}
+                    variant={tagFilter.includes(tag) ? "default" : "outline"}
+                    className={`cursor-pointer ${tagFilter.includes(tag) ? 'bg-blue-500 hover:bg-blue-600' : 'hover:bg-slate-100'}`}
+                    onClick={() => {
+                      if (tagFilter.includes(tag)) {
+                        setTagFilter(tagFilter.filter(t => t !== tag));
+                      } else {
+                        setTagFilter([...tagFilter, tag]);
+                      }
+                    }}
+                  >
+                    {tagFilter.includes(tag) ? (
+                      <Check className="mr-1 h-3 w-3" />
+                    ) : (
+                      <Tag className="mr-1 h-3 w-3" />
+                    )}
+                    {tag}
+                  </Badge>
+                ))}
+                {tagFilter.length > 0 && (
+                  <Badge 
+                    variant="outline" 
+                    className="cursor-pointer bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+                    onClick={() => setTagFilter([])}
+                  >
+                    <X className="mr-1 h-3 w-3" />
+                    Clear Tags
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
           
           <Button 
             onClick={() => setShowAssignmentForm(true)}

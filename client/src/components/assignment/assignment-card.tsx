@@ -3,7 +3,7 @@ import { Assignment, Course, deleteAssignment, getAssignmentFiles } from "@/lib/
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileText, Trash2, Upload, FilePlus, FileUp } from "lucide-react";
+import { Calendar, FileText, Trash2, Upload, FilePlus, FileUp, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -143,6 +143,16 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
               {assignment.status === "pending" ? `Due ${formatDueDate()}` : 
                assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
             </Badge>
+            
+            {/* Display tags if available */}
+            {assignment.tags && assignment.tags.length > 0 && (
+              assignment.tags.map((tag, index) => (
+                <Badge key={index} variant="secondary" className="bg-slate-100 hover:bg-slate-200 text-slate-700">
+                  <Tag className="h-3 w-3 mr-1" />
+                  {tag}
+                </Badge>
+              ))
+            )}
           </div>
         </div>
         

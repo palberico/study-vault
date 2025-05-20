@@ -20,7 +20,8 @@ import {
   ArrowLeftIcon,
   Calendar,
   AlertTriangle,
-  FileText
+  FileText,
+  Tag
 } from "lucide-react";
 import {
   AlertDialog,
@@ -324,6 +325,29 @@ export default function AssignmentDetailPage() {
           <div className="mb-4">
             <h3 className="font-medium text-slate-800 mb-2">Description</h3>
             <p className="text-slate-600 whitespace-pre-line">{assignment.description}</p>
+          </div>
+          
+          {/* Tags Section */}
+          <div className="mb-4">
+            <h3 className="font-medium text-slate-800 mb-2 flex items-center">
+              <Tag className="h-4 w-4 mr-2" />
+              Tags
+            </h3>
+            {assignment.tags && assignment.tags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {assignment.tags.map((tag, index) => (
+                  <Badge 
+                    key={index} 
+                    variant="secondary" 
+                    className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-500 text-sm italic">No tags added yet. Edit this assignment to add tags for better organization.</p>
+            )}
           </div>
           
           <div className="flex flex-col sm:flex-row justify-between text-sm text-slate-500 mt-4 pt-4 border-t border-slate-100">

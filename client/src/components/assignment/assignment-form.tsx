@@ -41,8 +41,9 @@ import {
 import { Button } from "@/components/ui/button";
 // useEffect is already imported at the top
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Tag, X, Plus } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -69,7 +70,8 @@ const assignmentSchema = z.object({
     required_error: "Please select a due date."
   }),
   status: z.enum(["pending", "submitted", "overdue"]),
-  links: z.array(resourceLinkSchema).min(0).optional()
+  links: z.array(resourceLinkSchema).min(0).optional(),
+  tags: z.array(z.string()).min(0).optional()
 });
 
 type AssignmentFormValues = z.infer<typeof assignmentSchema>;
@@ -94,6 +96,7 @@ export default function AssignmentForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [courses, setCourses] = useState<Course[]>(propCourses || []);
   const [isLoadingCourses, setIsLoadingCourses] = useState(!propCourses);
+  const [tagInput, setTagInput] = useState("");
   const isEditing = !!assignment;
 
   // Initialize form
@@ -111,7 +114,8 @@ export default function AssignmentForm({
       courseId: assignment?.courseId || courseId || "",
       dueDate: defaultDate,
       status: assignment?.status || "pending",
-      links: assignment?.links || []
+      links: assignment?.links || [],
+      tags: assignment?.tags || []
     }
   });
   
@@ -208,11 +212,15 @@ export default function AssignmentForm({
         link.label.trim() !== "" && link.url.trim() !== ""
       ) : [];
       
+      // Make sure tags are valid
+      const filteredTags = values.tags ? values.tags.filter(tag => tag.trim() !== "") : [];
+      
       if (isEditing && assignment.id) {
         // Update existing assignment
         const updateData = {
           ...values,
-          links: filteredLinks.length > 0 ? filteredLinks : []
+          links: filteredLinks.length > 0 ? filteredLinks : [],
+          tags: filteredTags
         };
         
         await updateAssignment(assignment.id, updateData);
@@ -233,7 +241,8 @@ export default function AssignmentForm({
         const assignmentData = {
           userId: user.uid,
           ...values,
-          links: filteredLinks.length > 0 ? filteredLinks : []
+          links: filteredLinks.length > 0 ? filteredLinks : [],
+          tags: filteredTags
         };
         
         const docRef = await addAssignment(assignmentData);
@@ -411,6 +420,79 @@ export default function AssignmentForm({
                       <SelectItem value="overdue">Overdue</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {/* Tags Input */}
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    <Tag className="h-4 w-4" />
+                    <span>Tags</span>
+                  </FormLabel>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {field.value?.map((tag, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="secondary"
+                        className="px-2 py-1 text-sm"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          className="ml-1 text-muted-foreground hover:text-foreground"
+                          onClick={() => {
+                            const newTags = [...field.value || []];
+                            newTags.splice(index, 1);
+                            field.onChange(newTags);
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        placeholder="Add a tag (e.g. 'important', 'research', 'essay')"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && tagInput.trim()) {
+                            e.preventDefault();
+                            const newTag = tagInput.trim();
+                            if (!field.value?.includes(newTag)) {
+                              field.onChange([...(field.value || []), newTag]);
+                            }
+                            setTagInput('');
+                          }
+                        }}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        if (tagInput.trim()) {
+                          const newTag = tagInput.trim();
+                          if (!field.value?.includes(newTag)) {
+                            field.onChange([...(field.value || []), newTag]);
+                          }
+                          setTagInput('');
+                        }
+                      }}
+                      disabled={isSubmitting || !tagInput.trim()}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
