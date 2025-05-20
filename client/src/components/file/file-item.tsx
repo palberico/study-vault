@@ -93,9 +93,41 @@ export default function FileItem({
     
     try {
       setIsDeleting(true);
-      // Extract the file path from URL
-      const filePathStart = file.url.indexOf('files/');
-      const filePath = filePathStart !== -1 ? file.url.substring(filePathStart) : '';
+      
+      // Check if file has path property first (new uploads will have this)
+      let filePath = '';
+      
+      if ('path' in file && file.path) {
+        // Use the stored path directly if available
+        filePath = file.path;
+      } else {
+        // Legacy files: Try to extract path from URL as a fallback
+        // This tries to handle files that were uploaded before we added the path field
+        try {
+          // First try to extract the path from the Firebase storage URL
+          // Example: https://firebasestorage.googleapis.com/v0/b/bucket/o/files%2Fuser%2Ffile.pdf?alt=...
+          const url = new URL(file.url);
+          const pathParam = url.pathname.split('/o/')[1];
+          if (pathParam) {
+            filePath = decodeURIComponent(pathParam);
+          } else {
+            // Simple fallback if URL parsing fails
+            const filePathStart = file.url.indexOf('files/');
+            filePath = filePathStart !== -1 ? decodeURIComponent(file.url.substring(filePathStart).split('?')[0]) : '';
+          }
+        } catch (urlError) {
+          console.error("Error parsing file URL:", urlError);
+          // If URL parsing fails, try a simpler approach
+          const filePathStart = file.url.indexOf('files/');
+          filePath = filePathStart !== -1 ? file.url.substring(filePathStart).split('?')[0] : '';
+        }
+      }
+      
+      console.log("Deleting file with path:", filePath);
+      
+      if (!filePath) {
+        throw new Error("Could not determine file path for deletion");
+      }
       
       await deleteFile(file.id, filePath);
       

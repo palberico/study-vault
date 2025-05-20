@@ -106,6 +106,7 @@ export interface FileItem {
   type: string;
   size: number;
   url: string;
+  path: string; // Storage path for deletion
   createdAt: Date;
 }
 
@@ -306,7 +307,8 @@ export const deleteAssignment = async (assignmentId: string) => {
 
 // Files
 export const uploadFile = async (file: File, assignmentId: string, courseId: string, userId: string) => {
-  const storageRef = ref(storage, `files/${userId}/${assignmentId}/${file.name}`);
+  const filePath = `files/${userId}/${assignmentId}/${file.name}`;
+  const storageRef = ref(storage, filePath);
   await uploadBytes(storageRef, file);
   const downloadUrl = await getDownloadURL(storageRef);
   
@@ -317,7 +319,8 @@ export const uploadFile = async (file: File, assignmentId: string, courseId: str
     name: file.name,
     type: file.type,
     size: file.size,
-    url: downloadUrl
+    url: downloadUrl,
+    path: filePath // Store the storage path for deletion
   };
   
   return addDoc(collection(db, "files"), {
@@ -357,7 +360,8 @@ export const uploadGenericFile = async (
     url: downloadUrl,
     name: file.name,
     size: file.size,
-    type: file.type
+    type: file.type,
+    path: path // Store the storage path for deletion
   };
 };
 
@@ -395,9 +399,25 @@ export const getUserFiles = async (userId: string) => {
 };
 
 export const deleteFile = async (fileId: string, filePath: string) => {
-  const fileRef = ref(storage, filePath);
-  await deleteObject(fileRef);
-  return deleteDoc(doc(db, "files", fileId));
+  try {
+    // Make sure we have a valid path
+    if (!filePath || filePath.trim() === '') {
+      console.error('Invalid file path for deletion:', filePath);
+      throw new Error('Invalid file path for deletion');
+    }
+    
+    // Create a reference to the file in storage
+    const fileRef = ref(storage, filePath);
+    
+    // Delete the file from storage
+    await deleteObject(fileRef);
+    
+    // Delete the file document from Firestore
+    return deleteDoc(doc(db, "files", fileId));
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    throw error;
+  }
 };
 
 export { app, auth, db, storage, onAuthStateChanged };
