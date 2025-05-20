@@ -121,12 +121,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
 
   return (
     <Card 
-      className="border border-slate-200 overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative group cursor-pointer"
-      onClick={() => {
-        if (assignment.id) {
-          navigate(`/assignments/${assignment.id}`);
-        }
-      }}
+      className="border border-slate-200 overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative group"
     >
       <div className="absolute top-2 right-2 z-10 flex space-x-1">
         <Button 
@@ -205,46 +200,8 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
         </div>
       </CardContent>
       
-      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex justify-between items-center">
-        <span className="text-xs font-medium text-slate-500">
-          Added: {
-            assignment.createdAt instanceof Date 
-              ? assignment.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-              : new Date(assignment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          }
-        </span>
+      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex justify-end items-center">
         <div className="flex gap-2">
-          {assignment.status === 'pending' && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-xs transform transition-all duration-200 hover:scale-105 hover:shadow-sm text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
-              onClick={async (e) => {
-                e.stopPropagation();
-                if (assignment.id) {
-                  try {
-                    await updateAssignment(assignment.id, { status: 'submitted' });
-                    toast({
-                      title: "Assignment updated",
-                      description: "Assignment marked as submitted",
-                    });
-                    // Force page refresh to update UI
-                    window.location.reload();
-                  } catch (error) {
-                    console.error("Error updating assignment:", error);
-                    toast({
-                      title: "Error",
-                      description: "Failed to update assignment status",
-                      variant: "destructive",
-                    });
-                  }
-                }
-              }}
-            >
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              Mark as Submitted
-            </Button>
-          )}
           <Button 
             variant="outline" 
             size="sm" 

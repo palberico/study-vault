@@ -303,12 +303,14 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
                 </div>
                 {syllabus && (
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-slate-500">{syllabus.name}</span>
+                    <span className="text-xs text-slate-500 truncate max-w-[200px]" title={syllabus.name}>
+                      {syllabus.name}
+                    </span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-6 text-red-500 hover:text-red-700 hover:bg-red-50 p-0 px-2"
+                      className="h-6 text-red-500 hover:text-red-700 hover:bg-red-50 p-0 px-2 ml-2 flex-shrink-0"
                       onClick={() => setSyllabus(null)}
                     >
                       Remove

@@ -223,10 +223,14 @@ export const deleteCourse = async (courseId: string) => {
 
 // Assignments
 export const addAssignment = async (assignmentData: Omit<Assignment, 'id' | 'createdAt'>) => {
-  return addDoc(collection(db, "assignments"), {
+  // Make sure tags is always an array
+  const data = {
     ...assignmentData,
+    tags: Array.isArray(assignmentData.tags) ? assignmentData.tags : [],
     createdAt: new Date()
-  });
+  };
+  
+  return addDoc(collection(db, "assignments"), data);
 };
 
 // Helper function to convert Firestore timestamps to Date objects
@@ -299,6 +303,13 @@ export const getAssignment = async (assignmentId: string) => {
 
 export const updateAssignment = async (assignmentId: string, data: Partial<Assignment>) => {
   const assignmentRef = doc(db, "assignments", assignmentId);
+  
+  // Ensure tags are properly formatted for Firestore
+  if (data.tags !== undefined) {
+    // Make sure we're sending an array even if empty
+    data.tags = Array.isArray(data.tags) ? data.tags : [];
+  }
+  
   return updateDoc(assignmentRef, data);
 };
 

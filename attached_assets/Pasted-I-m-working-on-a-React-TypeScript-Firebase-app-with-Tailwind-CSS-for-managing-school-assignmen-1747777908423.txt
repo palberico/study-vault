@@ -1,0 +1,34 @@
+I’m working on a React + TypeScript + Firebase app (with Tailwind CSS) for managing school assignments. I’ve already set up CORS and I’m using a `.env.local` file for all my API keys. I need you to implement the following eight changes without altering any other styling or functionality:
+
+1. **Tags not saving**  
+   - When creating or editing an assignment, tags show a “success” notification but never persist to Firestore. No errors are thrown. Fix tag creation and saving.
+
+2. **Disable card clicks**  
+   - Keep the hover animation on each assignment card, but remove the whole-card `<a>` wrapper. Only the “View Details” button should navigate to the assignment’s detail page. The edit icon should still open the edit-modal.
+
+3. **Remove “Mark as Submitted” and date**  
+   - On the assignment cards only: remove the “Mark as Submitted” button and the “Date Added” label. Those fields should remain visible on the View Details page exactly as is.
+
+4. **Align “Add Assignment” button**  
+   - On the Assignments list page, adjust the “Add Assignment” button so it lines up vertically with the “All Status” and “All Courses” dropdowns at full screen.
+
+5. **My Account page save error**  
+   - On `my-account.tsx`, adding a name or school crashes with  
+     ```
+     Error updating profile: TypeError: firebaseUser.updateProfile is not a function
+     ```
+     Replace or refactor to use the correct Firebase v9+ API so profile updates save.
+
+6. **Mystery console error**  
+   - Track down and eliminate this console error (likely from the tags listener):
+     ```
+     Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+     ```
+
+7. **Remove “+ Add Courses” sidebar link**  
+   - Delete or comment out the “+ Add Courses” link in the sidebar menu.
+
+8. **Wrap filename in Add New Course modal**  
+   - When uploading a file in the “Add New Course” modal, long filenames overflow the dropzone and push the “Add Course” button off-screen. Constrain and wrap the filename within the dropzone box.
+
+Please provide the updated components or code diffs for each change, keeping all other code and styles intact. Thanks!

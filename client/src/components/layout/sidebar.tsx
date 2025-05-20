@@ -189,19 +189,8 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
         </div>
       )}
       
-      <div className={cn("pt-4 border-t border-slate-200", !showContent && "flex justify-center")}>
-        <Button
-          onClick={() => setShowCourseForm(true)}
-          variant="ghost"
-          className={cn(
-            "flex items-center px-2 py-2 text-sm font-medium rounded-md text-primary hover:bg-blue-50",
-            showContent ? "w-full" : "w-10 h-10 p-0"
-          )}
-        >
-          <Plus className={cn("w-5 h-5", showContent && "mr-3")} />
-          {showContent && "Add New Course"}
-        </Button>
-      </div>
+      {/* Removed "Add New Course" button as it was redundant with the Courses page */}
+      <div className="pt-4 border-t border-slate-200"></div>
       
       {/* Toggle Button */}
       <div className="pt-4 flex justify-center">

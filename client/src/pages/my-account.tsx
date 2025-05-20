@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { updateProfile } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -59,11 +60,32 @@ export default function MyAccountPage() {
       }
       
       // Update additional fields in Firestore
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, {
-        school: values.school || null,
-        name: values.name || null,
-      });
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        
+        // First check if the document exists
+        const docSnap = await getDoc(userDocRef);
+        
+        if (docSnap.exists()) {
+          // Update existing document
+          await updateDoc(userDocRef, {
+            school: values.school || null,
+            name: values.name || null,
+          });
+        } else {
+          // Create new document if it doesn't exist
+          await setDoc(userDocRef, {
+            uid: user.uid,
+            email: user.email,
+            school: values.school || null,
+            name: values.name || null,
+            createdAt: new Date()
+          });
+        }
+      } catch (error) {
+        console.error("Error updating Firestore document:", error);
+        throw error;
+      }
       
       toast({
         title: "Profile updated",

@@ -174,7 +174,7 @@ export default function AssignmentsPage() {
           )}
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-slate-500" />
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as FilterStatus)}>
@@ -209,7 +209,7 @@ export default function AssignmentsPage() {
           
           <Button 
             onClick={() => setShowAssignmentForm(true)}
-            className="flex items-center"
+            className="flex items-center h-10"
           >
             <PlusIcon className="mr-2 h-4 w-4" /> Add Assignment
           </Button>
