@@ -302,7 +302,50 @@ export const updateAssignment = async (assignmentId: string, data: Partial<Assig
 };
 
 export const deleteAssignment = async (assignmentId: string) => {
-  return deleteDoc(doc(db, "assignments", assignmentId));
+  try {
+    // First get all files associated with this assignment
+    const filesQuery = query(
+      collection(db, "files"),
+      where("assignmentId", "==", assignmentId)
+    );
+    
+    const filesSnapshot = await getDocs(filesQuery);
+    
+    // Delete all associated files
+    const batch = writeBatch(db);
+    
+    // Delete files from storage and Firestore
+    for (const fileDoc of filesSnapshot.docs) {
+      const fileData = fileDoc.data() as FileItem;
+      
+      // Delete file from storage if it has a path
+      if (fileData.path) {
+        try {
+          const fileRef = ref(storage, fileData.path);
+          await deleteObject(fileRef);
+          console.log(`Deleted file from storage: ${fileData.path}`);
+        } catch (err) {
+          console.error(`Error deleting file from storage: ${fileData.path}`, err);
+          // Continue with deletion even if storage deletion fails
+        }
+      }
+      
+      // Mark file for deletion in Firestore
+      batch.delete(fileDoc.ref);
+    }
+    
+    // Delete the assignment itself
+    batch.delete(doc(db, "assignments", assignmentId));
+    
+    // Commit all deletions as a single transaction
+    await batch.commit();
+    
+    console.log(`Assignment and ${filesSnapshot.size} associated files deleted successfully`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting assignment and its files:", error);
+    throw error;
+  }
 };
 
 // Files
@@ -400,22 +443,39 @@ export const getUserFiles = async (userId: string) => {
 
 export const deleteFile = async (fileId: string, filePath: string) => {
   try {
-    // Make sure we have a valid path
-    if (!filePath || filePath.trim() === '') {
-      console.error('Invalid file path for deletion:', filePath);
-      throw new Error('Invalid file path for deletion');
+    console.log("Deleting file with path:", filePath);
+    
+    // Always delete from Firestore database, regardless of storage success
+    const deleteFromFirestore = async () => {
+      try {
+        await deleteDoc(doc(db, "files", fileId));
+        console.log("File record deleted from Firestore successfully");
+        return true;
+      } catch (firestoreError) {
+        console.error("Error deleting file record from Firestore:", firestoreError);
+        throw firestoreError;
+      }
+    };
+    
+    // Try to delete from storage if path exists
+    if (filePath && filePath.trim() !== '') {
+      try {
+        const fileRef = ref(storage, filePath);
+        await deleteObject(fileRef);
+        console.log("File deleted from Storage successfully");
+      } catch (storageError) {
+        // Log the storage error but continue with Firestore deletion
+        console.error("Error deleting file from Storage:", storageError);
+        // Don't throw here - we still want to delete from Firestore
+      }
+    } else {
+      console.warn("No valid storage path provided for file deletion");
     }
     
-    // Create a reference to the file in storage
-    const fileRef = ref(storage, filePath);
-    
-    // Delete the file from storage
-    await deleteObject(fileRef);
-    
-    // Delete the file document from Firestore
-    return deleteDoc(doc(db, "files", fileId));
+    // Always attempt to delete from Firestore, even if Storage deletion failed
+    return await deleteFromFirestore();
   } catch (error) {
-    console.error('Error deleting file:', error);
+    console.error('Error in deleteFile function:', error);
     throw error;
   }
 };

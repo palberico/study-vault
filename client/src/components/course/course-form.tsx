@@ -211,7 +211,7 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px] md:max-w-[650px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Course" : "Add New Course"}</DialogTitle>
           <DialogDescription>
@@ -222,7 +222,7 @@ export default function CourseForm({ course, onClose, onSuccess }: CourseFormPro
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
             <FormField
               control={form.control}
               name="code"

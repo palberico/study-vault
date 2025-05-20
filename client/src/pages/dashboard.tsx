@@ -386,6 +386,10 @@ export default function DashboardPage() {
                         file={file}
                         courseName={course?.name || 'Unknown Course'}
                         uploadTime={file.createdAt instanceof Date ? formatDistanceToNow(file.createdAt, { addSuffix: true }) : 'Unknown'}
+                        onDelete={(fileId) => {
+                          // Update the files list immediately when a file is deleted
+                          setFiles(prevFiles => prevFiles.filter(f => f.id !== fileId));
+                        }}
                       />
                     );
                   })}

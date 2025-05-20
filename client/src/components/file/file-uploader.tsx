@@ -38,6 +38,14 @@ export default function FileUploader({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
+      
+      // Clear the input value to ensure the change event fires again
+      // even if the same file is selected twice in a row
+      setTimeout(() => {
+        if (e.target) {
+          e.target.value = '';
+        }
+      }, 100);
     }
   };
   
@@ -86,6 +94,7 @@ export default function FileUploader({
       clearInterval(progressInterval);
       setUploadProgress(100);
       
+      const filePath = `files/${user.uid}/${assignmentId}/${selectedFile.name}`;
       const newFile: FileItem = {
         id: docRef.id,
         userId: user.uid,
@@ -95,6 +104,7 @@ export default function FileUploader({
         type: selectedFile.type,
         size: selectedFile.size,
         url: "", // The actual URL is set by Firebase in the backend
+        path: filePath, // Add the path for storage reference
         createdAt: new Date()
       };
       
@@ -150,6 +160,25 @@ export default function FileUploader({
           <div 
             className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:bg-slate-50 transition-colors"
             onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.classList.add('border-primary', 'bg-blue-50');
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.classList.remove('border-primary', 'bg-blue-50');
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.classList.remove('border-primary', 'bg-blue-50');
+              
+              if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                setSelectedFile(e.dataTransfer.files[0]);
+              }
+            }}
           >
             {selectedFile ? (
               <div className="space-y-2">

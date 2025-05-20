@@ -69,7 +69,7 @@ const assignmentSchema = z.object({
     required_error: "Please select a due date."
   }),
   status: z.enum(["pending", "submitted", "overdue"]),
-  links: z.array(resourceLinkSchema).optional()
+  links: z.array(resourceLinkSchema).min(0).optional()
 });
 
 type AssignmentFormValues = z.infer<typeof assignmentSchema>;
@@ -111,7 +111,7 @@ export default function AssignmentForm({
       courseId: assignment?.courseId || courseId || "",
       dueDate: defaultDate,
       status: assignment?.status || "pending",
-      links: assignment?.links || [{ label: "", url: "" }]
+      links: assignment?.links || []
     }
   });
   
@@ -264,7 +264,7 @@ export default function AssignmentForm({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px] md:max-w-[650px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Assignment" : "Add New Assignment"}</DialogTitle>
           <DialogDescription>
@@ -275,7 +275,7 @@ export default function AssignmentForm({
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
             <FormField
               control={form.control}
               name="title"
@@ -419,7 +419,7 @@ export default function AssignmentForm({
             {/* Resource Links Section */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <FormLabel className="text-base">Resource Links</FormLabel>
+                <FormLabel className="text-base">Resource Links (Optional)</FormLabel>
                 <Button
                   type="button"
                   variant="outline"
@@ -431,48 +431,54 @@ export default function AssignmentForm({
                 </Button>
               </div>
               
-              {fields.map((field, index) => (
-                <div key={field.id} className="flex items-end gap-2 bg-secondary/20 p-2 rounded-md">
-                  <FormField
-                    control={form.control}
-                    name={`links.${index}.label`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel className="text-xs">Label</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled={isSubmitting} placeholder="e.g., Lecture Video" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name={`links.${index}.url`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel className="text-xs">URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled={isSubmitting} placeholder="https://..." />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => remove(index)}
-                    disabled={isSubmitting || fields.length === 1}
-                  >
-                    ×
-                  </Button>
+              {fields.length === 0 ? (
+                <div className="text-sm text-muted-foreground italic py-2">
+                  No resource links added. Click "Add Link" to add resources for this assignment.
                 </div>
-              ))}
+              ) : (
+                fields.map((field, index) => (
+                  <div key={field.id} className="flex items-end gap-2 bg-secondary/20 p-2 rounded-md">
+                    <FormField
+                      control={form.control}
+                      name={`links.${index}.label`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel className="text-xs">Label</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={isSubmitting} placeholder="e.g., Lecture Video" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name={`links.${index}.url`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel className="text-xs">URL</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={isSubmitting} placeholder="https://..." />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => remove(index)}
+                      disabled={isSubmitting}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
             
             <DialogFooter className="pt-2">

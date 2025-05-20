@@ -103,7 +103,7 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
       dueDate: dueDateObj,
       status: assignment.status as "pending" | "submitted" | "overdue",
       courseId: assignment.courseId || "",
-      links: assignment.links || [{ label: "", url: "" }]
+      links: assignment.links || []
     }
   });
   
@@ -183,13 +183,13 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Assignment
       </Button>
       
-      <Card>
+      <Card className="max-w-[650px] mx-auto">
         <CardHeader>
           <CardTitle>Edit Assignment</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="max-h-[70vh] overflow-y-auto">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -331,7 +331,7 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
               {/* Resource Links Section */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <FormLabel className="text-base">Resource Links</FormLabel>
+                  <FormLabel className="text-base">Resource Links (Optional)</FormLabel>
                   <Button
                     type="button"
                     variant="outline"
@@ -343,48 +343,54 @@ export default function AssignmentFormEdit({ assignment, courses, onCancel, onSu
                   </Button>
                 </div>
                 
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex items-end gap-2 bg-secondary/20 p-2 rounded-md">
-                    <FormField
-                      control={form.control}
-                      name={`links.${index}.label`}
-                      render={({ field }) => (
-                        <FormItem className="flex-1">
-                          <FormLabel className="text-xs">Label</FormLabel>
-                          <FormControl>
-                            <Input {...field} disabled={isSubmitting} placeholder="e.g., Lecture Video" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name={`links.${index}.url`}
-                      render={({ field }) => (
-                        <FormItem className="flex-1">
-                          <FormLabel className="text-xs">URL</FormLabel>
-                          <FormControl>
-                            <Input {...field} disabled={isSubmitting} placeholder="https://..." />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => remove(index)}
-                      disabled={isSubmitting || fields.length === 1}
-                    >
-                      ×
-                    </Button>
+                {fields.length === 0 ? (
+                  <div className="text-sm text-muted-foreground italic py-2">
+                    No resource links added. Click "Add Link" to add resources for this assignment.
                   </div>
-                ))}
+                ) : (
+                  fields.map((field, index) => (
+                    <div key={field.id} className="flex items-end gap-2 bg-secondary/20 p-2 rounded-md">
+                      <FormField
+                        control={form.control}
+                        name={`links.${index}.label`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel className="text-xs">Label</FormLabel>
+                            <FormControl>
+                              <Input {...field} disabled={isSubmitting} placeholder="e.g., Lecture Video" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name={`links.${index}.url`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel className="text-xs">URL</FormLabel>
+                            <FormControl>
+                              <Input {...field} disabled={isSubmitting} placeholder="https://..." />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => remove(index)}
+                        disabled={isSubmitting}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))
+                )}
               </div>
               
               <div className="flex justify-end space-x-2 pt-4">

@@ -132,13 +132,13 @@ export default function CourseFormEdit({ course, onCancel, onSuccess }: CourseEd
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Course
       </Button>
       
-      <Card>
+      <Card className="max-w-[650px] mx-auto">
         <CardHeader>
           <CardTitle>Edit Course</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="max-h-[70vh] overflow-y-auto">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
               <FormField
                 control={form.control}
                 name="code"
