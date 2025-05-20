@@ -110,72 +110,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {/* Help Button */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <button 
-          onClick={() => {
-            // Create a modal element
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-4';
-            modal.innerHTML = `
-              <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-                <h2 class="text-2xl font-bold text-center mb-4">Welcome to StudyVault!</h2>
-                <p class="text-center mb-6">Your personal academic repository that stays with you beyond graduation.</p>
-                
-                <div class="mb-6 space-y-4">
-                  <div class="flex items-center gap-3">
-                    <div class="bg-blue-100 p-2 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                    </div>
-                    <div>
-                      <h3 class="font-semibold">Organize by Courses</h3>
-                      <p class="text-sm text-gray-600">Create courses to structure your academic work</p>
-                    </div>
-                  </div>
-                  
-                  <div class="flex items-center gap-3">
-                    <div class="bg-green-100 p-2 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M3 15h18"></path><path d="M9 3v18"></path><path d="M15 3v18"></path></svg>
-                    </div>
-                    <div>
-                      <h3 class="font-semibold">Track Assignments</h3>
-                      <p class="text-sm text-gray-600">Manage due dates and completion status</p>
-                    </div>
-                  </div>
-                  
-                  <div class="flex items-center gap-3">
-                    <div class="bg-orange-100 p-2 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-600"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m8 17 4 4 4-4"></path></svg>
-                    </div>
-                    <div>
-                      <h3 class="font-semibold">Store Files</h3>
-                      <p class="text-sm text-gray-600">Keep all your academic files organized</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="flex justify-center">
-                  <button 
-                    id="closeHelp"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            `;
-            document.body.appendChild(modal);
-            
-            // Add event listener to close button
-            document.getElementById('closeHelp').addEventListener('click', () => {
-              document.body.removeChild(modal);
-            });
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:shadow-lg"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>
-        </button>
-      </div>
+      {/* Help button removed, now accessible from user dropdown menu */}
       
       {/* Welcome Banner */}
       <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">

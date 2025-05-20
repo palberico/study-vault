@@ -42,6 +42,7 @@ export interface Assignment {
   status: 'pending' | 'submitted' | 'overdue';
   createdAt: Date;
   links?: ResourceLink[];
+  tags?: string[];
 }
 
 export interface CreateAssignmentData {
@@ -52,6 +53,7 @@ export interface CreateAssignmentData {
   dueDate: Date;
   status: 'pending' | 'submitted' | 'overdue';
   links?: ResourceLink[];
+  tags?: string[];
 }
 
 // File Types
