@@ -37,6 +37,14 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
   const [showProInfoModal, setShowProInfoModal] = useState(false);
   const { user } = useAuth();
   
+  // Debug user info
+  useEffect(() => {
+    if (user) {
+      console.log("Sidebar user:", user);
+      console.log("User isPro status:", user.isPro);
+    }
+  }, [user]);
+  
   // Function to handle navigation without toggling sidebar
   const handleNavigation = (to: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -203,8 +211,7 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
       
       {/* Pro Features Section */}
       <div className="flex justify-center pt-2">
-        {user && !user.isPro ? (
-          /* Lock icon for free users */
+        {!user?.isPro && (
           <Button
             onClick={() => setShowProInfoModal(true)}
             variant="ghost"
@@ -214,8 +221,9 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
           >
             <Lock className="h-4 w-4" />
           </Button>
-        ) : user && user.isPro ? (
-          /* AI Feature icons for Pro users */
+        )}
+        
+        {user?.isPro && (
           <div className="flex space-x-2">
             <Button
               variant="ghost"
@@ -234,7 +242,7 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
               <Lightbulb className="h-4 w-4" />
             </Button>
           </div>
-        ) : null}
+        )}
       </div>
       
       {/* Toggle Button */}

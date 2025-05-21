@@ -7,8 +7,13 @@ import {
   Folder, 
   ChevronRight, 
   ChevronLeft,
-  Plus
+  Lock,
+  Lightbulb,
+  Bot,
+  Sparkles
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Course } from "@/lib/firebase";
