@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import Header from "./header";
-import NewSidebar from "./new-sidebar";
+import Sidebar from "./sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { getUserCourses, type Course } from "@/lib/firebase";
 
@@ -55,8 +55,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       />
       
       <div className="flex flex-1">
-        {/* New Sidebar - both desktop and mobile */}
-        <NewSidebar 
+        {/* Sidebar - both desktop and mobile */}
+        <Sidebar 
           courses={courses} 
           isExpanded={sidebarExpanded}
           toggleSidebar={toggleSidebar}
