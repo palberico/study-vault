@@ -77,37 +77,21 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
       >
         {/* Top section with navigation */}
         <div className="relative flex flex-col h-full px-3 py-4">
-          {/* Toggle Button - Top right when expanded */}
-          {isExpanded && (
-            <div className="absolute top-2 right-2">
-              <Button
-                onClick={toggleSidebar}
-                variant="ghost"
-                size="sm"
-                className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:bg-slate-100"
-                aria-label="Collapse sidebar"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          {/* Toggle Button - Always at the top above dashboard */}
+          <div className="mb-4 flex justify-center">
+            <Button
+              onClick={toggleSidebar}
+              variant="ghost"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:bg-slate-100"
+              aria-label={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </Button>
+          </div>
           
           <ScrollArea className="flex-grow">
             <ul className="space-y-1">
-              {/* Toggle Button - Above dashboard when collapsed */}
-              {!isExpanded && (
-                <li className="mb-4 flex justify-center">
-                  <Button
-                    onClick={toggleSidebar}
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:bg-slate-100"
-                    aria-label="Expand sidebar"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </li>
-              )}
               <li>
                 <Button
                   variant="ghost"
