@@ -79,10 +79,21 @@ export default {
             height: "0",
           },
         },
+        "pro-pulse": {
+          "0%, 100%": { 
+            opacity: "1",
+            boxShadow: "0 0 0 0 rgba(245, 158, 11, 0.3)" 
+          },
+          "50%": { 
+            opacity: "0.8",
+            boxShadow: "0 0 0 4px rgba(245, 158, 11, 0.15)" 
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pro-pulse": "pro-pulse 3s ease-in-out infinite",
       },
     },
   },

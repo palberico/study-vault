@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface PaymentModalProps {
@@ -38,6 +40,8 @@ export default function PaymentModal({ open, onOpenChange, userId, onSuccess }: 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const { user } = useAuth();
 
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
@@ -54,13 +58,25 @@ export default function PaymentModal({ open, onOpenChange, userId, onSuccess }: 
     
     try {
       // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Update user document in Firestore to mark as Pro
       const userRef = doc(db, "users", userId);
       await updateDoc(userRef, {
         isPro: true
       });
+
+      // Update the local auth context with the Pro status
+      if (auth.currentUser) {
+        // We need to update the auth context without forcing a reload
+        const userDoc = await getDoc(userRef);
+        const userData = userDoc.data();
+        
+        // This will be picked up by our auth context
+        if (userData) {
+          console.log("User upgraded to Pro successfully:", userData);
+        }
+      }
 
       // Show success
       setIsComplete(true);
@@ -76,11 +92,22 @@ export default function PaymentModal({ open, onOpenChange, userId, onSuccess }: 
       // Reset form
       form.reset();
       
-      // Close dialog after 2 seconds but don't reload the page
+      // Close dialog and redirect to dashboard after a short delay
       setTimeout(() => {
         onOpenChange(false);
         setIsComplete(false);
-      }, 2000);
+        
+        // Navigate to dashboard to show off Pro status
+        navigate("/");
+        
+        // Show a welcome toast on the dashboard
+        setTimeout(() => {
+          toast({
+            title: "Welcome to StudyVault Pro!",
+            description: "Enjoy your premium features and gold status.",
+          });
+        }, 500);
+      }, 1500);
       
     } catch (error) {
       console.error("Payment error:", error);
