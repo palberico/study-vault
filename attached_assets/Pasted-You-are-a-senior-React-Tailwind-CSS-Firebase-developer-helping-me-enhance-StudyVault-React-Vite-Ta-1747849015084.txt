@@ -1,0 +1,35 @@
+You are a senior React/Tailwind CSS/Firebase developer helping me enhance StudyVault (React Vite, Tailwind CSS, Firebase Auth + Firestore) with a subtle Pro-tier spotlight in the sidebar. I need complete, self-contained code changes to implement “Sidebar Highlight for Pro Features” as follows:
+
+1. **Sidebar Update (`Sidebar.tsx` or equivalent)**  
+   - **Free users** (`user.isPro !== false`):  
+     - Render a lock icon (e.g. a padlock from your icon library) underneath the existing menu icons and just above the “>” collapse arrow.  
+     - On click, open a new `ProInfoModal` that explains what Pro offers and includes a “Try Pro” button which opens the existing `GoProModal`.  
+   - **Pro users** (`user.isPro === true`):  
+     - Do **not** render the lock icon.  
+     - Instead, render two placeholder AI-related icons (e.g. a robot head and a lightbulb) in the same spot under the menu icons. These are static for now—no click behavior.  
+
+2. **`ProInfoModal` Component**  
+   - Create a modal with:  
+     - A short headline (“Unlock Pro Features”)  
+     - A bullet list of upcoming Pro benefits (e.g. “Auto-generate assignments from your syllabus”, “Advanced analytics powered by AI”)  
+     - A “Try Pro” button that invokes the existing `GoProModal` logic.  
+     - A “Close” or “X” to dismiss the modal.  
+
+3. **Styling & Placement**  
+   - Use Tailwind classes consistent with the sidebar’s look: muted gray for free-tier lock icon, gold accents on hover.  
+   - Placeholder AI icons should use your standard icon size and spacing so they align perfectly under the other icons.  
+
+4. **Imports & Context**  
+   - Pull in the user from your `UserContext` or auth hook.  
+   - Import any icon components you use (e.g. from `react-icons/ai` or your existing icon set).  
+
+5. **No Other Changes**  
+   - Don’t touch other pages or routes.  
+   - Ensure all existing free-tier functionality remains intact.  
+
+Please provide:  
+- Full updated `Sidebar.tsx` (or `.jsx/.tsx`) code with imports, context, conditional rendering, and Tailwind classes.  
+- The new `ProInfoModal` component code.  
+- Any small additions to your modal provider or root component to enable the new modal.  
+
+Generate the complete code modules only for this feature. Thank you!  

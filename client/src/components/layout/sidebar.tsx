@@ -9,13 +9,20 @@ import {
   Plus, 
   X,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Lightbulb,
+  Lock,
+  Bot
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
 import CourseForm from "@/components/course/course-form";
+import { useAuth } from "@/hooks/use-auth";
+// import ProInfoModal from "@/components/pro/pro-info-modal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sparkles } from "lucide-react";
 
 interface SidebarProps {
   courses: Course[];
@@ -27,6 +34,8 @@ interface SidebarProps {
 export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarProps) {
   const [location, navigate] = useLocation();
   const [showCourseForm, setShowCourseForm] = useState(false);
+  const [showProInfoModal, setShowProInfoModal] = useState(false);
+  const { user } = useAuth();
   
   // Function to handle navigation without toggling sidebar
   const handleNavigation = (to: string) => (e: React.MouseEvent) => {
@@ -189,11 +198,47 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
         </div>
       )}
       
-      {/* Border separator only, no Add Course button */}
+      {/* Border separator */}
       <div className="pt-4 border-t border-slate-200"></div>
       
+      {/* Pro Features Section */}
+      <div className="flex justify-center pt-2">
+        {user && !user.isPro ? (
+          /* Lock icon for free users */
+          <Button
+            onClick={() => setShowProInfoModal(true)}
+            variant="ghost"
+            size="sm"
+            className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-400 hover:text-yellow-500 hover:border hover:border-yellow-400 transition-colors duration-200"
+            aria-label="Unlock Pro features"
+          >
+            <Lock className="h-4 w-4" />
+          </Button>
+        ) : user && user.isPro ? (
+          /* AI Feature icons for Pro users */
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100"
+              aria-label="AI Assistant"
+            >
+              <Bot className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100"
+              aria-label="Smart Suggestions"
+            >
+              <Lightbulb className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : null}
+      </div>
+      
       {/* Toggle Button */}
-      <div className="pt-4 flex justify-center">
+      <div className="pt-3 flex justify-center">
         <Button
           onClick={onToggle}
           variant="ghost"
@@ -244,6 +289,61 @@ export default function Sidebar({ courses, isOpen, onClose, onToggle }: SidebarP
           onClose={() => setShowCourseForm(false)}
           onSuccess={() => setShowCourseForm(false)}
         />
+      )}
+      
+      {/* Pro Info Modal */}
+      {user && (
+        <Dialog open={showProInfoModal} onOpenChange={setShowProInfoModal}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-xl font-bold">
+                <Sparkles className="h-5 w-5 mr-2 text-yellow-400" />
+                Unlock Pro Features
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <p className="text-slate-600 mb-4">
+                Upgrade to StudyVault Pro and unlock powerful features to enhance your academic experience:
+              </p>
+              
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <div className="h-5 w-5 text-yellow-500 mr-2">•</div>
+                  <span className="text-slate-700">Auto-generate assignments from your syllabus</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-5 w-5 text-yellow-500 mr-2">•</div>
+                  <span className="text-slate-700">Advanced analytics powered by AI</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-5 w-5 text-yellow-500 mr-2">•</div>
+                  <span className="text-slate-700">Unlimited file storage for all your courses</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-5 w-5 text-yellow-500 mr-2">•</div>
+                  <span className="text-slate-700">AI-powered study recommendations</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-5 w-5 text-yellow-500 mr-2">•</div>
+                  <span className="text-slate-700">Priority customer support</span>
+                </li>
+              </ul>
+            </div>
+            
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  setShowProInfoModal(false);
+                  navigate("/my-account");
+                }}
+                className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white"
+              >
+                <Sparkles className="h-4 w-4 mr-2" /> Try Pro Now
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </>
   );
