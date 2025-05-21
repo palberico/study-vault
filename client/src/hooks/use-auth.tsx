@@ -4,10 +4,12 @@ import {
   onAuthStateChanged,
   logInWithEmailAndPassword,
   registerWithEmailAndPassword,
-  logout as firebaseLogout
+  logout as firebaseLogout,
+  db
 } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import type { User } from "@/types/index";
-import { useLocation, useRouter } from "wouter";
+import { useLocation } from "wouter";
 import { LoaderPinwheel } from "lucide-react";
 
 interface AuthContextType {
@@ -16,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,16 +27,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Function to refresh user data - crucial for updating Pro status
+  const refreshUserData = async () => {
+    if (!auth.currentUser) return;
+    
+    try {
+      console.log("Refreshing user data for:", auth.currentUser.uid);
+      
+      // Get fresh user document from Firestore
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        
+        // Update the local user state with fresh data
+        setUser(currentUser => {
+          if (!currentUser) return null;
+          
+          return {
+            ...currentUser,
+            name: userData.name || currentUser.name,
+            school: userData.school || currentUser.school,
+            isPro: userData.isPro || false,
+          };
+        });
+        
+        console.log("User data refreshed successfully:", userData);
+      }
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         // Fetch additional user data from Firestore
         const fetchUserData = async () => {
           try {
-            // Import Firestore functions
-            const { db } = await import("@/lib/firebase");
-            const { doc, getDoc } = await import("firebase/firestore");
-            
             // Get user document from Firestore
             const userDocRef = doc(db, "users", firebaseUser.uid);
             const userDoc = await getDoc(userDocRef);
@@ -101,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUserData }}>
       {children}
     </AuthContext.Provider>
   );
@@ -117,7 +149,7 @@ export function useAuth() {
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  const [location, navigate] = useLocation();
+  const [, navigate] = useLocation();
 
   useEffect(() => {
     if (!loading && !user) {

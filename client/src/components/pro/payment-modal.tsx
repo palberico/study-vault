@@ -41,7 +41,7 @@ export default function PaymentModal({ open, onOpenChange, userId, onSuccess }: 
   const [isComplete, setIsComplete] = useState(false);
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
 
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
@@ -68,14 +68,9 @@ export default function PaymentModal({ open, onOpenChange, userId, onSuccess }: 
 
       // Update the local auth context with the Pro status
       if (auth.currentUser) {
-        // We need to update the auth context without forcing a reload
-        const userDoc = await getDoc(userRef);
-        const userData = userDoc.data();
-        
-        // This will be picked up by our auth context
-        if (userData) {
-          console.log("User upgraded to Pro successfully:", userData);
-        }
+        // Refresh user data in the auth context immediately
+        await refreshUserData();
+        console.log("User Pro status updated in auth context");
       }
 
       // Show success
@@ -93,7 +88,10 @@ export default function PaymentModal({ open, onOpenChange, userId, onSuccess }: 
       form.reset();
       
       // Close dialog and redirect to dashboard after a short delay
-      setTimeout(() => {
+      setTimeout(async () => {
+        // Make sure Pro status is updated in the auth context
+        await refreshUserData();
+        
         onOpenChange(false);
         setIsComplete(false);
         
