@@ -14,10 +14,11 @@ import CourseCard from "@/components/course/course-card";
 import AssignmentCard from "@/components/assignment/assignment-card";
 import FileItem from "@/components/file/file-item";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Calendar, FileText } from "lucide-react";
+import { PlusIcon, Calendar, FileText, Sparkles } from "lucide-react";
 import CourseForm from "@/components/course/course-form";
 import { formatDistanceToNow } from "date-fns";
 import OnboardingController from "@/components/onboarding/onboarding-controller";
+import PaymentModal from "@/components/pro/payment-modal";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [files, setFiles] = useState<FileItemType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCourseForm, setShowCourseForm] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
   
   // Don't load from localStorage automatically anymore
   useEffect(() => {
@@ -155,12 +157,23 @@ export default function DashboardPage() {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-slate-800">Your Courses</h2>
-          <Button 
-            onClick={() => setShowCourseForm(true)}
-            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 flex items-center"
-          >
-            <PlusIcon className="mr-2 h-4 w-4" /> Add New Course
-          </Button>
+          <div className="flex space-x-3">
+            {!user?.isPro && (
+              <Button 
+                onClick={() => setShowProModal(true)}
+                variant="ghost"
+                className="px-4 py-2 border border-yellow-400 text-yellow-500 hover:bg-yellow-50 rounded-lg text-sm font-medium flex items-center"
+              >
+                <Sparkles className="mr-2 h-4 w-4 text-yellow-400" /> Try Pro
+              </Button>
+            )}
+            <Button 
+              onClick={() => setShowCourseForm(true)}
+              className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 flex items-center"
+            >
+              <PlusIcon className="mr-2 h-4 w-4" /> Add New Course
+            </Button>
+          </div>
         </div>
         
         {isLoading ? (
@@ -184,9 +197,22 @@ export default function DashboardPage() {
             <Calendar className="mx-auto h-12 w-12 text-slate-400 mb-3" />
             <h3 className="text-lg font-medium text-slate-900 mb-1">No courses yet</h3>
             <p className="text-slate-500 mb-4">Start by adding your first course</p>
-            <Button onClick={() => setShowCourseForm(true)}>
+            <Button onClick={() => setShowCourseForm(true)} className="mb-3">
               Add Course
             </Button>
+            
+            {!user?.isPro && (
+              <div className="mt-4 text-sm text-slate-500">
+                Or, go Pro and let us import your syllabus for you!{" "}
+                <button 
+                  onClick={() => setShowProModal(true)} 
+                  className="text-yellow-500 hover:text-yellow-600 font-medium inline-flex items-center"
+                >
+                  Try Pro
+                  <Sparkles className="h-3.5 w-3.5 ml-1 text-yellow-400" />
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -403,12 +429,32 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Pro Upgrade Modal */}
+      {user && (
+        <PaymentModal
+          open={showProModal}
+          onOpenChange={setShowProModal}
+          userId={user.uid}
+          onSuccess={() => {
+            toast({
+              title: "Upgrade successful!",
+              description: "You now have access to all Pro features.",
+            });
+          }}
+        />
+      )}
+      
+      {/* Course Form Modal */}
       {showCourseForm && (
         <CourseForm 
           onClose={() => setShowCourseForm(false)}
           onSuccess={(course) => {
             setCourses(prev => [course, ...prev]);
             setShowCourseForm(false);
+            toast({
+              title: "Course added",
+              description: "Your course was added successfully.",
+            });
           }}
         />
       )}
