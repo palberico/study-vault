@@ -37,7 +37,7 @@ export default function MyAccountPage() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user?.displayName || "",
+      name: user?.name || "",
       school: user?.school || "",
     }
   });
@@ -117,8 +117,8 @@ export default function MyAccountPage() {
 
   // Function to get user initials for avatar
   const getUserInitials = () => {
-    if (user?.displayName) {
-      return user.displayName.charAt(0);
+    if (user?.name) {
+      return user.name.charAt(0);
     }
     return user?.email?.charAt(0).toUpperCase() || "?";
   };

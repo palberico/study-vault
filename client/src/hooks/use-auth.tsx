@@ -27,14 +27,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
-        // Convert Firebase user to our User type
-        const user: User = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL
+        // Fetch additional user data from Firestore
+        const fetchUserData = async () => {
+          try {
+            // Import Firestore functions
+            const { db } = await import("@/lib/firebase");
+            const { doc, getDoc } = await import("firebase/firestore");
+            
+            // Get user document from Firestore
+            const userDocRef = doc(db, "users", firebaseUser.uid);
+            const userDoc = await getDoc(userDocRef);
+            
+            // Convert Firebase user to our User type with additional data
+            const user: User = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+              // Add additional fields from Firestore if they exist
+              name: userDoc.exists() ? userDoc.data().name : null,
+              school: userDoc.exists() ? userDoc.data().school : null,
+              isPro: userDoc.exists() ? userDoc.data().isPro : false
+            };
+            setUser(user);
+          } catch (error) {
+            console.error("Error fetching user data:", error);
+            // Fallback to basic user info if Firestore fetch fails
+            const user: User = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL
+            };
+            setUser(user);
+          }
         };
-        setUser(user);
+        
+        fetchUserData();
       } else {
         setUser(null);
       }

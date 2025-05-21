@@ -119,7 +119,7 @@ export default function DashboardPage() {
           <div className="absolute inset-0 flex items-center p-8">
             <div className="max-w-2xl">
               <h1 className="text-white text-2xl sm:text-3xl font-bold mb-2">
-                Welcome back, {user?.email?.split('@')[0] || 'Student'}!
+                {user?.name ? `Welcome back, ${user.name}!` : 'Welcome back!'}
               </h1>
               <p className="text-blue-100 text-sm sm:text-base">
                 Track your academic journey and keep all your work organized in one place.

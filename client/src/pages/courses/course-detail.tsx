@@ -257,9 +257,9 @@ export default function CourseDetailPage({ id }: { id: string }) {
           </div>
         </div>
         <div className="p-6">
-          <div className="flex justify-between">
+          <div className="flex flex-col xs:flex-row justify-between gap-3">
             <h1 className="text-2xl font-bold text-slate-800 mb-2">{course.name}</h1>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 self-end xs:self-start">
               <Button
                 variant="outline"
                 size="icon"
@@ -280,24 +280,28 @@ export default function CourseDetailPage({ id }: { id: string }) {
           </div>
           
           {course.syllabusUrl && (
-            <div className="flex items-center gap-2 mb-4 mt-2 p-3 border border-slate-200 rounded-md bg-slate-50">
-              <FileText className="h-5 w-5 text-primary" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">Course Syllabus</p>
-                <p className="text-xs text-slate-500 truncate">{course.syllabusName || 'syllabus.pdf'}</p>
+            <div className="flex flex-col xs:flex-row items-start xs:items-center gap-3 xs:gap-2 mb-4 mt-2 p-3 border border-slate-200 rounded-md bg-slate-50">
+              <FileText className="h-5 w-5 text-primary hidden xs:block" />
+              <div className="flex-1 w-full xs:w-auto">
+                <div className="flex items-center xs:hidden mb-1">
+                  <FileText className="h-4 w-4 text-primary mr-1" />
+                  <p className="text-sm font-medium">Course Syllabus</p>
+                </div>
+                <p className="text-sm font-medium hidden xs:block">Course Syllabus</p>
+                <p className="text-xs text-slate-500 truncate max-w-[220px] sm:max-w-full">{course.syllabusName || 'syllabus.pdf'}</p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-primary"
+                className="text-primary w-full xs:w-auto mt-2 xs:mt-0"
                 onClick={() => window.open(course.syllabusUrl, '_blank')}
               >
-                View
+                View Syllabus
               </Button>
             </div>
           )}
           
-          <div className="flex justify-between items-center text-sm text-slate-500 pt-2 border-t border-slate-100 mt-2">
+          <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 xs:gap-0 text-sm text-slate-500 pt-2 border-t border-slate-100 mt-2">
             <span>
               <Calendar className="inline-block h-4 w-4 mr-1" /> {course.term}
             </span>
@@ -309,26 +313,26 @@ export default function CourseDetailPage({ id }: { id: string }) {
       </div>
       
       <div className="mb-8">
-        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-          <div className="flex flex-col md:flex-row items-center gap-4">
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-4">
             <h2 className="text-xl font-bold text-slate-800">Assignments</h2>
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-              <Input
-                type="text"
-                placeholder="Search assignments..."
-                className="pl-9 w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            <Button 
+              onClick={() => setShowAssignmentForm(true)}
+              className="flex items-center w-full xs:w-auto"
+            >
+              <PlusIcon className="mr-2 h-4 w-4" /> Add Assignment
+            </Button>
           </div>
-          <Button 
-            onClick={() => setShowAssignmentForm(true)}
-            className="flex items-center"
-          >
-            <PlusIcon className="mr-2 h-4 w-4" /> Add Assignment
-          </Button>
+          <div className="relative w-full">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+            <Input
+              type="text"
+              placeholder="Search assignments..."
+              className="pl-9 w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
         
         {assignments.length === 0 ? (

@@ -129,11 +129,10 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
           <span className={`inline-block w-2 h-2 rounded-full ${getCourseStatusColor()} mr-2`}></span>
           Active
         </span>
-        <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto order-1 sm:order-2">
+        <div className="flex justify-end gap-2 w-full sm:w-auto order-1 sm:order-2">
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-xs w-full xs:w-auto"
             onClick={(e) => {
               e.stopPropagation();
               // Store course ID in localStorage for assignment form
@@ -145,7 +144,7 @@ export default function CourseCard({ course, assignmentCount, onClick, onDelete 
           </Button>
           <Button 
             variant="link" 
-            className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto w-full xs:w-auto text-center sm:text-left"
+            className="text-primary hover:text-blue-700 text-sm font-medium p-0 h-auto flex items-center"
             onClick={(e) => {
               e.stopPropagation();
               if (course.id) {

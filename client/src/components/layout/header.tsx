@@ -44,9 +44,13 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   };
 
   const getUserInitials = () => {
-    if (!user?.email) return "?";
-    const email = user.email;
-    return email.charAt(0).toUpperCase();
+    if (user?.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return "?";
   };
 
   return (
@@ -93,9 +97,11 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">My Profile</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name ? user.name : 'My Profile'}
+                  </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    Manage your account
+                    {user?.school ? user.school : 'Manage your account'}
                   </p>
                 </div>
               </DropdownMenuLabel>
