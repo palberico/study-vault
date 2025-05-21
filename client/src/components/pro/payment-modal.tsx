@@ -76,7 +76,7 @@ export default function PaymentModal({ open, onOpenChange, userId, onSuccess }: 
       // Reset form
       form.reset();
       
-      // Close dialog after 2 seconds
+      // Close dialog after 2 seconds but don't reload the page
       setTimeout(() => {
         onOpenChange(false);
         setIsComplete(false);

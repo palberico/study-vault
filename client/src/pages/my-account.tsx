@@ -128,10 +128,11 @@ export default function MyAccountPage() {
   // Handle successful pro upgrade
   const handleProUpgradeSuccess = () => {
     setLocalUserState({ isPro: true });
-    // Force reload window to ensure all components see the updated state
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
+    // Update the state without forcing a page reload
+    toast({
+      title: "Pro upgrade successful!",
+      description: "You now have access to all premium features. No need to log back in.",
+    });
   };
 
   // Function to get user initials for avatar

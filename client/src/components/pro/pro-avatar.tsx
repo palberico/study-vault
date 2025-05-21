@@ -30,8 +30,20 @@ export default function ProAvatar({ initials, isPro, className, onClick }: ProAv
       </Avatar>
 
       {isPro && (
-        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[9px] font-bold text-white ring-1 ring-white">
-          PRO
+        <span className="absolute -top-3 left-[50%] transform -translate-x-1/2 rotate-[-5deg]">
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            viewBox="0 0 24 24" 
+            fill="none"
+            stroke="currentColor" 
+            strokeWidth="2"
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className="text-primary h-5 w-5"
+          >
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
+          </svg>
         </span>
       )}
     </div>
