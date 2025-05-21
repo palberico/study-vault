@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { getAuth, updateProfile } from "firebase/auth";
 import { doc, updateDoc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import PaymentModal from "@/components/pro/payment-modal";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ export default function MyAccountPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [localUserState, setLocalUserState] = useState({ isPro: user?.isPro || false });
   
   // Default form values from user object
   const form = useForm<ProfileFormValues>({
@@ -114,6 +117,22 @@ export default function MyAccountPage() {
       setIsUpdating(false);
     }
   }
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setLocalUserState({ isPro: user.isPro || false });
+    }
+  }, [user]);
+
+  // Handle successful pro upgrade
+  const handleProUpgradeSuccess = () => {
+    setLocalUserState({ isPro: true });
+    // Force reload window to ensure all components see the updated state
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  };
 
   // Function to get user initials for avatar
   const getUserInitials = () => {
@@ -277,6 +296,7 @@ export default function MyAccountPage() {
                     <Button 
                       className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
                       size="sm"
+                      onClick={() => setShowPaymentModal(true)}
                     >
                       <Crown className="mr-2 h-4 w-4" />
                       Upgrade to Pro
@@ -309,6 +329,16 @@ export default function MyAccountPage() {
           </Card>
         </div>
       </div>
+      
+      {/* Payment Modal */}
+      {user && (
+        <PaymentModal
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
+          userId={user.uid}
+          onSuccess={handleProUpgradeSuccess}
+        />
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { BookOpen, Menu, Search, Bell, LogOut, HelpCircle, User } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import ProAvatar from "@/components/pro/pro-avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,12 +86,11 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar>
-                  <AvatarFallback className="bg-primary text-white">
-                    {getUserInitials()}
-                  </AvatarFallback>
-                </Avatar>
+              <Button variant="ghost" className="relative p-0 h-10 w-10 rounded-full">
+                <ProAvatar
+                  initials={getUserInitials()}
+                  isPro={user?.isPro || false}
+                />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
