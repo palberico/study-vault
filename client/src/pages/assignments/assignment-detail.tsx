@@ -287,7 +287,36 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
               </div>
             </div>
             
-            <div className="flex gap-2 mt-2 md:mt-0">{/* Removed "Mark as Submitted" button as requested */}
+            <div className="flex gap-2 mt-2 md:mt-0">
+              {assignment.status !== 'submitted' && (
+                <Button
+                  variant="outline"
+                  className="bg-green-50 text-green-600 border-green-200 hover:bg-green-100 hover:text-green-700"
+                  onClick={async () => {
+                    if (!assignment.id) return;
+                    try {
+                      await updateAssignment(assignment.id, { status: 'submitted' });
+                      setAssignment({
+                        ...assignment,
+                        status: 'submitted'
+                      });
+                      toast({
+                        title: "Assignment submitted",
+                        description: "Assignment status has been updated to submitted",
+                      });
+                    } catch (error) {
+                      console.error("Error marking assignment as submitted:", error);
+                      toast({
+                        title: "Error",
+                        description: "Could not update the assignment status",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                >
+                  Mark as Submitted
+                </Button>
+              )}
               
               <Button
                 variant="outline"
