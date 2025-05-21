@@ -190,7 +190,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                       isExpanded ? "mr-3" : "",
                       "text-slate-400 hover:text-yellow-500"
                     )} />
-                    {isExpanded && "Upgrade to Pro"}
+                    {isExpanded && "Unlock Pro"}
                   </Button>
                 ) : (
                   <>
@@ -200,6 +200,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                         "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
                         !isExpanded && "justify-center"
                       )}
+                      onClick={() => navigateTo("/pro-dashboard")}
                       aria-label="AI Assistant"
                     >
                       <Bot className={cn(
@@ -310,7 +311,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                       aria-label="Unlock Pro features"
                     >
                       <Lock className="w-5 h-5 mr-3 text-slate-400 hover:text-yellow-500" />
-                      Upgrade to Pro
+                      Unlock Pro
                     </Button>
                   ) : (
                     <>

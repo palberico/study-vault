@@ -14,6 +14,7 @@ import EditAssignmentPage from "@/pages/assignments/edit-assignment";
 import FilesPage from "@/pages/files/files";
 import FileUploadPage from "@/pages/files/upload";
 import MyAccountPage from "@/pages/my-account";
+import ProDashboard from "@/pages/pro-dashboard";
 import NotFound from "@/pages/not-found";
 import AppLayout from "@/components/layout/app-layout";
 import { ProtectedRoute } from "@/hooks/use-auth";
@@ -102,6 +103,13 @@ function Router() {
         <ProtectedRoute>
           <AppLayout>
             <MyAccountPage />
+          </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/pro-dashboard">
+        <ProtectedRoute>
+          <AppLayout>
+            <ProDashboard />
           </AppLayout>
         </ProtectedRoute>
       </Route>
