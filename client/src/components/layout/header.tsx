@@ -54,7 +54,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white shadow-sm z-10">
+    <header className="bg-white z-10">
       <div className="flex items-center justify-between px-4 py-3 lg:px-8">
         {/* Mobile Menu Button */}
         <button 

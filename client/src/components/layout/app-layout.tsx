@@ -12,16 +12,8 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const [location] = useLocation();
   const { user } = useAuth();
-  const [sidebarExpanded, setSidebarExpanded] = useState(false); // Default to collapsed
+  const [sidebarExpanded, setSidebarExpanded] = useState(false); // Always default to collapsed
   const [courses, setCourses] = useState<Course[]>([]);
-  
-  // Load saved sidebar state from localStorage on initial load
-  useEffect(() => {
-    const savedState = localStorage.getItem('sidebarExpanded');
-    if (savedState !== null) {
-      setSidebarExpanded(savedState === 'true');
-    }
-  }, []);
   
   // Save sidebar state when it changes
   useEffect(() => {
@@ -69,7 +61,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </div>
       
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 px-4 lg:px-8">
+      <footer className="bg-white py-6 px-4 lg:px-8">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="text-slate-500 text-sm mb-4 md:mb-0">
             &copy; {new Date().getFullYear()} StudyVault. All rights reserved.

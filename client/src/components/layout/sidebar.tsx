@@ -71,19 +71,43 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
       {/* Desktop Sidebar */}
       <aside 
         className={cn(
-          "hidden lg:flex lg:flex-col bg-white border-r border-slate-200 h-[calc(100vh-57px)] sticky top-[57px] transition-all duration-300",
+          "hidden lg:flex lg:flex-col bg-white h-[calc(100vh-57px)] sticky top-[57px] transition-all duration-300",
           isExpanded ? "w-64" : "w-16"
         )}
       >
-        {/* Top section with navigation - scrollable */}
-        <ScrollArea className="flex-grow">
-          <div className="px-3 py-4">
-            {isExpanded && (
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 px-2">
-                Main
-              </div>
-            )}
+        {/* Top section with navigation */}
+        <div className="relative flex flex-col h-full px-3 py-4">
+          {/* Toggle Button - Top right when expanded */}
+          {isExpanded && (
+            <div className="absolute top-2 right-2">
+              <Button
+                onClick={toggleSidebar}
+                variant="ghost"
+                size="sm"
+                className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:bg-slate-100"
+                aria-label="Collapse sidebar"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          
+          <ScrollArea className="flex-grow">
             <ul className="space-y-1">
+              {/* Toggle Button - Above dashboard when collapsed */}
+              {!isExpanded && (
+                <li className="mb-4 flex justify-center">
+                  <Button
+                    onClick={toggleSidebar}
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:bg-slate-100"
+                    aria-label="Expand sidebar"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </li>
+              )}
               <li>
                 <Button
                   variant="ghost"
@@ -164,93 +188,63 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                   {isExpanded && "All Files"}
                 </Button>
               </li>
-            </ul>
-            
-            {/* Courses section */}
-            {courses.length > 0 && (
-              <div className="mt-6">
-                {isExpanded && (
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 px-2">
-                    Your Courses
-                  </div>
+              
+              {/* Pro Features Icons */}
+              <li className="mt-2">
+                {!user?.isPro ? (
+                  <Button
+                    onClick={() => setShowProInfoModal(true)}
+                    variant="ghost"
+                    className={cn(
+                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                      !isExpanded && "justify-center"
+                    )}
+                    aria-label="Unlock Pro features"
+                  >
+                    <Lock className={cn(
+                      "w-5 h-5",
+                      isExpanded ? "mr-3" : "",
+                      "text-slate-400 hover:text-yellow-500"
+                    )} />
+                    {isExpanded && "Upgrade to Pro"}
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                        !isExpanded && "justify-center"
+                      )}
+                      aria-label="AI Assistant"
+                    >
+                      <Bot className={cn(
+                        "w-5 h-5",
+                        isExpanded ? "mr-3" : "",
+                        "text-slate-500"
+                      )} />
+                      {isExpanded && "AI Assistant"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                        !isExpanded && "justify-center"
+                      )}
+                      aria-label="Smart Suggestions"
+                    >
+                      <Lightbulb className={cn(
+                        "w-5 h-5",
+                        isExpanded ? "mr-3" : "",
+                        "text-slate-500"
+                      )} />
+                      {isExpanded && "Suggestions"}
+                    </Button>
+                  </>
                 )}
-                <ul className="space-y-1">
-                  {courses.map((course) => (
-                    <li key={course.id}>
-                      <Button
-                        variant="ghost"
-                        className={cn(
-                          "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                          isActive(`/courses/${course.id}`) 
-                            ? "bg-slate-100 text-slate-900 font-medium" 
-                            : "text-slate-700 hover:bg-slate-100",
-                          !isExpanded && "justify-center"
-                        )}
-                        onClick={() => navigateTo(`/courses/${course.id}`)}
-                      >
-                        <span className={cn(
-                          "rounded-full", 
-                          isExpanded ? "w-2 h-2 mr-3" : "w-5 h-5",
-                          getCourseColor(course.code)
-                        )}></span>
-                        {isExpanded && `${course.code} - ${course.name}`}
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-        
-        {/* Bottom section with divider, Pro button, and toggle */}
-        <div className="border-t border-slate-200">
-          {/* Pro Features Section - Immediately below divider */}
-          <div className="flex justify-center pt-3 pb-2">
-            {!user?.isPro ? (
-              <Button
-                onClick={() => setShowProInfoModal(true)}
-                variant="ghost"
-                size="sm"
-                className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-400 hover:text-yellow-500 hover:border hover:border-yellow-400 transition-colors duration-200"
-                aria-label="Unlock Pro features"
-              >
-                <Lock className="h-4 w-4" />
-              </Button>
-            ) : (
-              <div className="flex space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100"
-                  aria-label="AI Assistant"
-                >
-                  <Bot className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100"
-                  aria-label="Smart Suggestions"
-                >
-                  <Lightbulb className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          {/* Toggle Button */}
-          <div className="pb-3 flex justify-center">
-            <Button
-              onClick={toggleSidebar}
-              variant="ghost"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:bg-slate-100"
-              aria-label={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            >
-              {isExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
-          </div>
+              </li>
+            </ul>
+          </ScrollArea>
         </div>
       </aside>
 
@@ -282,9 +276,6 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
           {/* Content - similar structure to desktop */}
           <ScrollArea className="flex-grow">
             <div className="px-3 py-4 mt-8">
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 px-2">
-                Main
-              </div>
               <ul className="space-y-1">
                 <li>
                   <Button
@@ -326,68 +317,41 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                     All Files
                   </Button>
                 </li>
+                <li className="mt-2">
+                  {!user?.isPro ? (
+                    <Button
+                      onClick={() => setShowProInfoModal(true)}
+                      variant="ghost"
+                      className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
+                      aria-label="Unlock Pro features"
+                    >
+                      <Lock className="w-5 h-5 mr-3 text-slate-400 hover:text-yellow-500" />
+                      Upgrade to Pro
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
+                        aria-label="AI Assistant"
+                      >
+                        <Bot className="w-5 h-5 mr-3 text-slate-500" />
+                        AI Assistant
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
+                        aria-label="Smart Suggestions"
+                      >
+                        <Lightbulb className="w-5 h-5 mr-3 text-slate-500" />
+                        Suggestions
+                      </Button>
+                    </>
+                  )}
+                </li>
               </ul>
-              
-              {/* Courses section */}
-              {courses.length > 0 && (
-                <div className="mt-6">
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 px-2">
-                    Your Courses
-                  </div>
-                  <ul className="space-y-1">
-                    {courses.map((course) => (
-                      <li key={course.id}>
-                        <Button
-                          variant="ghost"
-                          className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
-                          onClick={() => { navigateTo(`/courses/${course.id}`); toggleSidebar(); }}
-                        >
-                          <span className={`rounded-full w-2 h-2 mr-3 ${getCourseColor(course.code)}`}></span>
-                          {course.code} - {course.name}
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </ScrollArea>
-          
-          {/* Bottom section with divider and Pro features */}
-          <div className="border-t border-slate-200">
-            <div className="flex justify-center pt-3 pb-3">
-              {!user?.isPro ? (
-                <Button
-                  onClick={() => setShowProInfoModal(true)}
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-400 hover:text-yellow-500 hover:border hover:border-yellow-400 transition-colors duration-200"
-                  aria-label="Unlock Pro features"
-                >
-                  <Lock className="h-4 w-4" />
-                </Button>
-              ) : (
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100"
-                    aria-label="AI Assistant"
-                  >
-                    <Bot className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full h-8 w-8 p-0 flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100"
-                    aria-label="Smart Suggestions"
-                  >
-                    <Lightbulb className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
       
