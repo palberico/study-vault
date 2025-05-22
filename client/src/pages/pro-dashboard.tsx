@@ -100,15 +100,25 @@ export default function ProDashboard() {
         description: "Your syllabus is being analyzed. This may take a moment...",
       });
       
+      console.log("--- PRO DASHBOARD DEBUG ---");
+      console.log("Starting syllabus processing for file:", selectedFile.name);
+      
       // Step 1: Extract text from the uploaded file
+      console.log("Extracting text from file...");
       const fileContent = await extractTextFromFile(selectedFile);
       
+      console.log("Text extraction complete");
+      
       if (!fileContent || fileContent.trim().length === 0) {
+        console.error("No text content extracted from file");
         throw new Error("Could not extract text from the syllabus file. Please try another file.");
       }
       
       // Step 2: Process the syllabus with the OpenRouter API
+      console.log("Sending to OpenRouter API for processing...");
       const syllabusData = await processSyllabusWithAI(fileContent) as SyllabusData;
+      
+      console.log("OpenRouter processing complete. Returned data:", syllabusData);
       
       if (!syllabusData || !syllabusData.course || !syllabusData.assignments) {
         throw new Error("Could not extract course or assignment information from the syllabus.");

@@ -196,17 +196,40 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
       console.log("Creating structured response from direct text extraction");
       
       // Use specific extraction for the expected syllabus format
-      // Find exact course code (WW-UNSY 315)
+      console.log("--- SYLLABUS EXTRACTION DEBUG ---");
+      console.log("First 200 chars of content:", fileContent.substring(0, 200));
+      
+      // Look for course code patterns (e.g., WW-UNSY 315, MATH 101)
       const courseCodeMatch = fileContent.match(/(WW-UNSY\s+315)/i) || 
-                            fileContent.match(/([A-Z]+-[A-Z]+\s+\d+)/i);
-                            
-      // Find course name (Uncrewed Aircraft Systems and Operations)
+                            fileContent.match(/([A-Z]+-[A-Z]+\s+\d+)/i) ||
+                            fileContent.match(/([A-Z]{2,}[A-Z]*\s+\d{3})/i);
+      console.log("Course code extraction attempt:", courseCodeMatch ? courseCodeMatch[0] : "Not found");
+      
+      // Extract the first few lines to find the course name
+      const firstLines = fileContent.split('\n').slice(0, 5).join(' ');
+      console.log("First few lines:", firstLines);
+      
+      // Look for course name patterns
       const courseNameMatch = fileContent.match(/(Uncrewed Aircraft Systems and Operations)/i) ||
                             fileContent.match(/([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+\s+and\s+[A-Z][a-z]+)/i);
-                            
+      console.log("Course name extraction attempt:", courseNameMatch ? courseNameMatch[0] : "Not found");
+      
+      // If no match, try to extract from the first few lines
+      if (!courseNameMatch) {
+        console.log("Attempting to extract course name from first lines");
+        // Look for lines that might be titles (often all caps or title case)
+        const possibleTitleLine = firstLines.split(/\s{2,}/).find(line => 
+          line.length > 10 && 
+          (line === line.toUpperCase() || 
+           line.split(' ').every(word => word.charAt(0) === word.charAt(0).toUpperCase()))
+        );
+        console.log("Possible title line:", possibleTitleLine);
+      }
+      
       // Find term (Worldwide 2025-05 May)
       const termMatch = fileContent.match(/(Worldwide\s+2025-05\s+May)/i) ||
                       fileContent.match(/((?:Spring|Summer|Fall|Winter)\s+\d{4}|Worldwide\s+\d{4}-\d{2}\s+\w+)/i);
+      console.log("Term extraction attempt:", termMatch ? termMatch[0] : "Not found");
       
       // Using a combination of extraction methods to ensure we find assignments
       // for any syllabus format

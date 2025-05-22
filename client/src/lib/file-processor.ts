@@ -37,8 +37,16 @@ export async function extractTextFromFile(file: File): Promise<string> {
         // Process the extracted text to clean up any binary artifacts
         extractedText = cleanExtractedText(extractedText);
         
-        // We'll use middle_out compression in the OpenRouter API instead of truncating here
-        // Just log file size for debugging
+        // Enhanced debugging for file processing
+        console.log(`--- FILE PROCESSOR DEBUG ---`);
+        console.log(`File name: ${file.name}`);
+        console.log(`File type: ${file.type}`);
+        console.log(`File size: ${file.size} bytes`);
+        console.log(`Extracted text length: ${extractedText.length} chars`);
+        
+        // Log a sample of the beginning of the extracted text
+        console.log(`Text sample (first 300 chars):\n${extractedText.substring(0, 300)}`);
+        
         if (extractedText.length > 50000) {
           console.log(`Text extracted from file is large (${extractedText.length} chars). Will use OpenRouter's middle_out compression.`);
         }
