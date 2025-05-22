@@ -442,6 +442,18 @@ export default function ProDashboard() {
           </DialogHeader>
           
           <div className="py-4">
+            {isProcessing && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">
+                  <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <h3 className="text-xl font-semibold mb-2">Processing Your Syllabus</h3>
+                  <p className="text-gray-600 text-center max-w-md">
+                    Our AI is analyzing your syllabus to extract course details and assignments. 
+                    This may take up to 30 seconds depending on the file size.
+                  </p>
+                </div>
+              </div>
+            )}
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center ${
                 isDragging ? "border-indigo-500 bg-indigo-50" : "border-gray-300"
