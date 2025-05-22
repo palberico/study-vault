@@ -11,6 +11,7 @@ import {
 } from "@/lib/firebase";
 import AssignmentCard from "@/components/assignment/assignment-card";
 import AssignmentForm from "@/components/assignment/assignment-form";
+import { SyllabusUploader } from "@/components/syllabus/syllabus-uploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,7 +23,9 @@ import {
   AlertTriangle,
   Calendar,
   Search,
-  FileText
+  FileText,
+  Upload,
+  Crown
 } from "lucide-react";
 import {
   AlertDialog,
@@ -297,6 +300,54 @@ export default function CourseDetailPage({ id }: { id: string }) {
                 onClick={() => window.open(course.syllabusUrl, '_blank')}
               >
                 View Syllabus
+              </Button>
+            </div>
+          )}
+          
+          {/* Syllabus Uploader for Pro Users */}
+          {user?.isPro ? (
+            <div className="mb-4 mt-4 p-3 border border-slate-200 rounded-md bg-gradient-to-r from-slate-50 to-indigo-50">
+              <div className="flex items-center mb-2">
+                <Crown className="h-4 w-4 text-amber-500 mr-2" />
+                <h3 className="text-sm font-medium">Pro Feature: Syllabus Analyzer</h3>
+              </div>
+              <p className="text-xs text-slate-600 mb-3">
+                Upload a syllabus PDF to automatically create assignments for this course.
+              </p>
+              <SyllabusUploader 
+                courseId={course.id!} 
+                onUploadSuccess={() => {
+                  // Refresh assignments after successful upload
+                  const fetchAssignments = async () => {
+                    try {
+                      const assignmentsData = await getCourseAssignments(course.id!);
+                      setAssignments(assignmentsData);
+                      setFilteredAssignments(assignmentsData);
+                    } catch (error) {
+                      console.error("Error refreshing assignments:", error);
+                    }
+                  };
+                  fetchAssignments();
+                }} 
+              />
+            </div>
+          ) : (
+            <div className="mb-4 mt-4 p-3 border border-slate-200 rounded-md bg-gradient-to-r from-slate-50 to-slate-100">
+              <div className="flex items-center mb-2">
+                <Crown className="h-4 w-4 text-slate-400 mr-2" />
+                <h3 className="text-sm font-medium text-slate-600">Pro Feature: Syllabus Analyzer</h3>
+              </div>
+              <p className="text-xs text-slate-500 mb-3">
+                Upgrade to Pro to automatically create assignments from your syllabus.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full sm:w-auto border-slate-300"
+                onClick={() => navigate("/pro")}
+              >
+                <Crown className="mr-2 h-3 w-3 text-amber-500" />
+                Upgrade to Pro
               </Button>
             </div>
           )}

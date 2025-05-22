@@ -1,0 +1,50 @@
+You are a senior React/Firebase developer helping me wire up the client-side of our new “Upload Syllabus → Auto-Generate Assignments” feature in StudyVault (React Vite, Tailwind CSS, Firebase Auth + Firestore). We’ve already moved PDF parsing into a Cloud Function. Here’s what’s live now:
+
+- **Cloud Function** `parseSyllabus` at  
+  `https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus`  
+  • Accepts POST multipart/form-data with `courseId` and `syllabus` (PDF)  
+  • Uses `pdf-parse` to extract text, calls OpenRouter Mistral with `transform: "middle_out"`, then writes `metadata` + `assignments` into `courses/{courseId}` in Firestore
+
+**Your task:** integrate this end-to-end in our React front end without touching unrelated code:
+
+1. **Gated Upload UI**  
+   - In `CourseDetailPage.tsx` (or `ProDashboard.tsx`), if `user.isPro === true`, render an “Upload Syllabus” button; otherwise render a disabled button or “Upgrade to Pro” link.  
+   - Clicking the button should open a file picker restricted to `.pdf`.
+
+2. **`SyllabusUploader` Component**  
+   - Create `SyllabusUploader.tsx` that:  
+     - Renders a hidden `<input type="file" accept=".pdf">` and a visible button.  
+     - Tracks upload state (`idle`, `loading`, `success`, `error`).  
+     - On file select, wraps upload in a spinner using Tailwind’s `animate-spin`.  
+
+3. **Invoke the Cloud Function**  
+   - In `SyllabusUploader`, when a file is chosen:  
+     ```ts
+     const form = new FormData();
+     form.append("courseId", courseId);
+     form.append("syllabus", file);
+     const res = await fetch(
+       "https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus",
+       { method: "POST", body: form }
+     );
+     if (!res.ok) throw new Error(await res.text());
+     ```  
+   - On success, show a toast: “Syllabus processed, assignments updated.”  
+   - On failure, show a toast: “Upload failed: <error message>.”  
+
+4. **Re-fetch & Render Assignments**  
+   - After a successful upload, re-execute your Firestore query (e.g. via your existing `useCourse(courseId)` hook or React Query) to fetch the updated `assignments` array.  
+   - Update UI so the new assignment cards appear immediately without page reload.
+
+5. **UX Details**  
+   - Disable upload button during `loading` state.  
+   - Spinner overlay or inline icon next to the button.  
+   - Buttons revert to `idle` state on completion.  
+
+6. **Deliverables**  
+   Provide full, self-contained code for:  
+   - `SyllabusUploader.tsx` (with imports, state management, fetch logic, spinner, toasts)  
+   - Updated `CourseDetailPage.tsx` showing how to import and render `SyllabusUploader` gated on `user.isPro`  
+   - Any adjustments to your data-fetching hook or context to support immediate re-fetch after upload  
+
+Keep styling in line with existing Tailwind conventions (`rounded`, `p-2`, `text-base`, `bg-blue-500 hover:bg-blue-600`, etc.). Do not modify any other parts of the app. Thank you!```
