@@ -39,11 +39,12 @@ export interface SyllabusData {
  */
 export async function processSyllabusWithAI(fileContent: string) {
   try {
-    // Check if we have the API key
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
+    // Check if we have the API key - Vite requires the VITE_ prefix for env variables
+    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
     
     if (!apiKey) {
-      throw new Error('OpenRouter API key is missing. Please make sure it is provided in the environment variables.');
+      console.error("API Key access issue. Available env vars:", Object.keys(import.meta.env));
+      throw new Error('OpenRouter API key is missing. Please make sure it is provided in the environment variables with VITE_ prefix.');
     }
 
     // Our prompt instruction to extract course and assignment information
