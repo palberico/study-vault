@@ -135,8 +135,28 @@ export default function ProDashboard() {
       
       // Step 4: Create assignments for the course
       const assignmentPromises = syllabusData.assignments.map(async (assignmentData: SyllabusAssignment) => {
-        const dueDateString = assignmentData.dueDate || new Date().toISOString().split('T')[0];
-        const dueDate = new Date(dueDateString);
+        // Safely parse the date or use a default
+        let dueDate: Date;
+        try {
+          // Check if we have a valid date string
+          if (assignmentData.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(assignmentData.dueDate)) {
+            dueDate = new Date(assignmentData.dueDate);
+          } else {
+            // Set default due date to 30 days from now if date is invalid
+            dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+          }
+          
+          // Validate the date is valid by checking if it's not NaN
+          if (isNaN(dueDate.getTime())) {
+            throw new Error("Invalid date");
+          }
+        } catch (e) {
+          // Fallback to a safe default date (30 days from now)
+          console.warn("Invalid date format, using default date", assignmentData.dueDate);
+          dueDate = new Date();
+          dueDate.setDate(dueDate.getDate() + 30);
+        }
         
         // Set a default status based on due date
         const status = dueDate < new Date() ? 'overdue' : 'pending';
