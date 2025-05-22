@@ -97,7 +97,7 @@ export async function processSyllabusWithAI(fileContent: string) {
       { role: 'user', content: fileContent }
     ];
 
-    // Make the API call to OpenRouter with more specific parameters
+    // Make the API call to OpenRouter with middle_out compression for large documents
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -110,10 +110,15 @@ export async function processSyllabusWithAI(fileContent: string) {
         model: model,
         messages: messages,
         temperature: 0.0, // Zero temperature for deterministic outputs
-        max_tokens: 1000, // Smaller token limit for faster responses
+        max_tokens: 2000, // Balanced token limit for comprehensive responses
         response_format: { type: "json_object" }, // Request JSON formatted response
         frequency_penalty: 0,
-        presence_penalty: 0
+        presence_penalty: 0,
+        transform: "middle_out", // Enable middle-out compression for large texts
+        transform_options: {
+          preserve_start_paragraphs: 5, // Preserve beginning paragraphs (course info)
+          preserve_end_paragraphs: 15 // Preserve end paragraphs (assignments are often at the end)
+        }
       })
     });
 

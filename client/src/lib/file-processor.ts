@@ -37,22 +37,10 @@ export async function extractTextFromFile(file: File): Promise<string> {
         // Process the extracted text to clean up any binary artifacts
         extractedText = cleanExtractedText(extractedText);
         
-        // Truncate text if it's too long (approx 50,000 chars ~ 12,500 tokens)
-        // This is conservative to ensure we stay under the 96,000 token limit
-        const MAX_CHARS = 50000;
-        if (extractedText.length > MAX_CHARS) {
-          console.log(`Text extracted from file is very large (${extractedText.length} chars), truncating to ${MAX_CHARS} chars.`);
-          
-          // Take the first section which likely contains course info
-          const firstSection = extractedText.slice(0, MAX_CHARS * 0.4);
-          
-          // And some of the middle/end where assignments might be listed
-          const remainingSection = extractedText.slice(
-            Math.floor(extractedText.length * 0.4), 
-            Math.floor(extractedText.length * 0.4) + (MAX_CHARS * 0.6)
-          );
-          
-          extractedText = firstSection + remainingSection;
+        // We'll use middle_out compression in the OpenRouter API instead of truncating here
+        // Just log file size for debugging
+        if (extractedText.length > 50000) {
+          console.log(`Text extracted from file is large (${extractedText.length} chars). Will use OpenRouter's middle_out compression.`);
         }
         
         resolve(extractedText);
