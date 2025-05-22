@@ -1,0 +1,33 @@
+I’m working on a React/Vite + Firebase app that lets students upload a PDF syllabus and automatically creates a course + assignment records in Firestore. My current Cloud Function (parseSyllabus) just sends the whole PDF to a free-tier open router model, and it hallucinates assignments, wrong titles, and due-dates (e.g. “Module 2 Discussion…” on May 28 even though the course starts May 31). It created my course fine however. 
+I need a universal parser that works on any school’s syllabus without manual tuning.
+Here’s what I want you to build inside functions/parseSyllabus:
+	1	Table-first extractor
+	◦	Use an open-source PDF-table library (e.g. camelot-py via a Python child process or a Node wrapper like tabula-js) to pull all tables from the PDF.
+	◦	Score each table header by how many of these keywords it contains: Date, Due, Name, Event, Points, Assignment, Discussion, Module.
+	◦	Pick the highest-scoring table as the “assignments” table.
+	2	Deterministic row parser
+	◦	For each row in that table, run a regex that extracts:
+	▪	dueDate (convert from M/D/YY or Month D, YYYY → ISO YYYY-MM-DD)
+	▪	title (e.g. “1.1 Discussion: Video Introduction”)
+	▪	type (e.g. Discussion, Assignment, etc.)
+	◦	Build a JSON array of { title, dueDate, type}.
+	3	Fallback “fuzzy” extractor
+	◦	If no table matches your header keywords (score < 2), scan the entire text for date + sentence pairs with a loose regex.
+	◦	Send that list of candidate lines to the open router model with a strict JSON schema: {
+	◦	  "assignments": [
+	◦	    { "title": "...", "dueDate": "YYYY-MM-DD", "type": "..." },
+	◦	    …
+	◦	  ]
+	◦	}
+	◦	
+	◦	The model must only pick from the given candidates and output valid JSON—no extra keys or new entries.
+	4	Date validation
+	◦	Take the earliest assignment’s dueDate as the course start.
+	◦	Filter out or log any assignments whose dueDate is before that start date.
+	5	Firestore write
+	◦	Write the cleaned assignment array into /courses/{courseId}/assignments in your Firestore.
+	◦	Leave all other existing behavior of parseSyllabus intact.
+	6	Error handling & tests
+	◦	Gracefully handle PDF parse errors or empty tables.
+	◦	Include a simple unit test (or console log) showing it works against the Worldwide-2025-05-May-WW-UNSY-Online-315-0003-…pdf syllabus.
+Please generate the complete Node.js Cloud Function code (TypeScript or JavaScript) for parseSyllabus implementing exactly the above. Keep dependencies minimal and do not remove any existing features.```
