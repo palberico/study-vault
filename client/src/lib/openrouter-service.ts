@@ -48,45 +48,59 @@ export async function processSyllabusWithAI(fileContent: string) {
     }
 
     // Our prompt instruction to extract course and assignment information
-    const systemPrompt = `You are a specialized education AI that helps students organize their academic courses. 
-    Your task is to analyze the provided syllabus and extract key information in a structured format.
-    
-    Extract the following information:
-    1. COURSE DETAILS: Name, code, description, instructor, term/semester
-    2. ASSIGNMENTS: For each assignment, extract title, description, due date, and any grading information
-    
-    For the syllabus provided, create a JSON object in EXACTLY this format:
+    const systemPrompt = `You are a specialized education AI that helps students extract information from course syllabi.
+
+Your task is to carefully analyze the provided syllabus and extract ALL available information, especially:
+
+1. COURSE DETAILS:
+   - Course name (full title)
+   - Course code (e.g., MATH-101, BIO-240)
+   - Description (purpose, goals, overview)
+   - Term/semester information
+   - Instructor name if available
+
+2. ASSIGNMENTS:
+   - Identify ALL assignments, discussions, quizzes, exams, papers, projects
+   - Extract exact titles, descriptions, and due dates
+   - For each assignment found, create an entry in the assignments array
+   - Estimate due dates if not explicitly stated based on module order
+
+3. IMPORTANT: Be thorough in extracting EVERY assignment mentioned anywhere in the syllabus. Search for keywords like:
+   - Assignment, Project, Paper, Essay, Report
+   - Quiz, Test, Midterm, Final, Exam 
+   - Discussion, Forum, Participation
+   - Module 1, Module 2, Week 1, Week 2, etc.
+
+Format your response as a clean JSON object like this:
+
+{
+  "course": {
+    "name": "Course name here",
+    "code": "Course code here",
+    "description": "Course description here",
+    "term": "Term/semester here"
+  },
+  "assignments": [
     {
-      "course": {
-        "name": "Uncrewed Aircraft Systems and Operations",
-        "code": "WW-UNSY 315",
-        "description": "Uncrewed Aircraft Systems (UAS), Uncrewed Aircraft Vehicles (UAV), and their role in the aviation industry and importance in modern commercial and military integration in airspace.",
-        "term": "Worldwide 2025-05 May"
-      },
-      "assignments": [
-        {
-          "title": "Student Learning Outcome 1",
-          "description": "Describe the evolution of Uncrewed Aircraft Systems as it applies to current and future operations.",
-          "dueDate": "2025-06-01",
-          "status": "pending"
-        },
-        {
-          "title": "Student Learning Outcome 2",
-          "description": "Explain how Uncrewed Aircraft Systems operations are integrated within air traffic control operations.",
-          "dueDate": "2025-06-15",
-          "status": "pending"
-        },
-        {
-          "title": "Student Learning Outcome 3",
-          "description": "Summarize the need for ground crew qualifications and certifications, including vehicle operators, maintenance personnel, and logistical support personnel.",
-          "dueDate": "2025-06-30",
-          "status": "pending"
-        }
-      ]
+      "title": "Assignment title here",
+      "description": "Description here",
+      "dueDate": "YYYY-MM-DD",
+      "status": "pending"
+    },
+    {
+      "title": "Assignment title here",
+      "description": "Description here",
+      "dueDate": "YYYY-MM-DD",
+      "status": "pending"
     }
-    
-    Format all dates as YYYY-MM-DD.
-    IMPORTANT: Do NOT include any text before or after the JSON. Respond ONLY with the JSON object.`;
+  ]
+}
+
+Format all dates as YYYY-MM-DD.
+If you can't find exact due dates, assign dates spaced throughout the term.
+START WITH DAY 1 logic: If the syllabus mentions a specific start date, use that as reference. Otherwise, use today's date as reference and space assignments ~7 days apart.
+
+IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syllabus, including any hidden in text descriptions. Be extremely thorough in your search. Respond ONLY with the JSON object, no extra text.`;
 
     // The specific model requested by the user
     const model = "mistralai/mistral-small-3.1-24b-instruct:free";
@@ -194,146 +208,169 @@ export async function processSyllabusWithAI(fileContent: string) {
       const termMatch = fileContent.match(/(Worldwide\s+2025-05\s+May)/i) ||
                       fileContent.match(/((?:Spring|Summer|Fall|Winter)\s+\d{4}|Worldwide\s+\d{4}-\d{2}\s+\w+)/i);
       
-      // Create a more comprehensive list of assignments for the Uncrewed Aircraft Systems course
-      const assignments = [
-        {
-          title: "Module 1 Discussion: Introduction to UAS",
-          description: "Introduce yourself to the class and share your interest in Uncrewed Aircraft Systems.",
-          dueDate: "2025-05-27",
-          status: "pending"
-        },
-        {
-          title: "Module 1 Quiz: UAS Fundamentals",
-          description: "Test your knowledge of basic UAS concepts and terminology.",
-          dueDate: "2025-05-29",
-          status: "pending"
-        },
-        {
-          title: "Module 2 Assignment: UAS Classification",
-          description: "Research and classify different types of UAS by size, capability, and application.",
-          dueDate: "2025-06-05",
-          status: "pending"
-        },
-        {
-          title: "Module 2 Discussion: Military vs. Commercial UAS",
-          description: "Compare and contrast military and commercial applications of UAS technology.",
-          dueDate: "2025-06-07",
-          status: "pending"
-        },
-        {
-          title: "Module 3 Case Study: UAS Integration in Airspace",
-          description: "Analyze a case study on the integration of UAS in controlled airspace.",
-          dueDate: "2025-06-12",
-          status: "pending"
-        },
-        {
-          title: "Module 3 Lab: SIMNET Navigation Exercise",
-          description: "Complete a virtual lab exercise on UAS navigation systems using SIMNET.",
-          dueDate: "2025-06-14",
-          status: "pending"
-        },
-        {
-          title: "Module 4 Assignment: UAS Regulations",
-          description: "Research current FAA regulations regarding UAS operations and prepare a summary.",
-          dueDate: "2025-06-19",
-          status: "pending"
-        },
-        {
-          title: "Module 4 Quiz: Regulatory Framework",
-          description: "Test your knowledge of UAS regulatory frameworks in the US and internationally.",
-          dueDate: "2025-06-21",
-          status: "pending"
-        },
-        {
-          title: "Midterm Exam",
-          description: "Comprehensive assessment covering modules 1-4.",
-          dueDate: "2025-06-26",
-          status: "pending"
-        },
-        {
-          title: "Module 5 Project: UAS Mission Planning",
-          description: "Develop a mission plan for a specific UAS application scenario.",
-          dueDate: "2025-07-03",
-          status: "pending"
-        },
-        {
-          title: "Module 5 Discussion: Ethical Considerations",
-          description: "Discuss ethical implications of UAS technology in various contexts.",
-          dueDate: "2025-07-05",
-          status: "pending"
-        },
-        {
-          title: "Module 6 Assignment: UAS Components",
-          description: "Create a detailed analysis of UAS components and subsystems.",
-          dueDate: "2025-07-10",
-          status: "pending"
-        },
-        {
-          title: "Module 6 Lab: Remote Sensing Applications",
-          description: "Complete a lab exercise on remote sensing applications using UAS.",
-          dueDate: "2025-07-12",
-          status: "pending"
-        },
-        {
-          title: "Module 7 Case Study: UAS in Emergency Response",
-          description: "Analyze a case study on the use of UAS in emergency response situations.",
-          dueDate: "2025-07-17",
-          status: "pending"
-        },
-        {
-          title: "Module 7 Discussion: Future of UAS",
-          description: "Discuss emerging trends and future developments in UAS technology.",
-          dueDate: "2025-07-19",
-          status: "pending"
-        },
-        {
-          title: "Module 8 Project: UAS Operator Certification",
-          description: "Research requirements for UAS operator certification and create a study plan.",
-          dueDate: "2025-07-24",
-          status: "pending"
-        },
-        {
-          title: "Module 8 Quiz: Maintenance and Support",
-          description: "Test your knowledge of UAS maintenance and logistical support requirements.",
-          dueDate: "2025-07-26",
-          status: "pending"
-        },
-        {
-          title: "Research Paper: UAS Applications",
-          description: "Write a research paper on a specific application of UAS technology.",
-          dueDate: "2025-07-31",
-          status: "pending"
-        },
-        {
-          title: "Final Exam",
-          description: "Comprehensive assessment covering all course material.",
-          dueDate: "2025-08-05",
-          status: "pending"
+      // Using a combination of extraction methods to ensure we find assignments
+      // for any syllabus format
+      
+      // Extract assignments using more sophisticated pattern matching
+      const assignmentsList = [];
+      
+      // Look for Student Learning Outcomes
+      // Use simple string splitting for compatibility with all environments
+      const sloSection = fileContent.indexOf("Student Learning Outcomes");
+      if (sloSection !== -1) {
+        const contentAfterSLO = fileContent.substring(sloSection);
+        // Find numbers with periods that likely indicate outcomes
+        const numberMatches = contentAfterSLO.split(/\d+\.\s+/);
+        
+        // Skip the first entry as it's before the first number
+        for (let i = 1; i < Math.min(numberMatches.length, 20); i++) {
+          // Extract text until the next number or section
+          let cleanText = numberMatches[i];
+          // Only take the first paragraph
+          if (cleanText.indexOf('\n\n') > 0) {
+            cleanText = cleanText.substring(0, cleanText.indexOf('\n\n'));
+          }
+          
+          cleanText = cleanText.trim();
+          if (cleanText && cleanText.length > 10) {
+            // Create a due date 14 days apart for each outcome
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 14 * i);
+            
+            assignmentsList.push({
+              title: `Learning Outcome ${i}`,
+              description: cleanText,
+              dueDate: dueDate.toISOString().split('T')[0],
+              status: "pending"
+            });
+          }
         }
-      ];
+      }
+      
+      // Look for Weekly Modules using string search
+      const moduleKeywords = ["Module", "Week", "Unit"];
+      
+      for (const keyword of moduleKeywords) {
+        for (let i = 1; i <= 15; i++) { // Check for up to 15 modules
+          const searchTerm = keyword + " " + i;
+          const moduleIndex = fileContent.indexOf(searchTerm);
+          
+          if (moduleIndex !== -1) {
+            // Found a module, look for common assignment types nearby
+            const moduleContent = fileContent.substring(moduleIndex, moduleIndex + 500); // Look at next ~500 chars
+            
+            // Check for assignment keywords
+            const assignmentKeywords = [
+              {term: "Assignment", prefix: "Assignment"},
+              {term: "Project", prefix: "Project"},
+              {term: "Quiz", prefix: "Quiz"},
+              {term: "Test", prefix: "Test"},
+              {term: "Exam", prefix: "Exam"},
+              {term: "Discussion", prefix: "Discussion"},
+              {term: "Forum", prefix: "Discussion"},
+              {term: "Lab", prefix: "Lab"},
+              {term: "Exercise", prefix: "Exercise"}
+            ];
+            
+            // For each module, add at least one generic assignment
+            let assignmentFound = false;
+            
+            for (const assignment of assignmentKeywords) {
+              if (moduleContent.indexOf(assignment.term) !== -1) {
+                assignmentFound = true;
+                
+                // Create a due date based on module number
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + (i * 7) + 3); // Module week + 3 days
+                
+                assignmentsList.push({
+                  title: `${keyword} ${i} ${assignment.prefix}`,
+                  description: `Complete the ${assignment.term.toLowerCase()} for ${keyword.toLowerCase()} ${i}.`,
+                  dueDate: dueDate.toISOString().split('T')[0],
+                  status: "pending"
+                });
+              }
+            }
+            
+            // If no specific assignments found, add a generic one
+            if (!assignmentFound) {
+              const dueDate = new Date();
+              dueDate.setDate(dueDate.getDate() + (i * 7) + 5); // Module week + 5 days
+              
+              assignmentsList.push({
+                title: `${keyword} ${i} Assignment`,
+                description: `Complete all activities and assignments for ${keyword.toLowerCase()} ${i}.`,
+                dueDate: dueDate.toISOString().split('T')[0],
+                status: "pending"
+              });
+            }
+          }
+        }
+      }
+      
+      // If no assignments found, create generic ones based on course structure
+      if (assignmentsList.length === 0) {
+        // Default to 8 modules with various assignment types
+        for (let i = 1; i <= 8; i++) {
+          const moduleDate = new Date();
+          moduleDate.setDate(moduleDate.getDate() + (i * 7)); // Each module is a week apart
+          
+          // Add a discussion
+          assignmentsList.push({
+            title: `Module ${i} Discussion`,
+            description: `Discussion forum for module ${i} topics.`,
+            dueDate: new Date(moduleDate.getTime() + (2 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0], // 2 days after module start
+            status: "pending"
+          });
+          
+          // Add a quiz
+          assignmentsList.push({
+            title: `Module ${i} Quiz`,
+            description: `Assessment covering module ${i} material.`,
+            dueDate: new Date(moduleDate.getTime() + (5 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0], // 5 days after module start
+            status: "pending"
+          });
+          
+          // Add a major assignment every other module
+          if (i % 2 === 0) {
+            assignmentsList.push({
+              title: `Major Assignment ${i/2}`,
+              description: `Comprehensive assignment covering modules ${i-1} and ${i}.`,
+              dueDate: new Date(moduleDate.getTime() + (6 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0], // 6 days after module start
+              status: "pending"
+            });
+          }
+        }
+        
+        // Add a midterm and final
+        const midDate = new Date();
+        midDate.setDate(midDate.getDate() + 28); // Midterm after 4 weeks
+        assignmentsList.push({
+          title: "Midterm Exam",
+          description: "Comprehensive assessment of the first half of the course.",
+          dueDate: midDate.toISOString().split('T')[0],
+          status: "pending"
+        });
+        
+        const finalDate = new Date();
+        finalDate.setDate(finalDate.getDate() + 56); // Final after 8 weeks
+        assignmentsList.push({
+          title: "Final Project",
+          description: "Culminating project demonstrating mastery of course concepts.",
+          dueDate: finalDate.toISOString().split('T')[0],
+          status: "pending"
+        });
+      }
       
       // Create a proper course structure
       return {
         course: {
-          name: courseNameMatch ? courseNameMatch[0] : "Uncrewed Aircraft Systems and Operations",
-          code: courseCodeMatch ? courseCodeMatch[0] : "WW-UNSY 315",
+          name: courseNameMatch ? courseNameMatch[0] : "Unknown Course",
+          code: courseCodeMatch ? courseCodeMatch[0] : "Unknown Code",
           description: "This course covers the fundamentals of the subject, with assignments designed to evaluate student understanding and practical application of key concepts.",
-          term: termMatch ? termMatch[0] : "2025 Spring"
+          term: termMatch ? termMatch[0] : new Date().getFullYear() + " Spring"
         },
-        assignments: learningOutcomes.length > 0 ? learningOutcomes : [
-          {
-            title: "Midterm Assignment",
-            description: "Comprehensive assessment of course materials from the first half of the term.",
-            dueDate: "2025-06-15",
-            status: "pending"
-          },
-          {
-            title: "Final Project",
-            description: "Applied project demonstrating mastery of course concepts.",
-            dueDate: "2025-06-30",
-            status: "pending"
-          }
-        ]
+        assignments: assignmentsList
       };
     }
   } catch (error) {
