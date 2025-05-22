@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as pdfParse from 'pdf-parse';
-import * as busboy from 'busboy';
+import { Busboy } from 'busboy';
 import { Readable } from 'stream';
 
 // Initialize Firebase Admin
@@ -108,9 +108,9 @@ export const parseSyllabus = functions.https.onRequest(async (req, res) => {
   }
 });
 
-async function parseMultipartForm(req: functions.Request): Promise<{ courseId: string; pdfBuffer: Buffer }> {
+async function parseMultipartForm(req: any): Promise<{ courseId: string; pdfBuffer: Buffer }> {
   return new Promise((resolve, reject) => {
-    const bb = busboy({ headers: req.headers });
+    const bb = new Busboy({ headers: req.headers });
     let courseId = '';
     let pdfBuffer: Buffer | null = null;
 
@@ -158,34 +158,50 @@ function extractTablesFromText(text: string): Table[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     
-    // Detect potential table start (multiple columns separated by whitespace/tabs)
-    const hasMultipleColumns = /\s{3,}|\t/.test(line) && line.split(/\s{3,}|\t/).length >= 2;
-    const hasDatePattern = /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4}\b/i.test(line);
+    // Look for table headers that indicate assignment schedules
+    const isTableHeader = /^(Date|Name|Due|Event|Type|Points?).*$/i.test(line) || 
+                         (line.includes('Date') && line.includes('Name') && line.includes('Due'));
     
-    if (hasMultipleColumns || hasDatePattern) {
+    // Look for assignment lines with dates in M/D/YY format
+    const hasAssignmentDate = /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b.*Module\s+\d+/i.test(line);
+    
+    // Look for lines that continue assignment descriptions
+    const isAssignmentContinuation = inTable && (/Module\s+\d+/i.test(line) || /Assignment|Discussion|Essay|Worksheet|Viewing/i.test(line));
+    
+    if (isTableHeader) {
+      if (!inTable) {
+        inTable = true;
+        currentTable = [];
+        console.log('Found table header:', line);
+      }
+      currentTable.push(line);
+    } else if (hasAssignmentDate || isAssignmentContinuation) {
       if (!inTable) {
         inTable = true;
         currentTable = [];
       }
       currentTable.push(line);
-    } else if (inTable && currentTable.length >= 2) {
-      // End of table found
-      tables.push(parseTableFromLines(currentTable));
-      currentTable = [];
-      inTable = false;
-    } else if (inTable && !hasMultipleColumns) {
-      // Single column line might end the table
-      inTable = false;
-      if (currentTable.length >= 2) {
+    } else if (inTable && currentTable.length >= 3) {
+      // End of table - look for significant breaks
+      const isEndOfTable = line.length < 10 || 
+                          /^(Summary|Course Policies|Academic Integrity|©|Last Updated)/i.test(line) ||
+                          (!hasAssignmentDate && !isAssignmentContinuation && !line.includes('Module'));
+      
+      if (isEndOfTable) {
         tables.push(parseTableFromLines(currentTable));
+        console.log(`Created table with ${currentTable.length} lines`);
+        currentTable = [];
+        inTable = false;
+      } else {
+        currentTable.push(line);
       }
-      currentTable = [];
     }
   }
 
   // Handle table at end of text
-  if (inTable && currentTable.length >= 2) {
+  if (inTable && currentTable.length >= 3) {
     tables.push(parseTableFromLines(currentTable));
+    console.log(`Created final table with ${currentTable.length} lines`);
   }
 
   return tables;
@@ -239,24 +255,97 @@ function findBestAssignmentTable(tables: Table[]): Table | null {
 function parseAssignmentsFromTable(table: Table): Assignment[] {
   const assignments: Assignment[] = [];
   
-  // Find column indices for date, title, and type
-  const dateColumnIndex = findColumnIndex(table.headers, ['date', 'due', 'deadline']);
-  const titleColumnIndex = findColumnIndex(table.headers, ['name', 'title', 'assignment', 'task']);
-  const typeColumnIndex = findColumnIndex(table.headers, ['type', 'category', 'kind']);
+  // For syllabus schedules, we need to look for patterns where dates and assignment names appear
+  // The format is often: Date | Assignment Name | Type | Points
   
-  console.log(`Column indices - Date: ${dateColumnIndex}, Title: ${titleColumnIndex}, Type: ${typeColumnIndex}`);
-
-  for (const row of table.rows) {
-    try {
-      const assignment = parseAssignmentFromRow(row.cells, dateColumnIndex, titleColumnIndex, typeColumnIndex);
-      if (assignment) {
-        assignments.push(assignment);
-      }
-    } catch (error) {
-      console.log(`Skipping row due to parse error:`, error);
-    }
+  const tableText = table.rows.map(row => row.cells.join(' ')).join('\n');
+  
+  // Look for assignment patterns with dates in M/D/YY format
+  const assignmentPattern = /(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(.*?Module\s+\d+[^:]*:[^)]*(?:\([^)]*\))?)/gi;
+  
+  let match;
+  while ((match = assignmentPattern.exec(tableText)) !== null) {
+    const [, dateStr, titleStr] = match;
+    
+    const dueDate = parseDateToISO(dateStr);
+    if (!dueDate) continue;
+    
+    const title = titleStr.trim().replace(/\s+/g, ' ');
+    if (!title) continue;
+    
+    // Determine assignment type based on title
+    let type = 'Assignment';
+    const titleLower = title.toLowerCase();
+    if (titleLower.includes('discussion')) type = 'Discussion';
+    else if (titleLower.includes('quiz')) type = 'Quiz';
+    else if (titleLower.includes('exam')) type = 'Exam';
+    else if (titleLower.includes('essay')) type = 'Essay';
+    else if (titleLower.includes('worksheet')) type = 'Worksheet';
+    else if (titleLower.includes('viewing')) type = 'Film Viewing';
+    else if (titleLower.includes('proposal')) type = 'Proposal';
+    
+    assignments.push({ title, dueDate, type });
   }
+  
+  // If the regex approach didn't work, try line-by-line parsing
+  if (assignments.length === 0) {
+    assignments.push(...parseAssignmentsLineByLine(tableText));
+  }
+  
+  console.log(`Extracted ${assignments.length} assignments from table`);
+  return assignments;
+}
 
+function parseAssignmentsLineByLine(text: string): Assignment[] {
+  const assignments: Assignment[] = [];
+  const lines = text.split('\n').map(line => line.trim());
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Look for lines with dates in M/D/YY format
+    const dateMatch = line.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s/);
+    if (!dateMatch) continue;
+    
+    const dueDate = parseDateToISO(dateMatch[1]);
+    if (!dueDate) continue;
+    
+    // Look for assignment title in this line or next few lines
+    let title = '';
+    let type = 'Assignment';
+    
+    // Check if title is on the same line after the date
+    const sameLine = line.replace(dateMatch[0], '').trim();
+    if (sameLine.includes('Module') && sameLine.includes(':')) {
+      title = sameLine;
+    } else {
+      // Look in next few lines for the assignment title
+      for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+        if (lines[j].includes('Module') && lines[j].includes(':')) {
+          title = lines[j];
+          break;
+        }
+      }
+    }
+    
+    if (!title) continue;
+    
+    // Clean up the title
+    title = title.replace(/^\s*(Module\s+\d+\s*)/, 'Module ').trim();
+    
+    // Determine type from title
+    const titleLower = title.toLowerCase();
+    if (titleLower.includes('discussion')) type = 'Discussion';
+    else if (titleLower.includes('quiz')) type = 'Quiz';
+    else if (titleLower.includes('exam')) type = 'Exam';
+    else if (titleLower.includes('essay')) type = 'Essay';
+    else if (titleLower.includes('worksheet')) type = 'Worksheet';
+    else if (titleLower.includes('viewing')) type = 'Film Viewing';
+    else if (titleLower.includes('proposal')) type = 'Proposal';
+    
+    assignments.push({ title, dueDate, type });
+  }
+  
   return assignments;
 }
 
