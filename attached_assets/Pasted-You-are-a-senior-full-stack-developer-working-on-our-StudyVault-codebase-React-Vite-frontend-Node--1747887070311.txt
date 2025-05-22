@@ -1,0 +1,36 @@
+You are a senior full-stack developer working on our StudyVault codebase (React Vite frontend, Node.js backend in `file-processor.ts` and `openrouter-service.ts`). We have a critical bug: instead of extracting human-readable syllabus text, we’re feeding raw PDF binary (`%PDF…stream…`) into both our regex metadata parser and the OpenRouter AI call. This results in:
+
+- Course name/code extraction always failing (“Not found”)  
+- AI returning only our JSON template placeholders because it never sees any real syllabus text
+
+**What’s going wrong:**
+1. We currently do something like `buffer.toString('utf8')` on the PDF.  
+2. That yields PDF internals, not actual page content.
+
+**How to fix it:**
+1. **Integrate a proper PDF-to-text library**, for example:
+   - **pdf-parse** (simple):  
+     ```ts
+     import pdf from 'pdf-parse';
+     const { text } = await pdf(buffer);
+     ```
+   - **pdfjs-dist** (more control):  
+     ```ts
+     import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
+     const doc = await pdfjsLib.getDocument({ data: buffer }).promise;
+     let text = '';
+     for (let i = 1; i <= doc.numPages; i++) {
+       const page = await doc.getPage(i);
+       const content = await page.getTextContent();
+       text += content.items.map((i: any) => i.str).join(' ') + '\n';
+     }
+     ```
+
+2. **Replace** the existing UTF-8 decode in `file-processor.ts` with one of these extractors, so the first 50 000 chars you log or send to AI is actual text like:
+WW-UNSY 315 – Uncrewed Aircraft Systems and Operations Worldwide 2025-05 May Course Description: … Assignments: • SIMNET Lab 1 – June 6, 2025 ...
+3. **Verify** by logging the first 10 lines of extracted text before any regex or AI call:
+```ts
+console.log(text.split('\n').slice(0,10).join('\n'));
+	4	Adjust your metadata regex to run against that clean text (e.g. matching ([A-Z]{2,4}-\w+\s*\d{3}) – (.+) for course code/title).
+	5	Retain your existing AI “middle_out” compression logic for assignments once text extraction is correct.
+Please update file-processor.ts (and any imports) with the proper PDF extractor and show me the complete, self-contained updated function. Do not touch other parts of the app. Thank you!

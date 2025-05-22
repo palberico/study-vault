@@ -1,12 +1,17 @@
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up the worker source (required for PDF.js)
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
 /**
  * Extracts text content from an uploaded file
- * Also handles text preprocessing and truncation for large files
+ * Uses PDF.js to properly extract text from PDF files in the browser
  */
 export async function extractTextFromFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         if (!event.target || !event.target.result) {
           reject(new Error('Failed to read file'));
@@ -18,10 +23,42 @@ export async function extractTextFromFile(file: File): Promise<string> {
         if (typeof event.target.result === 'string') {
           // For text files, we can use the content directly
           extractedText = event.target.result;
+          console.log("Read text file directly");
         } else if (file.type === 'application/pdf') {
-          // This is a simplified approach for PDFs
-          const decoder = new TextDecoder('utf-8');
-          extractedText = decoder.decode(event.target.result as ArrayBuffer);
+          console.log("PDF file detected, using PDF.js for extraction");
+          try {
+            // Convert ArrayBuffer to Uint8Array for PDF.js
+            const typedArray = new Uint8Array(event.target.result as ArrayBuffer);
+            
+            // Load the PDF file using PDF.js
+            const loadingTask = pdfjsLib.getDocument({ data: typedArray });
+            const pdf = await loadingTask.promise;
+            
+            console.log(`PDF loaded successfully. Pages: ${pdf.numPages}`);
+            
+            // Extract text from each page
+            let combinedText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items
+                .map((item: any) => item.str)
+                .join(' ');
+              
+              combinedText += pageText + '\n\n';
+              console.log(`Extracted text from page ${i}`);
+            }
+            
+            extractedText = combinedText;
+            console.log(`Total extracted text: ${extractedText.length} characters`);
+            
+          } catch (pdfError) {
+            console.error("PDF extraction error:", pdfError);
+            // Fallback to basic extraction if PDF.js fails
+            const decoder = new TextDecoder('utf-8');
+            extractedText = decoder.decode(event.target.result as ArrayBuffer);
+            console.log("Falling back to basic decoder");
+          }
         } else if (
           file.type === 'application/msword' || 
           file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -29,6 +66,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
           // For Word docs, simplified extraction
           const decoder = new TextDecoder('utf-8');
           extractedText = decoder.decode(event.target.result as ArrayBuffer);
+          console.log("Word document detected, using basic decoder");
         } else {
           reject(new Error('Unsupported file format'));
           return;
