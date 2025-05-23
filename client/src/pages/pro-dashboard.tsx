@@ -112,10 +112,14 @@ export default function ProDashboard() {
       
       console.log("Sending PDF to Cloud Function for processing...");
       
-      // Call your deployed Cloud Function (same as working SyllabusUploader)
+      // Call your deployed Cloud Function (let browser set correct Content-Type with boundary)
       const response = await fetch(
         'https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus',
-        { method: 'POST', body: form }
+        { 
+          method: 'POST', 
+          body: form 
+          // NO Content-Type header - browser will set multipart/form-data with boundary automatically
+        }
       );
       
       console.log("Cloud Function response status:", response.status);

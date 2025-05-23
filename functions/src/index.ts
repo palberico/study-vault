@@ -186,10 +186,12 @@ async function parseMultipartForm(req: any): Promise<{
       reject(err);
     });
 
-    busboy.on('close', () => {
-      console.log('Busboy close event');
-      if (!fileReceived) {
-        reject(new Error('No file received'));
+    busboy.on('finish', () => {
+      console.log('Busboy finish event - all form data processed');
+      if (courseId && userId && fileBuffer && fileReceived) {
+        resolve({ courseId, fileBuffer, fileName, userId });
+      } else {
+        reject(new Error(`Missing required form data: courseId=${courseId}, userId=${userId}, fileBuffer=${fileBuffer?.length}, fileReceived=${fileReceived}`));
       }
     });
 
