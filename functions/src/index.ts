@@ -1,9 +1,9 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import * as pdfParse from 'pdf-parse';
-import * as mammoth from 'mammoth';
-import { Busboy } from 'busboy';
-import fetch from 'node-fetch';
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
+const Busboy = require('busboy');
+const fetch = require('node-fetch');
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -30,12 +30,7 @@ interface ParsedSyllabusData {
   assignments: AssignmentData[];
 }
 
-export const parseSyllabus = functions
-  .runWith({
-    timeoutSeconds: 540,
-    memory: '2GB'
-  })
-  .https.onRequest(async (req, res) => {
+export const parseSyllabus = functions.https.onRequest(async (req: any, res: any) => {
     // Enable CORS
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -124,7 +119,7 @@ export const parseSyllabus = functions
     }
   });
 
-async function parseMultipartForm(req: functions.Request): Promise<{
+async function parseMultipartForm(req: any): Promise<{
   courseId: string;
   fileBuffer: Buffer;
   fileName: string;
@@ -137,16 +132,16 @@ async function parseMultipartForm(req: functions.Request): Promise<{
     let fileBuffer: Buffer | null = null;
     let fileName = '';
 
-    busboy.on('field', (name, val) => {
+    busboy.on('field', (name: any, val: any) => {
       if (name === 'courseId') courseId = val;
       if (name === 'userId') userId = val;
     });
 
-    busboy.on('file', (name, file, info) => {
+    busboy.on('file', (name: any, file: any, info: any) => {
       if (name === 'syllabus') {
         fileName = info.filename;
         const chunks: Buffer[] = [];
-        file.on('data', (chunk) => chunks.push(chunk));
+        file.on('data', (chunk: any) => chunks.push(chunk));
         file.on('end', () => {
           fileBuffer = Buffer.concat(chunks);
         });
@@ -172,7 +167,7 @@ async function extractTextFromDocument(buffer: Buffer, fileName: string): Promis
   try {
     switch (fileExt) {
       case 'pdf':
-        const pdfData = await pdfParse(buffer);
+        const pdfData = await pdfParse.default(buffer);
         return pdfData.text;
       
       case 'docx':
@@ -441,7 +436,7 @@ ${text.substring(0, 4000)}`;
       throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     const content = data.choices[0]?.message?.content;
     
     if (!content) {

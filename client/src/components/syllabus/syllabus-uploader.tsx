@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 
 interface SyllabusUploaderProps {
@@ -11,17 +12,28 @@ interface SyllabusUploaderProps {
 export function SyllabusUploader({ courseId, onUploadSuccess }: SyllabusUploaderProps) {
   const [uploadState, setUploadState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate the file is a PDF
-    if (file.type !== 'application/pdf') {
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to upload syllabi.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate the file type (support PDF, DOC, DOCX)
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
       toast({
         title: 'Invalid File Type',
-        description: 'Please upload a PDF file.',
+        description: 'Please upload a PDF, DOC, or DOCX file.',
         variant: 'destructive',
       });
       return;
@@ -33,6 +45,7 @@ export function SyllabusUploader({ courseId, onUploadSuccess }: SyllabusUploader
       // Create form data for the Cloud Function
       const form = new FormData();
       form.append('courseId', courseId);
+      form.append('userId', user.uid);
       form.append('syllabus', file);
       
       // Call the Cloud Function
