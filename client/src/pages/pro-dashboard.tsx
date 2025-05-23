@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { extractTextFromFile } from "@/lib/file-processor";
-import { processSyllabusWithAI, type SyllabusData, type SyllabusAssignment } from "@/lib/openrouter-service";
+import { type SyllabusData, type SyllabusAssignment } from "@/lib/openrouter-service";
 import { addCourse, addAssignment, type Course, type Assignment } from "@/lib/firebase";
 
 // Dummy data for visualizations
@@ -102,23 +101,37 @@ export default function ProDashboard() {
       
       console.log("--- PRO DASHBOARD DEBUG ---");
       console.log("Starting syllabus processing for file:", selectedFile.name);
+      console.log("File size:", selectedFile.size, "bytes");
+      console.log("File type:", selectedFile.type);
       
-      // Step 1: Extract text from the uploaded file
-      console.log("Extracting text from file...");
-      const fileContent = await extractTextFromFile(selectedFile);
+      // Create form data for the Cloud Function
+      const formData = new FormData();
+      formData.append('syllabus', selectedFile);
+      formData.append('userId', user.uid);
+      formData.append('courseId', 'temp-course-id'); // Temporary, will be updated after course creation
       
-      console.log("Text extraction complete");
+      console.log("Sending PDF to Cloud Function for processing...");
       
-      if (!fileContent || fileContent.trim().length === 0) {
-        console.error("No text content extracted from file");
-        throw new Error("Could not extract text from the syllabus file. Please try another file.");
+      // Call your deployed Cloud Function
+      const response = await fetch(
+        'https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus',
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+      
+      console.log("Cloud Function response status:", response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Cloud Function error:", errorText);
+        throw new Error(`Cloud Function failed: ${errorText}`);
       }
       
-      // Step 2: Process the syllabus with the OpenRouter API
-      console.log("Sending to OpenRouter API for processing...");
-      const syllabusData = await processSyllabusWithAI(fileContent) as SyllabusData;
-      
-      console.log("OpenRouter processing complete. Returned data:", syllabusData);
+      const syllabusData = await response.json() as SyllabusData;
+      console.log("Cloud Function returned parsed data:", syllabusData);
+      console.log("Raw PDF text that was processed:", syllabusData.rawText || "No raw text returned");
       
       if (!syllabusData || !syllabusData.course || !syllabusData.assignments) {
         throw new Error("Could not extract course or assignment information from the syllabus.");

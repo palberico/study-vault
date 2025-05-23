@@ -1,0 +1,171 @@
+Firebase initialized successfully
+login.tsx:39 Attempting login with: dude@test.com
+dashboard.tsx:55 Fetching courses for user: L61IKcGcXPVNo1DBvukQSbwwkjh2
+2firebase.ts:124 Getting courses from Firebase for user: L61IKcGcXPVNo1DBvukQSbwwkjh2
+firebase.ts:137 Courses fetched from Firebase: Array(1)0: {id: 'aZT6KgDokzzf5HrE3Tvu', name: 'Uncrewed Aircraft Systems and Operations', userId: 'L61IKcGcXPVNo1DBvukQSbwwkjh2', description: 'Uncrewed Aircraft Systems (UAS), Uncrewed Aircraft…trol, propulsion systems, and logistical support.', code: 'WW-UNSY 315', …}code: "WW-UNSY 315"createdAt: Thu May 22 2025 14:52:12 GMT-0600 (Mountain Daylight Time) {}description: "Uncrewed Aircraft Systems (UAS), Uncrewed Aircraft Vehicles (UAV), and their role in the aviation industry and importance in modern commercial and military integration in airspace, air traffic control; development, operations and applications. Structural and mechanical factors, avionics, navigation, flight controls, remote sensing, guidance control, propulsion systems, and logistical support."id: "aZT6KgDokzzf5HrE3Tvu"name: "Uncrewed Aircraft Systems and Operations"term: "2025-05"userId: "L61IKcGcXPVNo1DBvukQSbwwkjh2"[[Prototype]]: Objectlength: 1[[Prototype]]: Array(0)
+dashboard.tsx:57 Courses data received from Firebase: Array(1)
+dashboard.tsx:69 Fetching assignments for user: L61IKcGcXPVNo1DBvukQSbwwkjh2
+firebase.ts:137 Courses fetched from Firebase: Array(1)
+dashboard.tsx:38 Storing courses in localStorage: Array(1)
+dashboard.tsx:71 Assignments data: Array(19)
+dashboard.tsx:83 Fetching files for user: L61IKcGcXPVNo1DBvukQSbwwkjh2
+dashboard.tsx:85 Files data: Array(0)
+firebase.ts:216 Course and related items deleted successfully
+course-card.tsx:199 Updated localStorage after course deletion
+firebase.ts:124 Getting courses from Firebase for user: L61IKcGcXPVNo1DBvukQSbwwkjh2
+chunk-GIEREJSR.js?v=34efe5a4:1203 [2025-05-23T16:55:12.512Z]  @firebase/firestore: Firestore (11.7.3): BloomFilter error:  {"name":"BloomFilterError"}
+defaultLogHandler @ chunk-GIEREJSR.js?v=34efe5a4:1203Understand this warning
+firebase.ts:137 Courses fetched from Firebase: Array(0)
+pro-dashboard.tsx:103 --- PRO DASHBOARD DEBUG ---
+pro-dashboard.tsx:104 Starting syllabus processing for file: Worldwide-2025-05-May-WW-UNSY-Online-315-0003-Uncrewed-Aircraft-Systems-and-Operations.pdf
+pro-dashboard.tsx:107 Extracting text from file...
+file-processor.ts:16 --- FILE PROCESSOR DEBUG ---
+file-processor.ts:17 File name: Worldwide-2025-05-May-WW-UNSY-Online-315-0003-Uncrewed-Aircraft-Systems-and-Operations.pdf
+file-processor.ts:18 File type: application/pdf
+file-processor.ts:19 File size: 174924 bytes
+file-processor.ts:95 Extracted text length: 2630 chars
+file-processor.ts:96 Text sample (first 300 chars):
+
+                                  WW-UNSY 315
+                      Uncrewed Aircraft Systems and Operations
+                              Online Course Syllabus
+                             Worldwide 2025-05 May
+
+Course Information
+Credit Hours: 3
+Delivery Method: Online (Internet/Canvas)
+
+Instruc
+pro-dashboard.tsx:110 Text extraction complete
+pro-dashboard.tsx:118 Sending to OpenRouter API for processing...
+openrouter-service.ts:164 Attempting to parse JSON response: {
+  "course": {
+    "name": "Uncrewed Aircraft Systems and Operations",
+    "code": "WW-UNSY 315",
+    "description": "Uncrewed Aircraft Systems (UAS), Uncrewed Aircraft Vehicles (UAV), and their role in the aviation industry and importance in modern commercial and military integration in airspace, air traffic control; development, operations and applications. Structural and mechanical factors, avionics, navigation, flight controls, remote sensing, guidance control, propulsion systems, and logistical support.",
+    "term": "2025-05",
+    "instructor": "Zachary Wehr"
+  },
+  "assignments": [
+    {
+      "title": "Module 1 Discussion: Introduction to UAS",
+      "description": "Discussion on the introduction to Uncrewed Aircraft Systems.",
+      "dueDate": "2025-05-08",
+      "status": "pending"
+    },
+    {
+      "title": "Module 1 Quiz: UAS Fundamentals",
+      "description": "Quiz on UAS fundamentals.",
+      "dueDate": "2025-05-15",
+      "status": "pending"
+    },
+    {
+      "title": "Module 2 Assignment: UAS Classification",
+      "description": "Assignment on UAS classification.",
+      "dueDate": "2025-05-22",
+      "status": "pending"
+    },
+    {
+      "title": "Module 2 Discussion: Military vs. Commercial UAS",
+      "description": "Discussion on military vs. commercial UAS.",
+      "dueDate": "2025-05-29",
+      "status": "pending"
+    },
+    {
+      "title": "Module 3 Case Study: UAS Integration in Airspace",
+      "description": "Case study on UAS integration in airspace.",
+      "dueDate": "2025-06-05",
+      "status": "pending"
+    },
+    {
+      "title": "Module 3 Lab: SIMNET Navigation Exercise",
+      "description": "Lab on SIMNET navigation exercise.",
+      "dueDate": "2025-06-12",
+      "status": "pending"
+    },
+    {
+      "title": "Module 4 Assignment: UAS Regulations",
+      "description": "Assignment on UAS regulations.",
+      "dueDate": "2025-06-19",
+      "status": "pending"
+    },
+    {
+      "title": "Module 4 Quiz: Regulatory Framework",
+      "description": "Quiz on the regulatory framework.",
+      "dueDate": "2025-06-26",
+      "status": "pending"
+    },
+    {
+      "title": "Midterm Exam",
+      "description": "Midterm exam covering the course material so far.",
+      "dueDate": "2025-07-03",
+      "status": "pending"
+    },
+    {
+      "title": "Module 5 Project: UAS Mission Planning",
+      "description": "Project on UAS mission planning.",
+      "dueDate": "2025-07-10",
+      "status": "pending"
+    },
+    {
+      "title": "Module 5 Discussion: Ethical Considerations",
+      "description": "Discussion on ethical considerations in UAS.",
+      "dueDate": "2025-07-17",
+      "status": "pending"
+    },
+    {
+      "title": "Module 6 Assignment: UAS Components",
+      "description": "Assignment on UAS components.",
+      "dueDate": "2025-07-24",
+      "status": "pending"
+    },
+    {
+      "title": "Module 6 Lab: Remote Sensing Applications",
+      "description": "Lab on remote sensing applications.",
+      "dueDate": "2025-07-31",
+      "status": "pending"
+    },
+    {
+      "title": "Module 7 Case Study: UAS in Emergency Response",
+      "description": "Case study on UAS in emergency response.",
+      "dueDate": "2025-08-07",
+      "status": "pending"
+    },
+    {
+      "title": "Module 7 Discussion: Future of UAS",
+      "description": "Discussion on the future of UAS.",
+      "dueDate": "2025-08-14",
+      "status": "pending"
+    },
+    {
+      "title": "Module 8 Project: UAS Operator Certification",
+      "description": "Project on UAS operator certification.",
+      "dueDate": "2025-08-21",
+      "status": "pending"
+    },
+    {
+      "title": "Module 8 Quiz: Maintenance and Support",
+      "description": "Quiz on maintenance and support.",
+      "dueDate": "2025-08-28",
+      "status": "pending"
+    },
+    {
+      "title": "Research Paper: UAS Applications",
+      "description": "Research paper on UAS applications.",
+      "dueDate": "2025-09-04",
+      "status": "pending"
+    },
+    {
+      "title": "Final Exam",
+      "description": "Final exam covering the entire course material.",
+      "dueDate": "2025-09-11",
+      "status": "pending"
+    }
+  ]
+}
+pro-dashboard.tsx:121 OpenRouter processing complete. Returned data: Object
+6course-detail.tsx:45 CourseDetailPage rendering with ID: 7RTrUqX2Y40UI9I7PIba
+7courses/7RTrUqX2Y40UI9I7PIba:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+firebase.ts:124 Getting courses from Firebase for user: L61IKcGcXPVNo1DBvukQSbwwkjh2
+firebase.ts:137 Courses fetched from Firebase: Array(1)
+2courses:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
