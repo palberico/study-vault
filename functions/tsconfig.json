@@ -1,19 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "lib": ["es6", "dom"],
-    "outDir": "lib",
-    "rootDir": "src",
-    "strict": true,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
+    "module": "commonjs", // Changed from NodeNext
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "typeRoots": ["node_modules/@types", "src"]
+    "moduleResolution": "node", // Changed from nodenext
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "lib",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017"
   },
-  "include": ["src", "src/types.d.ts"],
-  "exclude": ["node_modules", "lib"]
+  "compileOnSave": true,
+  "include": [
+    "src"
+  ]
 }

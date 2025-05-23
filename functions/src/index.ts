@@ -1,489 +1,427 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as pdfParse from 'pdf-parse';
+import * as mammoth from 'mammoth';
 import { Busboy } from 'busboy';
-import { Readable } from 'stream';
+import fetch from 'node-fetch';
 
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
+const storage = admin.storage();
 
-interface Assignment {
+interface CourseData {
+  code: string;
+  name: string;
+  term: string;
+  description: string;
+}
+
+interface AssignmentData {
   title: string;
-  dueDate: string; // ISO YYYY-MM-DD format
-  type: string;
+  description: string;
+  dueDate: string | null; // ISO format YYYY-MM-DD
+  status: string;
+  tags: string[];
 }
 
-interface TableRow {
-  cells: string[];
+interface ParsedSyllabusData {
+  course: CourseData;
+  assignments: AssignmentData[];
 }
 
-interface Table {
-  headers: string[];
-  rows: TableRow[];
-  score: number;
-}
+export const parseSyllabus = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: '2GB'
+  })
+  .https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
 
-// Keywords for scoring table headers
-const ASSIGNMENT_KEYWORDS = [
-  'date', 'due', 'name', 'event', 'points', 
-  'assignment', 'discussion', 'module', 'title', 
-  'deadline', 'task', 'homework', 'project'
-];
-
-export const parseSyllabus = functions.https.onRequest(async (req, res) => {
-  // Enable CORS
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.set('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).send();
-    return;
-  }
-
-  if (req.method !== 'POST') {
-    res.status(405).send('Method Not Allowed');
-    return;
-  }
-
-  try {
-    const { courseId, pdfBuffer } = await parseMultipartForm(req);
-    
-    if (!courseId || !pdfBuffer) {
-      res.status(400).json({ error: 'Missing courseId or PDF file' });
+    if (req.method === 'OPTIONS') {
+      res.status(200).send();
       return;
     }
 
-    console.log(`Processing syllabus for course: ${courseId}`);
-    console.log(`PDF buffer size: ${pdfBuffer.length} bytes`);
-
-    // Extract text from PDF
-    const pdfData = await pdfParse(pdfBuffer);
-    const fullText = pdfData.text;
-    
-    console.log(`Extracted ${fullText.length} characters from PDF`);
-
-    // Step 1: Extract and score tables
-    const tables = extractTablesFromText(fullText);
-    console.log(`Found ${tables.length} potential tables`);
-
-    let assignments: Assignment[] = [];
-
-    // Step 2: Try table-first extraction
-    const bestTable = findBestAssignmentTable(tables);
-    if (bestTable && bestTable.score >= 2) {
-      console.log(`Using table-based extraction (score: ${bestTable.score})`);
-      assignments = parseAssignmentsFromTable(bestTable);
-    } else {
-      // Step 3: Fallback to fuzzy extraction with AI
-      console.log('No suitable table found, using fuzzy extraction');
-      assignments = await parseAssignmentsWithAI(fullText);
+    if (req.method !== 'POST') {
+      res.status(405).send('Method Not Allowed');
+      return;
     }
 
-    // Step 4: Date validation and filtering
-    assignments = validateAndFilterAssignments(assignments);
-    
-    console.log(`Final assignments count: ${assignments.length}`);
-
-    // Step 5: Write to Firestore
-    if (assignments.length > 0) {
-      await writeAssignmentsToFirestore(courseId, assignments);
-      console.log(`Successfully wrote ${assignments.length} assignments to Firestore`);
-    }
-
-    res.status(200).json({
-      success: true,
-      courseId,
-      assignmentsCount: assignments.length,
-      assignments: assignments
-    });
-
-  } catch (error) {
-    console.error('Error processing syllabus:', error);
-    res.status(500).json({ 
-      error: 'Failed to process syllabus',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-async function parseMultipartForm(req: any): Promise<{ courseId: string; pdfBuffer: Buffer }> {
-  return new Promise((resolve, reject) => {
-    const bb = new Busboy({ headers: req.headers });
-    let courseId = '';
-    let pdfBuffer: Buffer | null = null;
-
-    bb.on('field', (name, val) => {
-      if (name === 'courseId') {
-        courseId = val;
+    try {
+      console.log('Starting syllabus parsing...');
+      
+      const { courseId, fileBuffer, fileName, userId } = await parseMultipartForm(req);
+      
+      if (!courseId || !fileBuffer || !userId) {
+        res.status(400).json({ error: 'Missing required fields: courseId, file, or userId' });
+        return;
       }
+
+      console.log(`Processing file: ${fileName} (${fileBuffer.length} bytes) for course: ${courseId}`);
+
+      // Extract text from the document
+      const extractedText = await extractTextFromDocument(fileBuffer, fileName);
+      
+      if (!extractedText || extractedText.length < 100) {
+        throw new Error('Failed to extract meaningful text from document');
+      }
+
+      console.log(`Extracted ${extractedText.length} characters from document`);
+
+      // Upload syllabus to Firebase Storage
+      const syllabusUrl = await uploadSyllabusToStorage(fileBuffer, fileName, courseId, userId);
+      console.log(`Uploaded syllabus to: ${syllabusUrl}`);
+
+      // Parse course and assignment data intelligently
+      const parsedData = await intelligentSyllabusParsing(extractedText);
+      
+      console.log(`Parsed course: ${parsedData.course.code} - ${parsedData.course.name}`);
+      console.log(`Found ${parsedData.assignments.length} assignments`);
+
+      // Update course document in Firestore
+      const courseRef = db.collection('courses').doc(courseId);
+      await courseRef.update({
+        code: parsedData.course.code,
+        name: parsedData.course.name,
+        term: parsedData.course.term,
+        description: parsedData.course.description,
+        syllabusUrl: syllabusUrl,
+        syllabusName: fileName,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Create assignment documents
+      const batch = db.batch();
+      for (const assignment of parsedData.assignments) {
+        const assignmentRef = courseRef.collection('assignments').doc();
+        batch.set(assignmentRef, {
+          ...assignment,
+          courseId: courseId,
+          userId: userId,
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      await batch.commit();
+
+      res.status(200).json({
+        success: true,
+        courseId,
+        course: parsedData.course,
+        assignmentsCount: parsedData.assignments.length,
+        syllabusUrl
+      });
+
+    } catch (error) {
+      console.error('Error processing syllabus:', error);
+      res.status(500).json({ 
+        error: 'Failed to process syllabus',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+async function parseMultipartForm(req: functions.Request): Promise<{
+  courseId: string;
+  fileBuffer: Buffer;
+  fileName: string;
+  userId: string;
+}> {
+  return new Promise((resolve, reject) => {
+    const busboy = Busboy({ headers: req.headers });
+    let courseId = '';
+    let userId = '';
+    let fileBuffer: Buffer | null = null;
+    let fileName = '';
+
+    busboy.on('field', (name, val) => {
+      if (name === 'courseId') courseId = val;
+      if (name === 'userId') userId = val;
     });
 
-    bb.on('file', (name, file, info) => {
+    busboy.on('file', (name, file, info) => {
       if (name === 'syllabus') {
+        fileName = info.filename;
         const chunks: Buffer[] = [];
         file.on('data', (chunk) => chunks.push(chunk));
         file.on('end', () => {
-          pdfBuffer = Buffer.concat(chunks);
+          fileBuffer = Buffer.concat(chunks);
         });
       }
     });
 
-    bb.on('close', () => {
-      if (courseId && pdfBuffer) {
-        resolve({ courseId, pdfBuffer });
+    busboy.on('close', () => {
+      if (courseId && fileBuffer && userId) {
+        resolve({ courseId, fileBuffer, fileName, userId });
       } else {
-        reject(new Error('Missing courseId or PDF file'));
+        reject(new Error('Missing required form data'));
       }
     });
 
-    bb.on('error', reject);
-
-    if (req.rawBody) {
-      bb.end(req.rawBody);
-    } else {
-      req.pipe(bb);
-    }
+    busboy.on('error', reject);
+    req.pipe(busboy);
   });
 }
 
-function extractTablesFromText(text: string): Table[] {
-  const tables: Table[] = [];
+async function extractTextFromDocument(buffer: Buffer, fileName: string): Promise<string> {
+  const fileExt = fileName.toLowerCase().split('.').pop();
+  
+  try {
+    switch (fileExt) {
+      case 'pdf':
+        const pdfData = await pdfParse(buffer);
+        return pdfData.text;
+      
+      case 'docx':
+      case 'doc':
+        const docResult = await mammoth.extractRawText({ buffer });
+        return docResult.value;
+      
+      default:
+        throw new Error(`Unsupported file type: ${fileExt}`);
+    }
+  } catch (error) {
+    console.error(`Error extracting text from ${fileExt}:`, error);
+    throw new Error(`Failed to extract text from ${fileName}`);
+  }
+}
+
+async function uploadSyllabusToStorage(
+  buffer: Buffer, 
+  fileName: string, 
+  courseId: string, 
+  userId: string
+): Promise<string> {
+  const bucket = storage.bucket();
+  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const filePath = `syllabi/${userId}/${courseId}/${Date.now()}_${sanitizedFileName}`;
+  
+  const file = bucket.file(filePath);
+  
+  await file.save(buffer, {
+    metadata: {
+      contentType: getMimeType(fileName),
+      metadata: {
+        courseId,
+        userId,
+        originalName: fileName
+      }
+    }
+  });
+
+  // Make file publicly readable
+  await file.makePublic();
+  
+  return `https://storage.googleapis.com/${bucket.name}/${filePath}`;
+}
+
+function getMimeType(fileName: string): string {
+  const ext = fileName.toLowerCase().split('.').pop();
+  switch (ext) {
+    case 'pdf': return 'application/pdf';
+    case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'doc': return 'application/msword';
+    default: return 'application/octet-stream';
+  }
+}
+
+async function intelligentSyllabusParsing(text: string): Promise<ParsedSyllabusData> {
+  // Step 1: Extract course information deterministically
+  const courseData = extractCourseInformation(text);
+  
+  // Step 2: Look for assignment schedules in tables or structured lists
+  const assignments = extractAssignmentsFromText(text, courseData.term);
+  
+  // Step 3: If no clear assignments found, use AI to help identify them
+  let finalAssignments = assignments;
+  if (assignments.length === 0) {
+    console.log('No structured assignments found, using AI assistance...');
+    finalAssignments = await extractAssignmentsWithAI(text, courseData);
+  }
+  
+  return {
+    course: courseData,
+    assignments: finalAssignments
+  };
+}
+
+function extractCourseInformation(text: string): CourseData {
   const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   
-  let currentTable: string[] = [];
-  let inTable = false;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    
-    // Look for table headers that indicate assignment schedules
-    const isTableHeader = /^(Date|Name|Due|Event|Type|Points?).*$/i.test(line) || 
-                         (line.includes('Date') && line.includes('Name') && line.includes('Due'));
-    
-    // Look for assignment lines with dates in M/D/YY format
-    const hasAssignmentDate = /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b.*Module\s+\d+/i.test(line);
-    
-    // Look for lines that continue assignment descriptions
-    const isAssignmentContinuation = inTable && (/Module\s+\d+/i.test(line) || /Assignment|Discussion|Essay|Worksheet|Viewing/i.test(line));
-    
-    if (isTableHeader) {
-      if (!inTable) {
-        inTable = true;
-        currentTable = [];
-        console.log('Found table header:', line);
-      }
-      currentTable.push(line);
-    } else if (hasAssignmentDate || isAssignmentContinuation) {
-      if (!inTable) {
-        inTable = true;
-        currentTable = [];
-      }
-      currentTable.push(line);
-    } else if (inTable && currentTable.length >= 3) {
-      // End of table - look for significant breaks
-      const isEndOfTable = line.length < 10 || 
-                          /^(Summary|Course Policies|Academic Integrity|©|Last Updated)/i.test(line) ||
-                          (!hasAssignmentDate && !isAssignmentContinuation && !line.includes('Module'));
-      
-      if (isEndOfTable) {
-        tables.push(parseTableFromLines(currentTable));
-        console.log(`Created table with ${currentTable.length} lines`);
-        currentTable = [];
-        inTable = false;
-      } else {
-        currentTable.push(line);
-      }
-    }
-  }
-
-  // Handle table at end of text
-  if (inTable && currentTable.length >= 3) {
-    tables.push(parseTableFromLines(currentTable));
-    console.log(`Created final table with ${currentTable.length} lines`);
-  }
-
-  return tables;
-}
-
-function parseTableFromLines(lines: string[]): Table {
-  const table: Table = { headers: [], rows: [], score: 0 };
-  
-  if (lines.length === 0) return table;
-
-  // First line as headers
-  const headerLine = lines[0];
-  table.headers = headerLine.split(/\s{3,}|\t/).map(h => h.trim()).filter(h => h.length > 0);
-  
-  // Remaining lines as rows
-  for (let i = 1; i < lines.length; i++) {
-    const cells = lines[i].split(/\s{3,}|\t/).map(c => c.trim()).filter(c => c.length > 0);
-    if (cells.length > 0) {
-      table.rows.push({ cells });
-    }
-  }
-
-  // Score the table based on header keywords
-  table.score = scoreTableHeaders(table.headers);
-  
-  return table;
-}
-
-function scoreTableHeaders(headers: string[]): number {
-  let score = 0;
-  const headerText = headers.join(' ').toLowerCase();
-  
-  for (const keyword of ASSIGNMENT_KEYWORDS) {
-    if (headerText.includes(keyword)) {
-      score++;
+  // Extract course code - look for patterns like "CS 101", "WW-HUMN 340", etc.
+  let courseCode = '';
+  const codePattern = /\b([A-Z]{2,4}[-\s]?[A-Z]*\s*\d{3,4}[A-Z]?)\b/g;
+  for (const line of lines.slice(0, 20)) { // Check first 20 lines
+    const match = line.match(codePattern);
+    if (match) {
+      courseCode = match[0].trim();
+      break;
     }
   }
   
-  return score;
-}
-
-function findBestAssignmentTable(tables: Table[]): Table | null {
-  if (tables.length === 0) return null;
-  
-  // Sort by score descending
-  tables.sort((a, b) => b.score - a.score);
-  
-  return tables[0].score >= 2 ? tables[0] : null;
-}
-
-function parseAssignmentsFromTable(table: Table): Assignment[] {
-  const assignments: Assignment[] = [];
-  
-  // For syllabus schedules, we need to look for patterns where dates and assignment names appear
-  // The format is often: Date | Assignment Name | Type | Points
-  
-  const tableText = table.rows.map(row => row.cells.join(' ')).join('\n');
-  
-  // Look for assignment patterns with dates in M/D/YY format
-  const assignmentPattern = /(\d{1,2}\/\d{1,2}\/\d{2,4})\s+(.*?Module\s+\d+[^:]*:[^)]*(?:\([^)]*\))?)/gi;
-  
-  let match;
-  while ((match = assignmentPattern.exec(tableText)) !== null) {
-    const [, dateStr, titleStr] = match;
-    
-    const dueDate = parseDateToISO(dateStr);
-    if (!dueDate) continue;
-    
-    const title = titleStr.trim().replace(/\s+/g, ' ');
-    if (!title) continue;
-    
-    // Determine assignment type based on title
-    let type = 'Assignment';
-    const titleLower = title.toLowerCase();
-    if (titleLower.includes('discussion')) type = 'Discussion';
-    else if (titleLower.includes('quiz')) type = 'Quiz';
-    else if (titleLower.includes('exam')) type = 'Exam';
-    else if (titleLower.includes('essay')) type = 'Essay';
-    else if (titleLower.includes('worksheet')) type = 'Worksheet';
-    else if (titleLower.includes('viewing')) type = 'Film Viewing';
-    else if (titleLower.includes('proposal')) type = 'Proposal';
-    
-    assignments.push({ title, dueDate, type });
-  }
-  
-  // If the regex approach didn't work, try line-by-line parsing
-  if (assignments.length === 0) {
-    assignments.push(...parseAssignmentsLineByLine(tableText));
-  }
-  
-  console.log(`Extracted ${assignments.length} assignments from table`);
-  return assignments;
-}
-
-function parseAssignmentsLineByLine(text: string): Assignment[] {
-  const assignments: Assignment[] = [];
-  const lines = text.split('\n').map(line => line.trim());
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    
-    // Look for lines with dates in M/D/YY format
-    const dateMatch = line.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s/);
-    if (!dateMatch) continue;
-    
-    const dueDate = parseDateToISO(dateMatch[1]);
-    if (!dueDate) continue;
-    
-    // Look for assignment title in this line or next few lines
-    let title = '';
-    let type = 'Assignment';
-    
-    // Check if title is on the same line after the date
-    const sameLine = line.replace(dateMatch[0], '').trim();
-    if (sameLine.includes('Module') && sameLine.includes(':')) {
-      title = sameLine;
-    } else {
-      // Look in next few lines for the assignment title
-      for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
-        if (lines[j].includes('Module') && lines[j].includes(':')) {
-          title = lines[j];
+  // Extract course name - usually appears near the course code
+  let courseName = '';
+  if (courseCode) {
+    for (const line of lines.slice(0, 20)) {
+      if (line.includes(courseCode)) {
+        // Look for the course name in the same line or next few lines
+        const nameAfterCode = line.replace(courseCode, '').trim();
+        if (nameAfterCode.length > 5 && nameAfterCode.length < 100) {
+          courseName = nameAfterCode.replace(/^[-\s:]+|[-\s:]+$/g, '');
           break;
         }
       }
     }
-    
-    if (!title) continue;
-    
-    // Clean up the title
-    title = title.replace(/^\s*(Module\s+\d+\s*)/, 'Module ').trim();
-    
-    // Determine type from title
-    const titleLower = title.toLowerCase();
-    if (titleLower.includes('discussion')) type = 'Discussion';
-    else if (titleLower.includes('quiz')) type = 'Quiz';
-    else if (titleLower.includes('exam')) type = 'Exam';
-    else if (titleLower.includes('essay')) type = 'Essay';
-    else if (titleLower.includes('worksheet')) type = 'Worksheet';
-    else if (titleLower.includes('viewing')) type = 'Film Viewing';
-    else if (titleLower.includes('proposal')) type = 'Proposal';
-    
-    assignments.push({ title, dueDate, type });
+  }
+  
+  if (!courseName) {
+    // Look for title-like lines (longer lines near the top)
+    for (const line of lines.slice(0, 10)) {
+      if (line.length > 10 && line.length < 100 && !line.includes('University') && !line.includes('College')) {
+        courseName = line;
+        break;
+      }
+    }
+  }
+  
+  // Extract term - look for patterns like "Spring 2025", "May 2025", etc.
+  let term = '';
+  const termPattern = /(Spring|Summer|Fall|Winter|January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}/gi;
+  for (const line of lines.slice(0, 30)) {
+    const match = line.match(termPattern);
+    if (match) {
+      term = match[0];
+      break;
+    }
+  }
+  
+  // Extract course description
+  let description = '';
+  const descKeywords = ['description', 'overview', 'course goals', 'learning outcomes'];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].toLowerCase();
+    if (descKeywords.some(keyword => line.includes(keyword))) {
+      // Take the next few lines as description
+      const descLines = lines.slice(i + 1, i + 5)
+        .filter(line => line.length > 20 && line.length < 500);
+      if (descLines.length > 0) {
+        description = descLines[0];
+        break;
+      }
+    }
+  }
+  
+  return {
+    code: courseCode || 'Unknown Course Code',
+    name: courseName || 'Unknown Course Name',
+    term: term || 'Unknown Term',
+    description: description || 'No description available'
+  };
+}
+
+function extractAssignmentsFromText(text: string, courseTerm: string): AssignmentData[] {
+  const assignments: AssignmentData[] = [];
+  const lines = text.split('\n').map(line => line.trim());
+  
+  // Look for assignment schedule tables
+  const assignmentPattern = /(\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}\/\d{1,2})\s+(.*(?:module|assignment|discussion|quiz|exam|essay|project|worksheet|lab|homework).*)/gi;
+  
+  for (const line of lines) {
+    const match = assignmentPattern.exec(line);
+    if (match) {
+      const [, dateStr, titleStr] = match;
+      
+      const dueDate = parseDateToISO(dateStr, courseTerm);
+      const title = cleanAssignmentTitle(titleStr);
+      
+      if (dueDate && title && title.length > 3) {
+        assignments.push({
+          title,
+          description: generateAssignmentDescription(title),
+          dueDate,
+          status: 'pending',
+          tags: extractAssignmentTags(title)
+        });
+      }
+    }
+  }
+  
+  // If no pattern matches, look for structured lists
+  if (assignments.length === 0) {
+    assignments.push(...extractFromStructuredLists(text, courseTerm));
   }
   
   return assignments;
 }
 
-function findColumnIndex(headers: string[], keywords: string[]): number {
-  for (let i = 0; i < headers.length; i++) {
-    const header = headers[i].toLowerCase();
-    for (const keyword of keywords) {
-      if (header.includes(keyword)) {
-        return i;
-      }
-    }
-  }
-  return -1;
-}
-
-function parseAssignmentFromRow(
-  cells: string[], 
-  dateIndex: number, 
-  titleIndex: number, 
-  typeIndex: number
-): Assignment | null {
-  if (cells.length === 0) return null;
-
-  // Extract date
-  let dueDate = '';
-  if (dateIndex >= 0 && dateIndex < cells.length) {
-    dueDate = parseDateToISO(cells[dateIndex]);
-  } else {
-    // Look for date in any cell
-    for (const cell of cells) {
-      const parsedDate = parseDateToISO(cell);
-      if (parsedDate) {
-        dueDate = parsedDate;
-        break;
-      }
-    }
-  }
-
-  if (!dueDate) return null;
-
-  // Extract title
-  let title = '';
-  if (titleIndex >= 0 && titleIndex < cells.length) {
-    title = cells[titleIndex].trim();
-  } else {
-    // Use the longest non-date cell as title
-    let longestCell = '';
-    for (const cell of cells) {
-      if (!parseDateToISO(cell) && cell.length > longestCell.length) {
-        longestCell = cell;
-      }
-    }
-    title = longestCell.trim();
-  }
-
-  if (!title) return null;
-
-  // Extract type
-  let type = 'Assignment'; // Default
-  if (typeIndex >= 0 && typeIndex < cells.length) {
-    type = cells[typeIndex].trim();
-  } else {
-    // Infer type from title
-    const titleLower = title.toLowerCase();
-    if (titleLower.includes('discussion')) type = 'Discussion';
-    else if (titleLower.includes('quiz')) type = 'Quiz';
-    else if (titleLower.includes('exam')) type = 'Exam';
-    else if (titleLower.includes('project')) type = 'Project';
-    else if (titleLower.includes('lab')) type = 'Lab';
-  }
-
-  return { title, dueDate, type };
-}
-
-function parseDateToISO(dateStr: string): string {
-  if (!dateStr) return '';
-
-  // Remove extra whitespace and clean up
-  dateStr = dateStr.trim().replace(/\s+/g, ' ');
-
-  // Pattern 1: M/D/YY or M/D/YYYY
-  const slashPattern = /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/;
-  const slashMatch = dateStr.match(slashPattern);
-  if (slashMatch) {
-    let [, month, day, year] = slashMatch;
-    if (year.length === 2) {
-      year = '20' + year; // Assume 2000s
-    }
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  }
-
-  // Pattern 2: Month D, YYYY or Month D YYYY
-  const monthPattern = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2}),?\s+(\d{4})/i;
-  const monthMatch = dateStr.match(monthPattern);
-  if (monthMatch) {
-    const [, monthName, day, year] = monthMatch;
-    const monthMap: {[key: string]: string} = {
-      'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
-      'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
-      'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
-    };
-    const month = monthMap[monthName.toLowerCase().substring(0, 3)];
-    if (month) {
-      return `${year}-${month}-${day.padStart(2, '0')}`;
-    }
-  }
-
-  return '';
-}
-
-async function parseAssignmentsWithAI(fullText: string): Promise<Assignment[]> {
-  try {
-    // Extract candidate lines with dates
-    const candidateLines = extractDateCandidateLines(fullText);
+function extractFromStructuredLists(text: string, courseTerm: string): AssignmentData[] {
+  const assignments: AssignmentData[] = [];
+  const lines = text.split('\n').map(line => line.trim());
+  
+  let currentDate = '';
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     
-    if (candidateLines.length === 0) {
-      console.log('No candidate lines found for AI processing');
-      return [];
+    // Check if this line contains a date
+    const dateMatch = line.match(/(\d{1,2}\/\d{1,2}\/?\d{0,4})/);
+    if (dateMatch) {
+      currentDate = dateMatch[1];
     }
+    
+    // Check if this line contains assignment keywords
+    const assignmentKeywords = /module|assignment|discussion|quiz|exam|essay|project|worksheet|lab|homework/i;
+    if (assignmentKeywords.test(line) && line.length > 10) {
+      const dueDate = parseDateToISO(currentDate, courseTerm);
+      const title = cleanAssignmentTitle(line);
+      
+      if (title && title.length > 3) {
+        assignments.push({
+          title,
+          description: generateAssignmentDescription(title),
+          dueDate,
+          status: 'pending',
+          tags: extractAssignmentTags(title)
+        });
+      }
+    }
+  }
+  
+  return assignments;
+}
 
-    console.log(`Found ${candidateLines.length} candidate lines for AI processing`);
+async function extractAssignmentsWithAI(text: string, courseData: CourseData): Promise<AssignmentData[]> {
+  try {
+    const prompt = `Extract assignment information from this syllabus. Focus ONLY on actual assignments, not general course information.
 
-    // Prepare prompt for OpenRouter
-    const prompt = `Extract assignment information from these candidate lines. Return ONLY valid JSON in this exact format:
+Course: ${courseData.code} - ${courseData.name}
+Term: ${courseData.term}
+
+Return ONLY valid JSON in this format:
 {
   "assignments": [
-    { "title": "...", "dueDate": "YYYY-MM-DD", "type": "..." }
+    {
+      "title": "exact assignment title from syllabus",
+      "description": "brief description based on title",
+      "dueDate": "YYYY-MM-DD or null if no date found",
+      "status": "pending",
+      "tags": ["relevant", "tags"]
+    }
   ]
 }
 
 Rules:
-- Only extract assignments that have clear due dates
-- Convert all dates to YYYY-MM-DD format
-- Types should be: Assignment, Discussion, Quiz, Exam, Project, Lab, or Paper
-- Only include entries that clearly represent coursework
+- Only extract assignments that clearly exist in the syllabus
+- Do not invent assignments or dates
+- Convert dates to YYYY-MM-DD format
+- Tags should be based on assignment type: Discussion, Quiz, Exam, Essay, Project, Lab, Assignment
+- If no due date is found, use null
 
-Candidate lines:
-${candidateLines.slice(0, 50).join('\n')}`;
+Syllabus text:
+${text.substring(0, 4000)}`;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -492,13 +430,8 @@ ${candidateLines.slice(0, 50).join('\n')}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'mistralai/mistral-7b-instruct:free',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
+        model: 'mistralai/mistral-small-latest',
+        messages: [{ role: 'user', content: prompt }],
         max_tokens: 2000,
         temperature: 0.1
       })
@@ -512,80 +445,84 @@ ${candidateLines.slice(0, 50).join('\n')}`;
     const content = data.choices[0]?.message?.content;
     
     if (!content) {
-      throw new Error('No content returned from AI');
+      return [];
     }
 
-    // Parse JSON response
     const parsed = JSON.parse(content);
     return parsed.assignments || [];
 
   } catch (error) {
-    console.error('AI processing failed:', error);
+    console.error('AI assignment extraction failed:', error);
     return [];
   }
 }
 
-function extractDateCandidateLines(text: string): string[] {
-  const lines = text.split('\n');
-  const candidates: string[] = [];
+function parseDateToISO(dateStr: string, courseTerm: string): string | null {
+  if (!dateStr) return null;
   
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.length < 10) continue; // Skip very short lines
+  // Handle M/D/YY or M/D/YYYY format
+  const parts = dateStr.split('/');
+  if (parts.length >= 2) {
+    const month = parts[0].padStart(2, '0');
+    const day = parts[1].padStart(2, '0');
     
-    // Look for lines containing dates
-    const hasDate = /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4}\b/i.test(trimmed);
-    
-    if (hasDate) {
-      candidates.push(trimmed);
+    let year = parts[2];
+    if (!year || year.length === 0) {
+      // Extract year from course term
+      const termYear = courseTerm.match(/20\d{2}/);
+      year = termYear ? termYear[0] : new Date().getFullYear().toString();
+    } else if (year.length === 2) {
+      year = '20' + year;
     }
+    
+    return `${year}-${month}-${day}`;
   }
   
-  return candidates;
+  return null;
 }
 
-function validateAndFilterAssignments(assignments: Assignment[]): Assignment[] {
-  if (assignments.length === 0) return [];
-
-  // Sort assignments by due date
-  const validAssignments = assignments
-    .filter(a => a.dueDate && a.title)
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
-  if (validAssignments.length === 0) return [];
-
-  // Use the earliest date as course start reference
-  const earliestDate = new Date(validAssignments[0].dueDate);
-  const courseStartThreshold = new Date(earliestDate);
-  courseStartThreshold.setDate(courseStartThreshold.getDate() - 30); // Allow 30 days before first assignment
-
-  // Filter out assignments that are too early
-  const filtered = validAssignments.filter(assignment => {
-    const assignmentDate = new Date(assignment.dueDate);
-    return assignmentDate >= courseStartThreshold;
-  });
-
-  console.log(`Filtered ${validAssignments.length - filtered.length} assignments that were too early`);
-  
-  return filtered;
+function cleanAssignmentTitle(title: string): string {
+  return title
+    .replace(/^\d{1,2}\/\d{1,2}\/?\d{0,4}\s*/, '') // Remove leading date
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
 }
 
-async function writeAssignmentsToFirestore(courseId: string, assignments: Assignment[]): Promise<void> {
-  const batch = db.batch();
+function generateAssignmentDescription(title: string): string {
+  const titleLower = title.toLowerCase();
   
-  // Get course document reference
-  const courseRef = db.collection('courses').doc(courseId);
-  
-  // Add each assignment to the subcollection
-  for (const assignment of assignments) {
-    const assignmentRef = courseRef.collection('assignments').doc();
-    batch.set(assignmentRef, {
-      ...assignment,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      status: 'pending'
-    });
+  if (titleLower.includes('discussion')) {
+    return `Discussion assignment: ${title}`;
+  } else if (titleLower.includes('quiz')) {
+    return `Quiz assessment: ${title}`;
+  } else if (titleLower.includes('exam')) {
+    return `Exam assessment: ${title}`;
+  } else if (titleLower.includes('essay')) {
+    return `Written essay assignment: ${title}`;
+  } else if (titleLower.includes('project')) {
+    return `Project assignment: ${title}`;
+  } else if (titleLower.includes('lab')) {
+    return `Laboratory assignment: ${title}`;
+  } else if (titleLower.includes('worksheet')) {
+    return `Worksheet assignment: ${title}`;
+  } else {
+    return `Assignment: ${title}`;
   }
+}
+
+function extractAssignmentTags(title: string): string[] {
+  const tags: string[] = [];
+  const titleLower = title.toLowerCase();
   
-  // Execute batch write
-  await batch.commit();
+  if (titleLower.includes('discussion')) tags.push('Discussion');
+  if (titleLower.includes('quiz')) tags.push('Quiz');
+  if (titleLower.includes('exam')) tags.push('Exam');
+  if (titleLower.includes('essay')) tags.push('Essay');
+  if (titleLower.includes('project')) tags.push('Project');
+  if (titleLower.includes('lab')) tags.push('Lab');
+  if (titleLower.includes('worksheet')) tags.push('Worksheet');
+  if (titleLower.includes('homework')) tags.push('Homework');
+  if (titleLower.includes('assignment') && tags.length === 0) tags.push('Assignment');
+  
+  return tags;
 }
