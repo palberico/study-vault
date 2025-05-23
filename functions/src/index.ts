@@ -126,43 +126,74 @@ async function parseMultipartForm(req: any): Promise<{
   userId: string;
 }> {
   return new Promise((resolve, reject) => {
-    const busboy = Busboy({ headers: req.headers });
+    const busboy = Busboy({ 
+      headers: req.headers,
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+        files: 1
+      }
+    });
+    
     let courseId = '';
     let userId = '';
     let fileBuffer: Buffer | null = null;
     let fileName = '';
+    let fieldsReceived = 0;
+    let fileReceived = false;
 
-    busboy.on('field', (name: any, val: any) => {
-      if (name === 'courseId') courseId = val;
-      if (name === 'userId') userId = val;
+    busboy.on('field', (name: string, val: string) => {
+      console.log(`Received field: ${name} = ${val}`);
+      if (name === 'courseId') {
+        courseId = val;
+        fieldsReceived++;
+      }
+      if (name === 'userId') {
+        userId = val;
+        fieldsReceived++;
+      }
     });
 
-    let fileProcessed = false;
-
-    busboy.on('file', (name: any, file: any, info: any) => {
+    busboy.on('file', (name: string, file: any, info: any) => {
+      console.log(`Receiving file: ${name}, filename: ${info.filename}`);
       if (name === 'syllabus') {
         fileName = info.filename;
         const chunks: Buffer[] = [];
-        file.on('data', (chunk: any) => chunks.push(chunk));
+        
+        file.on('data', (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
+        
         file.on('end', () => {
           fileBuffer = Buffer.concat(chunks);
-          fileProcessed = true;
+          fileReceived = true;
+          console.log(`File received: ${fileName}, size: ${fileBuffer.length} bytes`);
+          
+          // Check if we have everything we need
+          if (courseId && userId && fileBuffer) {
+            resolve({ courseId, fileBuffer, fileName, userId });
+          }
+        });
+        
+        file.on('error', (err: Error) => {
+          console.error('File stream error:', err);
+          reject(err);
         });
       }
     });
 
-    busboy.on('close', () => {
-      // Wait a bit for file processing to complete
-      setTimeout(() => {
-        if (courseId && fileBuffer && userId && fileProcessed) {
-          resolve({ courseId, fileBuffer, fileName, userId });
-        } else {
-          reject(new Error(`Missing required form data: courseId=${courseId}, fileBuffer=${fileBuffer?.length}, userId=${userId}, fileProcessed=${fileProcessed}`));
-        }
-      }, 100);
+    busboy.on('error', (err: Error) => {
+      console.error('Busboy error:', err);
+      reject(err);
     });
 
-    busboy.on('error', reject);
+    busboy.on('close', () => {
+      console.log('Busboy close event');
+      if (!fileReceived) {
+        reject(new Error('No file received'));
+      }
+    });
+
+    console.log('Starting to pipe request to busboy');
     req.pipe(busboy);
   });
 }
