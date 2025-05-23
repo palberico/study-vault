@@ -58,8 +58,8 @@ export const analyzeSyllabus = functions.https.onRequest(async (req: any, res: a
     console.log(`Text length: ${text.length} characters`);
     console.log(`Pre-parsed assignments received: ${assignments ? assignments.length : 0}`);
 
-    let finalAssignments = [];
-    let courseData = {};
+    let finalAssignments: AssignmentData[] = [];
+    let courseData: CourseData;
 
     // If client already parsed assignments deterministically, use them
     if (assignments && assignments.length > 0) {
