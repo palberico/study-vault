@@ -46,7 +46,7 @@ export const analyzeSyllabus = functions.https.onRequest(async (req: any, res: a
     return;
   }
 
-  const { courseId, userId, fileName, text } = req.body;
+  const { courseId, userId, fileName, text, assignments } = req.body;
   
   if (!courseId || !userId || !text) {
     res.status(400).json({ error: 'Missing required fields: courseId, userId, or text' });
@@ -56,23 +56,45 @@ export const analyzeSyllabus = functions.https.onRequest(async (req: any, res: a
   try {
     console.log(`Processing syllabus text for user: ${userId}, course: ${courseId}`);
     console.log(`Text length: ${text.length} characters`);
-    console.log(`Text sample: ${text.substring(0, 200)}...`);
+    console.log(`Pre-parsed assignments received: ${assignments ? assignments.length : 0}`);
 
-    // Use our existing AI parsing logic
-    const parsedData = await intelligentSyllabusParsing(text);
-    
-    if (!parsedData || !parsedData.course || !parsedData.assignments) {
-      throw new Error('Failed to extract course or assignment information from syllabus text');
+    let finalAssignments = [];
+    let courseData = {};
+
+    // If client already parsed assignments deterministically, use them
+    if (assignments && assignments.length > 0) {
+      console.log('Using deterministically parsed assignments from client');
+      finalAssignments = assignments.map((assignment: any) => ({
+        title: assignment.title,
+        description: `Assignment: ${assignment.title}`,
+        dueDate: assignment.dueDate,
+        status: 'pending',
+        tags: []
+      }));
+      
+      // Extract course info from text
+      courseData = extractCourseInformation(text);
+    } else {
+      console.log('No pre-parsed assignments, using AI parsing');
+      // Fallback to AI parsing
+      const parsedData = await intelligentSyllabusParsing(text);
+      
+      if (!parsedData || !parsedData.course || !parsedData.assignments) {
+        throw new Error('Failed to extract course or assignment information from syllabus text');
+      }
+      
+      courseData = parsedData.course;
+      finalAssignments = parsedData.assignments;
     }
 
-    console.log(`Successfully parsed: ${parsedData.course.name} with ${parsedData.assignments.length} assignments`);
+    console.log(`Successfully processed: ${courseData.name || 'Unknown Course'} with ${finalAssignments.length} assignments`);
 
-    // Return the parsed data to the client
+    // Return the processed data to the client
     res.status(200).json({
       success: true,
-      course: parsedData.course,
-      assignments: parsedData.assignments,
-      assignmentsCount: parsedData.assignments.length
+      course: courseData,
+      assignments: finalAssignments,
+      assignmentsCount: finalAssignments.length
     });
 
   } catch (error) {

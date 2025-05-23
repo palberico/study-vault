@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { type SyllabusData, type SyllabusAssignment } from "@/lib/openrouter-service";
 import { addCourse, addAssignment, type Course, type Assignment } from "@/lib/firebase";
-import { extractTextFromFile } from "@/lib/file-processor";
+import { extractTextFromFile, extractFilmAssignments } from "@/lib/file-processor";
 
 // Dummy data for visualizations
 const studyTimeData = [
@@ -105,20 +105,34 @@ export default function ProDashboard() {
       console.log("File size:", selectedFile.size, "bytes");
       console.log("File type:", selectedFile.type);
       
-      // Step 1: Extract text from PDF client-side using existing PDF processor
+      // Step 1: Extract text from PDF client-side
       console.log("Extracting text from PDF using client-side processor...");
       const extractedText = await extractTextFromFile(selectedFile);
       
-      console.log("Text extraction complete. Length:", extractedText.length);
+      console.log("Full syllabus text length:", extractedText.length);
       console.log("Text sample (first 500 chars):", extractedText.substring(0, 500));
       
       if (!extractedText || extractedText.trim().length < 50) {
         throw new Error("Could not extract meaningful text from the PDF. Please try another file.");
       }
       
-      // Step 2: Send extracted text to simple JSON-based Cloud Function
-      console.log("Sending extracted text to Cloud Function for AI analysis...");
+      // Step 2: Try deterministic assignment extraction first
+      console.log("🎬 Attempting deterministic assignment extraction...");
+      const filmAssignments = extractFilmAssignments(extractedText);
+      console.log("🎬 Film assignments found:", filmAssignments);
       
+      // Step 3: Use AI fallback if needed or send extracted assignments directly
+      let assignmentsToSend = filmAssignments;
+      
+      if (filmAssignments.length === 0) {
+        console.log("No assignments found with deterministic parsing, using AI fallback...");
+        // For now, we'll send the text to the Cloud Function for AI processing
+        // In the future, this could call extractAssignmentsWithAI locally
+      }
+      
+      console.log(`📋 Sending ${assignmentsToSend.length} assignments to Cloud Function`);
+      
+      // Step 4: Send data to Cloud Function
       const response = await fetch(
         'https://us-central1-study-vault-dd7d1.cloudfunctions.net/analyzeSyllabus',
         {
@@ -128,7 +142,8 @@ export default function ProDashboard() {
             courseId: 'temp-course-id', // Will be updated after course creation
             userId: user.uid,
             fileName: selectedFile.name,
-            text: extractedText
+            text: extractedText,
+            assignments: assignmentsToSend // Send parsed assignments if available
           })
         }
       );
