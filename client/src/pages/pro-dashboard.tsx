@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { type SyllabusData, type SyllabusAssignment } from "@/lib/openrouter-service";
 import { addCourse, addAssignment, type Course, type Assignment } from "@/lib/firebase";
+import { extractTextFromFile } from "@/lib/file-processor";
 
 // Dummy data for visualizations
 const studyTimeData = [
@@ -104,21 +105,31 @@ export default function ProDashboard() {
       console.log("File size:", selectedFile.size, "bytes");
       console.log("File type:", selectedFile.type);
       
-      // Create form data for the Cloud Function (same format as working SyllabusUploader)
-      const form = new FormData();
-      form.append('courseId', 'temp-course-id'); // Will be updated after course creation
-      form.append('userId', user.uid);
-      form.append('syllabus', selectedFile);
+      // Step 1: Extract text from PDF client-side using existing PDF processor
+      console.log("Extracting text from PDF using client-side processor...");
+      const extractedText = await extractTextFromFile(selectedFile);
       
-      console.log("Sending PDF to Cloud Function for processing...");
+      console.log("Text extraction complete. Length:", extractedText.length);
+      console.log("Text sample (first 500 chars):", extractedText.substring(0, 500));
       
-      // Call your deployed Cloud Function (let browser set correct Content-Type with boundary)
+      if (!extractedText || extractedText.trim().length < 50) {
+        throw new Error("Could not extract meaningful text from the PDF. Please try another file.");
+      }
+      
+      // Step 2: Send extracted text to simple JSON-based Cloud Function
+      console.log("Sending extracted text to Cloud Function for AI analysis...");
+      
       const response = await fetch(
-        'https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus',
-        { 
-          method: 'POST', 
-          body: form 
-          // NO Content-Type header - browser will set multipart/form-data with boundary automatically
+        'https://us-central1-study-vault-dd7d1.cloudfunctions.net/analyzeSyllabus',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            courseId: 'temp-course-id', // Will be updated after course creation
+            userId: user.uid,
+            fileName: selectedFile.name,
+            text: extractedText
+          })
         }
       );
       
@@ -132,7 +143,6 @@ export default function ProDashboard() {
       
       const syllabusData = await response.json() as SyllabusData;
       console.log("Cloud Function returned parsed data:", syllabusData);
-      console.log("Raw PDF text that was processed:", syllabusData.rawText || "No raw text returned");
       
       if (!syllabusData || !syllabusData.course || !syllabusData.assignments) {
         throw new Error("Could not extract course or assignment information from the syllabus.");

@@ -30,6 +30,60 @@ interface ParsedSyllabusData {
   assignments: AssignmentData[];
 }
 
+export const analyzeSyllabus = functions.https.onRequest(async (req: any, res: any) => {
+  // Enable CORS
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).send('');
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    res.status(405).send('Only POST allowed');
+    return;
+  }
+
+  const { courseId, userId, fileName, text } = req.body;
+  
+  if (!courseId || !userId || !text) {
+    res.status(400).json({ error: 'Missing required fields: courseId, userId, or text' });
+    return;
+  }
+
+  try {
+    console.log(`Processing syllabus text for user: ${userId}, course: ${courseId}`);
+    console.log(`Text length: ${text.length} characters`);
+    console.log(`Text sample: ${text.substring(0, 200)}...`);
+
+    // Use our existing AI parsing logic
+    const parsedData = await intelligentSyllabusParsing(text);
+    
+    if (!parsedData || !parsedData.course || !parsedData.assignments) {
+      throw new Error('Failed to extract course or assignment information from syllabus text');
+    }
+
+    console.log(`Successfully parsed: ${parsedData.course.name} with ${parsedData.assignments.length} assignments`);
+
+    // Return the parsed data to the client
+    res.status(200).json({
+      success: true,
+      course: parsedData.course,
+      assignments: parsedData.assignments,
+      assignmentsCount: parsedData.assignments.length
+    });
+
+  } catch (error) {
+    console.error('Error analyzing syllabus:', error);
+    res.status(500).json({ 
+      error: 'Failed to analyze syllabus',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export const parseSyllabus = functions.https.onRequest(async (req: any, res: any) => {
     // Enable CORS
     res.set('Access-Control-Allow-Origin', '*');

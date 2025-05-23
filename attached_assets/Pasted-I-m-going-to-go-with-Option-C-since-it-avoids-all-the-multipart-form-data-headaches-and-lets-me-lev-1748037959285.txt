@@ -1,0 +1,100 @@
+I’m going to go with Option C, since it avoids all the multipart/form-data headaches and lets me leverage the client‐side PDF parsing I already have working.
+
+Here’s the plan:
+Client (React)
+
+Use our existing PDF extractor (e.g. pdfjs-dist or whatever we’ve already got) to pull out the syllabus text in the browser.
+
+Send a simple JSON payload to a new HTTPS Cloud Function.
+
+ts
+Copy
+Edit
+// pro-dashboard.tsx (abridged)
+import { extractTextClientSide } from './pdfUtils'; // your working extractor
+
+async function processSyllabus(file: File, courseId: string, userId: string) {
+  // 1. Extract text locally
+  const text = await extractTextClientSide(file);
+
+  // 2. Send JSON to Cloud Function
+  const res = await fetch('https://us-central1-<project>.cloudfunctions.net/analyzeSyllabus', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      courseId,
+      userId,
+      fileName: file.name,
+      text
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Server error: ${await res.text()}`);
+  return res.json();
+}
+Cloud Function (TypeScript)
+
+No Busboy, no multipart—just read JSON from req.body.
+
+Reuse our existing intelligentSyllabusParsing(text) and Firestore logic.
+
+ts
+Copy
+Edit
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+admin.initializeApp();
+const db = admin.firestore();
+
+export const analyzeSyllabus = functions.https.onRequest(async (req, res) => {
+  // CORS
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).send('');
+
+  if (req.method !== 'POST') {
+    return res.status(405).send('Only POST allowed');
+  }
+
+  const { courseId, userId, fileName, text } = req.body;
+  if (!courseId || !userId || !text) {
+    return res.status(400).json({ error: 'Missing fields' });
+  }
+
+  try {
+    // (Optional) upload original PDF to Storage here if needed
+
+    // Run our AI parsing logic
+    const parsed = await intelligentSyllabusParsing(text);
+
+    // Update Firestore exactly as before
+    const courseRef = db.collection('courses').doc(courseId);
+    await courseRef.update({
+      syllabusName: fileName,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      // ... other course data from parsed.course
+    });
+
+    const batch = db.batch();
+    for (const a of parsed.assignments) {
+      const ref = courseRef.collection('assignments').doc();
+      batch.set(ref, { ...a, courseId, userId, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    }
+    await batch.commit();
+
+    res.json({ success: true, assignmentsCount: parsed.assignments.length });
+  } catch (e: any) {
+    console.error('Parsing error', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+Why this approach?
+
+Zero multipart parsing in Cloud Functions.
+
+We only ship plain JSON, so no more “Unexpected end of form.”
+
+We keep all our AI-driven syllabus parsing on the server side, in a secure function.
+
+We still get the real PDF content driving the parsing logic.
