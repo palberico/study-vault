@@ -1,0 +1,57 @@
+I wired up Option C (client-side PDF → JSON → Cloud Function) and it’s all running smoothly… except the text I’m sending is still the Uncrewed Aircraft Systems syllabus, not the actual syllabus I upload. The logs even show:
+File name: Aviators in Film.pdf  
+Extracted text:  
+  WW-UNSY 315  
+  Uncrewed Aircraft Systems and Operations  
+  Online Course Syllabus  
+  Worldwide 2025-05 May  
+  …
+That tells me my client extractor is never actually loading the binary from the new PDF file—instead it’s either:
+	1	Passing the File object straight to PDF.js (which it treats like a URL string, so it just refetches whatever PDF it loaded last), or
+	2	Accidentally reusing a cached document instance.
+🔧 The fix
+1. Read the raw bytes, don’t hand PDF.js a File or URL
+Replace whatever you have now with this pattern in your file-processor.ts:
+import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+import 'pdfjs-dist/build/pdf.worker.entry';
+
+export async function extractTextClientSide(file: File): Promise<string> {
+  // 1) Turn the File into an ArrayBuffer
+  const arrayBuffer = await file.arrayBuffer();
+  const uint8 = new Uint8Array(arrayBuffer);
+
+  // 2) Feed the data directly to PDF.js
+  const loadingTask = pdfjsLib.getDocument({ data: uint8 });
+  const pdf = await loadingTask.promise;
+
+  // 3) Sanity check: how many pages are we actually loading?
+  console.log('PDF pages:', pdf.numPages);
+
+  // 4) Pull out all of the text
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((item: any) => item.str).join(' ') + '\n';
+  }
+
+  return text;
+}
+Why this matters
+	•	getDocument({ data: … }) guarantees you’re loading exactly the bytes in the File, not a URL or old cached doc.
+	•	Logging pdf.numPages will instantly show if you really did load the Film syllabus (it should be >1 pages, not 1–2).
+2. Verify in your React uploader
+Right before you call extractTextClientSide, add:
+
+console.log('Uploading file:', file.name, file.size, file.type);
+and after you get the text back:
+
+console.log('Extracted text snippet:', text.substring(0, 200));
+Make sure that snippet actually says “WW-HUMN 340” or “Aviators and Aviation in Film,” not “WW-UNSY 315.”
+3. Then your Cloud Function sees the right text
+Once you’re certain the client is handing off the true Film syllabus, your JSON-only function:
+
+const { courseId, userId, fileName, text } = req.body;
+// …
+const parsed = await intelligentSyllabusParsing(text);
+will parse the correct assignments instead of falling back on the old UAS example.
