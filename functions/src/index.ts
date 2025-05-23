@@ -126,86 +126,114 @@ async function parseMultipartForm(req: any): Promise<{
   userId: string;
 }> {
   return new Promise((resolve, reject) => {
-    // Log the incoming headers to debug boundary issues
-    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Request method:', req.method);
     
-    const busboy = Busboy({ 
-      headers: req.headers,
-      limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB limit
-        files: 1,
-        fields: 10
-      }
-    });
-    
-    const formData: any = {};
-    let fileBuffer: Buffer | null = null;
-    let fileName = '';
-
-    busboy.on('field', (name: string, val: string, info: any) => {
-      console.log(`Field received: ${name} = ${val}`);
-      formData[name] = val;
-    });
-
-    busboy.on('file', (name: string, file: any, info: any) => {
-      console.log(`File upload started: ${name}, filename: ${info.filename}, encoding: ${info.encoding}, mimetype: ${info.mimeType}`);
+    // Check if we have rawBody (Firebase Functions provides this for multipart)
+    if (req.rawBody) {
+      console.log('Using req.rawBody, length:', req.rawBody.length);
       
-      if (name === 'syllabus') {
-        fileName = info.filename;
-        const chunks: Buffer[] = [];
-        
-        file.on('data', (chunk: Buffer) => {
-          chunks.push(chunk);
-          console.log(`Received chunk: ${chunk.length} bytes`);
-        });
-        
-        file.on('end', () => {
-          fileBuffer = Buffer.concat(chunks);
-          console.log(`File upload completed: ${fileName}, total size: ${fileBuffer.length} bytes`);
-        });
-        
-        file.on('error', (err: Error) => {
-          console.error('File stream error:', err);
-          reject(err);
-        });
-      } else {
-        // Consume any other files to prevent hanging
-        file.resume();
-      }
-    });
-
-    busboy.on('error', (err: Error) => {
-      console.error('Busboy error:', err.message);
-      reject(err);
-    });
-
-    busboy.on('finish', () => {
-      console.log('Busboy finished processing');
-      console.log('Form data received:', formData);
-      console.log('File data:', { fileName, bufferLength: fileBuffer?.length });
+      const busboy = Busboy({ 
+        headers: req.headers,
+        limits: {
+          fileSize: 10 * 1024 * 1024, // 10MB limit
+          files: 1,
+          fields: 10
+        }
+      });
       
-      const { courseId, userId } = formData;
+      const formData: any = {};
+      let fileBuffer: Buffer | null = null;
+      let fileName = '';
+
+      busboy.on('field', (name: string, val: string) => {
+        console.log(`Field: ${name} = ${val}`);
+        formData[name] = val;
+      });
+
+      busboy.on('file', (name: string, file: any, info: any) => {
+        console.log(`File: ${name}, filename: ${info.filename}`);
+        
+        if (name === 'syllabus') {
+          fileName = info.filename;
+          const chunks: Buffer[] = [];
+          
+          file.on('data', (chunk: Buffer) => chunks.push(chunk));
+          file.on('end', () => {
+            fileBuffer = Buffer.concat(chunks);
+            console.log(`File complete: ${fileBuffer.length} bytes`);
+          });
+          file.on('error', reject);
+        } else {
+          file.resume();
+        }
+      });
+
+      busboy.on('finish', () => {
+        const { courseId, userId } = formData;
+        if (courseId && userId && fileBuffer && fileName) {
+          resolve({ courseId, fileBuffer, fileName, userId });
+        } else {
+          reject(new Error(`Missing: courseId=${courseId}, userId=${userId}, file=${!!fileBuffer}`));
+        }
+      });
+
+      busboy.on('error', reject);
       
-      if (courseId && userId && fileBuffer && fileName) {
-        resolve({ courseId, fileBuffer, fileName, userId });
-      } else {
-        reject(new Error(`Missing data - courseId: ${courseId}, userId: ${userId}, fileBuffer: ${fileBuffer?.length}, fileName: ${fileName}`));
-      }
-    });
+      // Write the raw body to busboy
+      busboy.end(req.rawBody);
+      
+    } else {
+      console.log('No rawBody, trying to pipe request stream...');
+      
+      const busboy = Busboy({ 
+        headers: req.headers,
+        limits: {
+          fileSize: 10 * 1024 * 1024,
+          files: 1,
+          fields: 10
+        }
+      });
+      
+      const formData: any = {};
+      let fileBuffer: Buffer | null = null;
+      let fileName = '';
 
-    // Set up error handling for the request stream
-    req.on('error', (err: Error) => {
-      console.error('Request stream error:', err);
-      reject(err);
-    });
+      busboy.on('field', (name: string, val: string) => {
+        console.log(`Field: ${name} = ${val}`);
+        formData[name] = val;
+      });
 
-    req.on('aborted', () => {
-      console.error('Request aborted');
-      reject(new Error('Request aborted'));
-    });
+      busboy.on('file', (name: string, file: any, info: any) => {
+        console.log(`File: ${name}, filename: ${info.filename}`);
+        
+        if (name === 'syllabus') {
+          fileName = info.filename;
+          const chunks: Buffer[] = [];
+          
+          file.on('data', (chunk: Buffer) => chunks.push(chunk));
+          file.on('end', () => {
+            fileBuffer = Buffer.concat(chunks);
+            console.log(`File complete: ${fileBuffer.length} bytes`);
+          });
+          file.on('error', reject);
+        } else {
+          file.resume();
+        }
+      });
 
-    console.log('Piping request to busboy...');
-    req.pipe(busboy);
+      busboy.on('finish', () => {
+        const { courseId, userId } = formData;
+        if (courseId && userId && fileBuffer && fileName) {
+          resolve({ courseId, fileBuffer, fileName, userId });
+        } else {
+          reject(new Error(`Missing: courseId=${courseId}, userId=${userId}, file=${!!fileBuffer}`));
+        }
+      });
+
+      busboy.on('error', reject);
+      req.pipe(busboy);
+    }
   });
 }
 

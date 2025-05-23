@@ -1,0 +1,59 @@
+Title: Fix “Unexpected end of form” in Firebase Cloud Function Busboy parsing
+
+Description:
+I have a Firebase HTTPS‐onRequest function (parseSyllabus) that uses Busboy to parse a multipart/form-data upload of a PDF syllabus. Every time I invoke it, I see in the logs:
+
+vbnet
+Copy
+Edit
+Busboy error: Error: Unexpected end of form
+    at Multipart._final (.../busboy/lib/types/multipart.js:588:17)
+…
+Error processing syllabus: Error: Unexpected end of form
+and the client gets a 500. I’m running this in Replit’s Firebase emulator/cloud function environment (Node.js 18).
+
+What I’ve tried:
+
+Confirmed I’m not manually setting Content-Type on the browser fetch (letting the boundary through)
+
+Piping req.pipe(busboy) in my parseMultipartForm() helper
+
+Logging req.headers and the Busboy events
+
+Sample Cloud Function code (abridged):
+
+ts
+Copy
+Edit
+export const parseSyllabus = functions.https.onRequest(async (req, res) => {
+  // CORS setup…
+  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+
+  try {
+    const { courseId, fileBuffer, fileName, userId } = await parseMultipartForm(req);
+    // …process PDF…
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error processing syllabus:', error);
+    res.status(500).json({ error: 'Failed to process syllabus', details: error.message });
+  }
+});
+
+async function parseMultipartForm(req: any) {
+  return new Promise((resolve, reject) => {
+    console.log('Request headers:', req.headers);
+    const busboy = new Busboy({ headers: req.headers });
+    // on('field'), on('file'), on('finish')…
+    req.pipe(busboy);
+  });
+}
+Problem: Busboy never sees the full multipart stream—it immediately errors “Unexpected end of form.”
+
+What I need from you:
+Code changes to ensure Busboy receives the raw multipart payload in a Firebase Function (Node 18) on Replit.
+
+Any Replit/Firebase configuration (e.g. disabling Express’s default bodyParser, using req.rawBody, enabling “raw body” in runWith(), or adding an express.raw() middleware) that I must apply so the form stream isn’t consumed before Busboy.
+
+A minimal complete example of parseSyllabus (or parseMultipartForm) that successfully parses courseId, userId, and the PDF buffer without “Unexpected end of form.”
+
+Thank you!
