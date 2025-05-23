@@ -137,6 +137,8 @@ async function parseMultipartForm(req: any): Promise<{
       if (name === 'userId') userId = val;
     });
 
+    let fileProcessed = false;
+
     busboy.on('file', (name: any, file: any, info: any) => {
       if (name === 'syllabus') {
         fileName = info.filename;
@@ -144,16 +146,20 @@ async function parseMultipartForm(req: any): Promise<{
         file.on('data', (chunk: any) => chunks.push(chunk));
         file.on('end', () => {
           fileBuffer = Buffer.concat(chunks);
+          fileProcessed = true;
         });
       }
     });
 
     busboy.on('close', () => {
-      if (courseId && fileBuffer && userId) {
-        resolve({ courseId, fileBuffer, fileName, userId });
-      } else {
-        reject(new Error('Missing required form data'));
-      }
+      // Wait a bit for file processing to complete
+      setTimeout(() => {
+        if (courseId && fileBuffer && userId && fileProcessed) {
+          resolve({ courseId, fileBuffer, fileName, userId });
+        } else {
+          reject(new Error(`Missing required form data: courseId=${courseId}, fileBuffer=${fileBuffer?.length}, userId=${userId}, fileProcessed=${fileProcessed}`));
+        }
+      }, 100);
     });
 
     busboy.on('error', reject);
