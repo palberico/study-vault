@@ -104,21 +104,18 @@ export default function ProDashboard() {
       console.log("File size:", selectedFile.size, "bytes");
       console.log("File type:", selectedFile.type);
       
-      // Create form data for the Cloud Function
-      const formData = new FormData();
-      formData.append('syllabus', selectedFile);
-      formData.append('userId', user.uid);
-      formData.append('courseId', 'temp-course-id'); // Temporary, will be updated after course creation
+      // Create form data for the Cloud Function (same format as working SyllabusUploader)
+      const form = new FormData();
+      form.append('courseId', 'temp-course-id'); // Will be updated after course creation
+      form.append('userId', user.uid);
+      form.append('syllabus', selectedFile);
       
       console.log("Sending PDF to Cloud Function for processing...");
       
-      // Call your deployed Cloud Function
+      // Call your deployed Cloud Function (same as working SyllabusUploader)
       const response = await fetch(
         'https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus',
-        {
-          method: 'POST',
-          body: formData
-        }
+        { method: 'POST', body: form }
       );
       
       console.log("Cloud Function response status:", response.status);
