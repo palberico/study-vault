@@ -42,17 +42,26 @@ export function SyllabusUploader({ courseId, onUploadSuccess }: SyllabusUploader
     try {
       setUploadState('loading');
       
+      console.log('--- SYLLABUS UPLOADER DEBUG ---');
+      console.log(`File: ${file.name} (${file.size} bytes)`);
+      console.log(`Course ID: ${courseId}`);
+      console.log(`User ID: ${user.uid}`);
+      
       // Create form data for the Cloud Function
       const form = new FormData();
       form.append('courseId', courseId);
       form.append('userId', user.uid);
       form.append('syllabus', file);
       
+      console.log('Sending request to Cloud Function...');
+      
       // Call the Cloud Function
       const res = await fetch(
         'https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus',
         { method: 'POST', body: form }
       );
+      
+      console.log(`Cloud Function response status: ${res.status}`);
       
       if (!res.ok) {
         const errorText = await res.text();
