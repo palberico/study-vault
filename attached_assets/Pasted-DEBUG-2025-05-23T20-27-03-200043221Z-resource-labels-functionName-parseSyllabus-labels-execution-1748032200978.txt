@@ -1,0 +1,20 @@
+DEBUG 2025-05-23T20:27:03.200043221Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] Function execution started
+DEFAULT 2025-05-23T20:27:03.244910Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] Starting syllabus parsing...
+DEFAULT 2025-05-23T20:27:03.247293Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] Starting to pipe request to busboy
+DEFAULT 2025-05-23T20:27:03.251718Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] Busboy error: Error: Unexpected end of form
+DEFAULT 2025-05-23T20:27:03.251729Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at Multipart._final (/workspace/node_modules/busboy/lib/types/multipart.js:588:17)
+DEFAULT 2025-05-23T20:27:03.251732Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at callFinal (node:internal/streams/writable:698:12)
+DEFAULT 2025-05-23T20:27:03.251735Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at prefinish (node:internal/streams/writable:710:7)
+DEFAULT 2025-05-23T20:27:03.251738Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at finishMaybe (node:internal/streams/writable:720:5)
+DEFAULT 2025-05-23T20:27:03.251741Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at Writable.end (node:internal/streams/writable:634:5)
+DEFAULT 2025-05-23T20:27:03.251743Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at onend (node:internal/streams/readable:748:10)
+DEFAULT 2025-05-23T20:27:03.251746Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+DEFAULT 2025-05-23T20:27:03.252462Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] Error processing syllabus: Error: Unexpected end of form
+DEFAULT 2025-05-23T20:27:03.252467Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at Multipart._final (/workspace/node_modules/busboy/lib/types/multipart.js:588:17)
+DEFAULT 2025-05-23T20:27:03.252471Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at callFinal (node:internal/streams/writable:698:12)
+DEFAULT 2025-05-23T20:27:03.252475Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at prefinish (node:internal/streams/writable:710:7)
+DEFAULT 2025-05-23T20:27:03.252478Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at finishMaybe (node:internal/streams/writable:720:5)
+DEFAULT 2025-05-23T20:27:03.252482Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at Writable.end (node:internal/streams/writable:634:5)
+DEFAULT 2025-05-23T20:27:03.252486Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at onend (node:internal/streams/readable:748:10)
+DEFAULT 2025-05-23T20:27:03.252490Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+DEBUG 2025-05-23T20:27:03.352349891Z [resource.labels.functionName: parseSyllabus] [labels.executionId: vq07rkh6a57p] Function execution took 152 ms, finished with status code: 500

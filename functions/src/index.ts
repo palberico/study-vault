@@ -126,76 +126,85 @@ async function parseMultipartForm(req: any): Promise<{
   userId: string;
 }> {
   return new Promise((resolve, reject) => {
+    // Log the incoming headers to debug boundary issues
+    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+    
     const busboy = Busboy({ 
       headers: req.headers,
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB limit
-        files: 1
+        files: 1,
+        fields: 10
       }
     });
     
-    let courseId = '';
-    let userId = '';
+    const formData: any = {};
     let fileBuffer: Buffer | null = null;
     let fileName = '';
-    let fieldsReceived = 0;
-    let fileReceived = false;
 
-    busboy.on('field', (name: string, val: string) => {
-      console.log(`Received field: ${name} = ${val}`);
-      if (name === 'courseId') {
-        courseId = val;
-        fieldsReceived++;
-      }
-      if (name === 'userId') {
-        userId = val;
-        fieldsReceived++;
-      }
+    busboy.on('field', (name: string, val: string, info: any) => {
+      console.log(`Field received: ${name} = ${val}`);
+      formData[name] = val;
     });
 
     busboy.on('file', (name: string, file: any, info: any) => {
-      console.log(`Receiving file: ${name}, filename: ${info.filename}`);
+      console.log(`File upload started: ${name}, filename: ${info.filename}, encoding: ${info.encoding}, mimetype: ${info.mimeType}`);
+      
       if (name === 'syllabus') {
         fileName = info.filename;
         const chunks: Buffer[] = [];
         
         file.on('data', (chunk: Buffer) => {
           chunks.push(chunk);
+          console.log(`Received chunk: ${chunk.length} bytes`);
         });
         
         file.on('end', () => {
           fileBuffer = Buffer.concat(chunks);
-          fileReceived = true;
-          console.log(`File received: ${fileName}, size: ${fileBuffer.length} bytes`);
-          
-          // Check if we have everything we need
-          if (courseId && userId && fileBuffer) {
-            resolve({ courseId, fileBuffer, fileName, userId });
-          }
+          console.log(`File upload completed: ${fileName}, total size: ${fileBuffer.length} bytes`);
         });
         
         file.on('error', (err: Error) => {
           console.error('File stream error:', err);
           reject(err);
         });
+      } else {
+        // Consume any other files to prevent hanging
+        file.resume();
       }
     });
 
     busboy.on('error', (err: Error) => {
-      console.error('Busboy error:', err);
+      console.error('Busboy error:', err.message);
       reject(err);
     });
 
     busboy.on('finish', () => {
-      console.log('Busboy finish event - all form data processed');
-      if (courseId && userId && fileBuffer && fileReceived) {
+      console.log('Busboy finished processing');
+      console.log('Form data received:', formData);
+      console.log('File data:', { fileName, bufferLength: fileBuffer?.length });
+      
+      const { courseId, userId } = formData;
+      
+      if (courseId && userId && fileBuffer && fileName) {
         resolve({ courseId, fileBuffer, fileName, userId });
       } else {
-        reject(new Error(`Missing required form data: courseId=${courseId}, userId=${userId}, fileBuffer=${fileBuffer?.length}, fileReceived=${fileReceived}`));
+        reject(new Error(`Missing data - courseId: ${courseId}, userId: ${userId}, fileBuffer: ${fileBuffer?.length}, fileName: ${fileName}`));
       }
     });
 
-    console.log('Starting to pipe request to busboy');
+    // Set up error handling for the request stream
+    req.on('error', (err: Error) => {
+      console.error('Request stream error:', err);
+      reject(err);
+    });
+
+    req.on('aborted', () => {
+      console.error('Request aborted');
+      reject(new Error('Request aborted'));
+    });
+
+    console.log('Piping request to busboy...');
     req.pipe(busboy);
   });
 }

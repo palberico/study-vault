@@ -1,0 +1,63 @@
+--- PRO DASHBOARD DEBUG ---
+pro-dashboard.tsx:103 Starting syllabus processing for file: Worldwide-2025-05-May-WW-HUMN-Online-340-0002-Aviators-and-Aviation-in-Film.pdf
+pro-dashboard.tsx:104 File size: 184464 bytes
+pro-dashboard.tsx:105 File type: application/pdf
+pro-dashboard.tsx:113 Sending PDF to Cloud Function for processing...
+pro-dashboard.tsx:116 
+            
+            
+           POST https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus 500 (Internal Server Error)
+processSyllabus @ pro-dashboard.tsx:116
+callCallback2 @ chunk-RPCDYKBN.js?v=5c925484:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=5c925484:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=5c925484:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=5c925484:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=5c925484:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=5c925484:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=5c925484:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=5c925484:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=5c925484:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=5c925484:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=5c925484:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=5c925484:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=5c925484:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=5c925484:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=5c925484:5449Understand this error
+pro-dashboard.tsx:125 Cloud Function response status: 500
+pro-dashboard.tsx:129 Cloud Function error: {"error":"Failed to process syllabus","details":"Unexpected end of form"}
+processSyllabus @ pro-dashboard.tsx:129
+await in processSyllabus
+callCallback2 @ chunk-RPCDYKBN.js?v=5c925484:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=5c925484:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=5c925484:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=5c925484:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=5c925484:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=5c925484:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=5c925484:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=5c925484:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=5c925484:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=5c925484:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=5c925484:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=5c925484:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=5c925484:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=5c925484:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=5c925484:5449Understand this error
+pro-dashboard.tsx:218 Error processing syllabus: Error: Cloud Function failed: {"error":"Failed to process syllabus","details":"Unexpected end of form"}
+    at processSyllabus (pro-dashboard.tsx:130:15)
+processSyllabus @ pro-dashboard.tsx:218
+await in processSyllabus
+callCallback2 @ chunk-RPCDYKBN.js?v=5c925484:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=5c925484:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=5c925484:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=5c925484:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=5c925484:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=5c925484:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=5c925484:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=5c925484:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=5c925484:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=5c925484:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=5c925484:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=5c925484:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=5c925484:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=5c925484:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=5c925484:5449Understand this error
