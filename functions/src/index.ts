@@ -106,11 +106,8 @@ export const analyzeSyllabus = functions.https.onRequest(async (req: any, res: a
   }
 });
 
-// NEW: Server-side syllabus parsing on Storage upload
-export const parseSyllabusOnUpload = functions
-  .region('us-central1')
-  .storage.object()
-  .onFinalize(async (object) => {
+// NEW: Server-side syllabus parsing on Storage upload  
+export const parseSyllabusOnUpload = functions.storage.object().onFinalize(async (object) => {
     if (!object.name?.startsWith('syllabi/')) return null;
     
     console.log(`🎯 NEW SYLLABUS UPLOADED: ${object.name}`);
@@ -121,6 +118,7 @@ export const parseSyllabusOnUpload = functions
 
     const data = await pdfParse(buffer);
     console.log('✅ Parsed text snippet:', data.text.slice(0, 300));
+    console.log('📄 Full text length:', data.text.length, 'characters');
 
     // Derive courseId/userId from path: syllabi/{userId}/{courseId}/{fileName}
     const pathParts = object.name.split('/');
@@ -135,6 +133,7 @@ export const parseSyllabusOnUpload = functions
         courseId, 
         fileName, 
         text: data.text, 
+        textSnippet: data.text.slice(0, 300),
         createdAt: admin.firestore.FieldValue.serverTimestamp() 
       });
       
