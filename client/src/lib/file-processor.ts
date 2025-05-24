@@ -1,4 +1,8 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import { GlobalWorkerOptions } from 'pdfjs-dist/build/pdf';
+
+// Configure the worker source
+GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export async function extractTextFromFile(file: File): Promise<string> {
   console.log('🎯 REAL PDF PARSER - Extracting actual text from your syllabus');
