@@ -86,163 +86,60 @@ export default function ProDashboard() {
     setIsProcessing(true);
     
     try {
-      toast({
-        title: "Processing Syllabus",
-        description: "Your syllabus is being analyzed. This may take a moment...",
-      });
+      console.log("🎯 SYLLABUS PARSING SANDBOX - Console Debug Mode");
+      console.log(`📄 File: ${selectedFile.name} (${Math.round(selectedFile.size / 1024)}KB)`);
       
-      console.log("--- PRO DASHBOARD DEBUG ---");
-      console.log("Starting syllabus processing for file:", selectedFile.name);
-      console.log("File size:", selectedFile.size, "bytes");
-      console.log("File type:", selectedFile.type);
-      
-      // Step 1: Extract text from PDF client-side
-      console.log("Extracting text from PDF using client-side processor...");
+      // STEP 1: Extract text from PDF
       const extractedText = await extractTextFromFile(selectedFile);
       
-      console.log("Full syllabus text length:", extractedText.length);
-      console.log("Text sample (first 500 chars):", extractedText.substring(0, 500));
+      // STEP 2: Parse course information  
+      const courseInfo = parseCourseInfo(extractedText);
+      console.log("🏫 COURSE INFO PARSED:", courseInfo);
       
-      if (!extractedText || extractedText.trim().length < 50) {
-        throw new Error("Could not extract meaningful text from the PDF. Please try another file.");
-      }
+      // STEP 3: Parse assignments
+      const assignments = parseAssignments(extractedText);
+      console.log("📋 ASSIGNMENTS PARSED:", assignments);
       
-      // Step 2: Try deterministic assignment extraction first
-      console.log("🎬 Attempting deterministic assignment extraction...");
-      const filmAssignments = extractFilmAssignments(extractedText);
-      console.log("🎬 Film assignments found:", filmAssignments);
-      
-      // Step 3: Use AI fallback if needed or send extracted assignments directly
-      let assignmentsToSend = filmAssignments;
-      
-      if (filmAssignments.length === 0) {
-        console.log("No assignments found with deterministic parsing, using AI fallback...");
-        // For now, we'll send the text to the Cloud Function for AI processing
-        // In the future, this could call extractAssignmentsWithAI locally
-      }
-      
-      console.log(`📋 Sending ${assignmentsToSend.length} assignments to Cloud Function`);
-      
-      // Step 4: Send data to Cloud Function
-      const response = await fetch(
-        'https://us-central1-study-vault-dd7d1.cloudfunctions.net/analyzeSyllabus',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            courseId: 'temp-course-id', // Will be updated after course creation
-            userId: user.uid,
-            fileName: selectedFile.name,
-            text: extractedText,
-            assignments: assignmentsToSend // Send parsed assignments if available
-          })
+      // STEP 4: Complete structure for console viewing
+      const syllabusStructure = {
+        course: courseInfo,
+        assignments: assignments,
+        metadata: {
+          fileName: selectedFile.name,
+          fileSize: selectedFile.size,
+          textLength: extractedText.length,
+          parsedAt: new Date().toISOString()
         }
-      );
-      
-      console.log("Cloud Function response status:", response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Cloud Function error:", errorText);
-        throw new Error(`Cloud Function failed: ${errorText}`);
-      }
-      
-      const syllabusData = await response.json() as SyllabusData;
-      console.log("Cloud Function returned parsed data:", syllabusData);
-      
-      if (!syllabusData || !syllabusData.course || !syllabusData.assignments) {
-        throw new Error("Could not extract course or assignment information from the syllabus.");
-      }
-      
-      // Step 3: Create the course in Firebase
-      const courseData: Omit<Course, 'id' | 'createdAt'> = {
-        userId: user.uid,
-        code: syllabusData.course.code || 'Unknown Code',
-        name: syllabusData.course.name || 'Unknown Course',
-        description: syllabusData.course.description || '',
-        term: syllabusData.course.term || 'Current Term',
       };
       
-      const newCourse = await addCourse(courseData);
-      
-      if (!newCourse || !newCourse.id) {
-        throw new Error("Failed to create the course. Please try again.");
-      }
-      
-      // Store the course name for the success message
-      const courseName = courseData.name;
-      const courseId = newCourse.id;
-      
-      // Step 4: Create assignments for the course
-      const assignmentPromises = syllabusData.assignments.map(async (assignmentData: SyllabusAssignment) => {
-        // Safely parse the date or use a default
-        let dueDate: Date;
-        try {
-          // Check if we have a valid date string
-          if (assignmentData.dueDate && /^\d{4}-\d{2}-\d{2}$/.test(assignmentData.dueDate)) {
-            dueDate = new Date(assignmentData.dueDate);
-          } else {
-            // Set default due date to 30 days from now if date is invalid
-            dueDate = new Date();
-            dueDate.setDate(dueDate.getDate() + 30);
-          }
-          
-          // Validate the date is valid by checking if it's not NaN
-          if (isNaN(dueDate.getTime())) {
-            throw new Error("Invalid date");
-          }
-        } catch (e) {
-          // Fallback to a safe default date (30 days from now)
-          console.warn("Invalid date format, using default date", assignmentData.dueDate);
-          dueDate = new Date();
-          dueDate.setDate(dueDate.getDate() + 30);
-        }
-        
-        // Set a default status based on due date
-        const status = dueDate < new Date() ? 'overdue' : 'pending';
-        
-        const newAssignmentData: Omit<Assignment, 'id' | 'createdAt'> = {
-          userId: user.uid,
-          courseId: courseId,
-          title: assignmentData.title || 'Untitled Assignment',
-          description: assignmentData.description || '',
-          dueDate: dueDate,
-          status: status as 'pending' | 'submitted' | 'overdue',
-          tags: [],
-          links: []
-        };
-        
-        return addAssignment(newAssignmentData);
-      });
-      
-      await Promise.all(assignmentPromises);
-      
-      // Close the modal upon success
-      setSyllabusModalOpen(false);
-      setSelectedFile(null);
-      setIsProcessing(false);
+      console.log("🎯 COMPLETE SYLLABUS STRUCTURE:");
+      console.log(syllabusStructure);
       
       toast({
-        title: "Success!",
-        description: `Course "${courseName}" with ${syllabusData.assignments.length} assignments has been created.`,
+        title: "✅ Parsing Complete",
+        description: `Found ${assignments.length} assignments. Check console for details.`,
       });
-      
-      // Navigate to the course detail page
-      navigate(`/courses/${courseId}`);
       
     } catch (error) {
-      console.error('Error processing syllabus:', error);
+      console.error("❌ Parsing failed:", error);
       toast({
-        title: "Processing Failed",
-        description: error instanceof Error ? error.message : "There was an error processing your syllabus. Please try again.",
+        title: "❌ Parsing Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
+    } finally {
       setIsProcessing(false);
     }
   };
 
+  const handleSyllabusUpload = async (file: File) => {
+    if (!user) return;
+    setSelectedFile(file);
+    await processSyllabus();
+  };
+
   if (!user?.isPro) {
-    return null; // Don't render anything while redirecting
+    return null;
   }
 
   return (
