@@ -170,19 +170,7 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
         // If the model didn't return the right structure, create a minimal valid response
         console.warn("AI response missing expected structure, creating fallback response");
         
-        return {
-          course: {
-            name: "Uncrewed Aircraft Systems and Operations",
-            code: "WW-UNSY 315",
-            description: "Uncrewed Aircraft Systems (UAS), Uncrewed Aircraft Vehicles (UAV), and their role in the aviation industry",
-            term: "Worldwide 2025-05 May"
-          },
-          assignments: [
-            {
-              title: "Initial Discussion",
-              description: "Introduce yourself and discuss your interest in UAS",
-              dueDate: "2025-05-31",
-              status: "pending"
+        throw new Error("Invalid response structure from AI service");
             }
           ]
         };

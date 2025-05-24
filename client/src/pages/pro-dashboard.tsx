@@ -12,20 +12,11 @@ import { addCourse, addAssignment, type Course, type Assignment } from "@/lib/fi
 import { extractTextFromFile, extractFilmAssignments } from "@/lib/file-processor";
 import { PdfDebugComponent } from "@/components/pdf-debug";
 
-// Dummy data for visualizations
-const studyTimeData = [
-  { day: "Mon", hours: 3 },
-  { day: "Tue", hours: 4 },
-  { day: "Wed", hours: 2 },
-  { day: "Thu", hours: 5 },
-  { day: "Fri", hours: 4 },
-  { day: "Sat", hours: 1 },
-  { day: "Sun", hours: 2 },
-];
-
-const assignmentCompletionRate = 78;
-const totalAssignments = 24;
-const upcomingDeadlines = 5;
+// Analytics data will be fetched from the backend
+const studyTimeData: { day: string; hours: number }[] = [];
+const assignmentCompletionRate = 0;
+const totalAssignments = 0;
+const upcomingDeadlines = 0;
 
 export default function ProDashboard() {
   const { user } = useAuth();
