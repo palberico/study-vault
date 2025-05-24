@@ -132,11 +132,13 @@ export default function ProDashboard() {
         description: "Processing syllabus on server... check console for results.",
       });
       
-      // For immediate testing: also process locally to show you the data
-      console.log("🧪 IMMEDIATE TEST - Processing same file locally to show extracted content:");
+      // For immediate testing: call the working analyzeSyllabus function
+      console.log("🧪 IMMEDIATE TEST - Processing same file to show extracted content:");
       try {
         const testFormData = new FormData();
         testFormData.append('syllabus', selectedFile);
+        testFormData.append('courseId', courseId);
+        testFormData.append('userId', user.uid);
         
         const response = await fetch('https://us-central1-study-vault-dd7d1.cloudfunctions.net/analyzeSyllabus', {
           method: 'POST',
@@ -145,8 +147,11 @@ export default function ProDashboard() {
         
         const result = await response.json();
         console.log("🎯 EXTRACTED SYLLABUS DATA:", result);
-        console.log(`📚 Course: ${result.course?.name}`);
-        console.log(`📋 Found ${result.assignments?.length} assignments`);
+        console.log(`📚 Course: ${result.course?.name || result.course?.code}`);
+        console.log(`📋 Found ${result.assignments?.length || 0} assignments`);
+        if (result.assignments?.length > 0) {
+          console.log("📝 Sample assignments:", result.assignments.slice(0, 3));
+        }
         
       } catch (testError) {
         console.log("Test extraction skipped, waiting for server results...");
