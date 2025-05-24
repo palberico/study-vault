@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { type SyllabusData, type SyllabusAssignment } from "@/lib/openrouter-service";
 import { addCourse, addAssignment, type Course, type Assignment } from "@/lib/firebase";
 import { extractTextFromFile, extractFilmAssignments } from "@/lib/file-processor";
+import { PdfDebugComponent } from "@/components/pdf-debug";
 
 // Dummy data for visualizations
 const studyTimeData = [

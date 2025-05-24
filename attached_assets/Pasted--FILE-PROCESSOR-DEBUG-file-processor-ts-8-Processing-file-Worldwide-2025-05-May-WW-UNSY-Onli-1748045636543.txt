@@ -1,0 +1,74 @@
+--- FILE PROCESSOR DEBUG ---
+file-processor.ts:8 Processing file: Worldwide-2025-05-May-WW-UNSY-Online-315-0003-Uncrewed-Aircraft-Systems-and-Operations.pdf
+file-processor.ts:9 File type: application/pdf
+file-processor.ts:10 File size: 174924 bytes
+file-processor.ts:14 Loaded 174924 bytes from actual file
+file-processor.ts:67 Using default UAS course content
+file-processor.ts:108 Extracted text length: 1269 characters
+file-processor.ts:109 Text sample (first 500 chars):
+
+WW-UNSY 315
+Uncrewed Aircraft Systems and Operations
+Online Course Syllabus
+Worldwide 2025-05 May
+
+Course Information
+Credit Hours: 3
+Delivery Method: Online (Internet/Canvas)
+
+Instructor Information
+Name: Zachary Wehr
+Email: wehrz@my.erau.edu
+
+Course Description
+Uncrewed Aircraft Systems (UAS), Uncrewed Aircraft Vehicles (UAV), and their role in the aviation industry and importance in modern commercial and military integration in airspace, air traffic control; development, operations and appli
+pro-dashboard.tsx:112 Full syllabus text length: 1267
+pro-dashboard.tsx:113 Text sample (first 500 chars): WW-UNSY 315
+Uncrewed Aircraft Systems and Operations
+Online Course Syllabus
+Worldwide 2025-05 May
+
+Course Information
+Credit Hours: 3
+Delivery Method: Online (Internet/Canvas)
+
+Instructor Information
+Name: Zachary Wehr
+Email: wehrz@my.erau.edu
+
+Course Description
+Uncrewed Aircraft Systems (UAS), Uncrewed Aircraft Vehicles (UAV), and their role in the aviation industry and importance in modern commercial and military integration in airspace, air traffic control; development, operations and applic
+pro-dashboard.tsx:120 🎬 Attempting deterministic assignment extraction...
+file-processor.ts:119 🎬 Starting deterministic assignment extraction...
+file-processor.ts:130 Found assignments section at line 12: "Assignments"
+file-processor.ts:167 Found bullet assignment: Module 1 Discussion: Introduction to UAS
+file-processor.ts:167 Found bullet assignment: Module 1 Quiz: UAS Fundamentals
+file-processor.ts:167 Found bullet assignment: Module 2 Assignment: UAS Classification
+file-processor.ts:167 Found bullet assignment: Module 2 Discussion: Military vs. Commercial UAS
+file-processor.ts:167 Found bullet assignment: Module 3 Case Study: UAS Integration in Airspace
+file-processor.ts:167 Found bullet assignment: Module 3 Lab: SIMNET Navigation Exercise
+file-processor.ts:167 Found bullet assignment: Module 4 Assignment: UAS Regulations
+file-processor.ts:167 Found bullet assignment: Module 4 Quiz: Regulatory Framework
+file-processor.ts:167 Found bullet assignment: Midterm Exam
+file-processor.ts:167 Found bullet assignment: Module 5 Project: UAS Mission Planning
+file-processor.ts:167 Found bullet assignment: Module 5 Discussion: Ethical Considerations
+file-processor.ts:167 Found bullet assignment: Module 6 Assignment: UAS Components
+file-processor.ts:167 Found bullet assignment: Module 6 Lab: Remote Sensing Applications
+file-processor.ts:167 Found bullet assignment: Module 7 Case Study: UAS in Emergency Response
+file-processor.ts:167 Found bullet assignment: Module 7 Discussion: Future of UAS
+file-processor.ts:167 Found bullet assignment: Module 8 Project: UAS Operator Certification
+file-processor.ts:167 Found bullet assignment: Module 8 Quiz: Maintenance and Support
+file-processor.ts:167 Found bullet assignment: Research Paper: UAS Applications
+file-processor.ts:167 Found bullet assignment: Final Exam
+file-processor.ts:181 🎬 Extracted 19 assignments using deterministic parsing
+pro-dashboard.tsx:122 🎬 Film assignments found: Array(19)0: {title: 'Module 1 Discussion: Introduction to UAS', dueDate: null}1: {title: 'Module 1 Quiz: UAS Fundamentals', dueDate: null}2: {title: 'Module 2 Assignment: UAS Classification', dueDate: null}3: {title: 'Module 2 Discussion: Military vs. Commercial UAS', dueDate: null}4: {title: 'Module 3 Case Study: UAS Integration in Airspace', dueDate: null}5: {title: 'Module 3 Lab: SIMNET Navigation Exercise', dueDate: null}6: {title: 'Module 4 Assignment: UAS Regulations', dueDate: null}7: {title: 'Module 4 Quiz: Regulatory Framework', dueDate: null}8: {title: 'Midterm Exam', dueDate: null}9: {title: 'Module 5 Project: UAS Mission Planning', dueDate: null}10: {title: 'Module 5 Discussion: Ethical Considerations', dueDate: null}11: {title: 'Module 6 Assignment: UAS Components', dueDate: null}12: {title: 'Module 6 Lab: Remote Sensing Applications', dueDate: null}13: {title: 'Module 7 Case Study: UAS in Emergency Response', dueDate: null}14: {title: 'Module 7 Discussion: Future of UAS', dueDate: null}15: {title: 'Module 8 Project: UAS Operator Certification', dueDate: null}16: {title: 'Module 8 Quiz: Maintenance and Support', dueDate: null}17: {title: 'Research Paper: UAS Applications', dueDate: null}18: {title: 'Final Exam', dueDate: null}length: 19[[Prototype]]: Array(0)
+pro-dashboard.tsx:133 📋 Sending 19 assignments to Cloud Function
+pro-dashboard.tsx:151 Cloud Function response status: 200
+pro-dashboard.tsx:160 Cloud Function returned parsed data: Object
+7course-detail.tsx:45 CourseDetailPage rendering with ID: 3AbDNSG0bWodY8ieuJCt
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.Understand this warning
