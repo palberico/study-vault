@@ -1,0 +1,89 @@
+Our current parseSyllabus HTTP function using Busboy is unreliable and failing. We need to switch to a pure server-side PDF parsing flow with pdf-parse, and have the client trigger it immediately after uploading the PDF to Storage.
+
+Tasks:
+
+Remove all Busboy/multipart code from functions/src/index.ts’s parseSyllabus handler.
+
+Install pdf-parse in the Functions directory:
+
+bash
+Copy
+Edit
+cd functions
+npm install pdf-parse
+Re-implement parseSyllabus as an HTTP POST endpoint that:
+
+Expects a JSON body:
+
+json
+Copy
+Edit
+{
+  "storagePath": "syllabi/{userId}/{courseId}/{fileName}",
+  "courseId": "...",
+  "userId": "..."
+}
+Handler code in functions/src/index.ts:
+
+ts
+Copy
+Edit
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+const pdfParse = require('pdf-parse');
+admin.initializeApp();
+
+export const parseSyllabus = functions.https.onRequest(async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).send('Only POST');
+  const { storagePath, courseId, userId } = req.body;
+  if (!storagePath || !courseId || !userId) {
+    return res.status(400).json({ error: 'Missing storagePath, courseId or userId' });
+  }
+  try {
+    // Download PDF from Storage
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(storagePath);
+    const [buffer] = await file.download();
+
+    // Parse with pdf-parse
+    const { text } = await pdfParse(buffer);
+    console.log('✅ PDF text snippet:', text.slice(0, 300));
+
+    // (Optional) run assignment extractor here…
+
+    return res.json({ success: true, text });
+  } catch (e: any) {
+    console.error('❌ parseSyllabus error:', e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+Client update in pro-dashboard.tsx:
+
+ts
+Copy
+Edit
+// 1) Upload file to Storage
+const storagePath = `syllabi/${userId}/${courseId}/${file.name}`;
+await firebase.storage().ref(storagePath).put(file);
+console.log('📤 Uploaded to Storage:', storagePath);
+
+// 2) Immediately POST to parseSyllabus
+const res = await fetch('https://us-central1-<project>.cloudfunctions.net/parseSyllabus', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ storagePath, courseId, userId }),
+});
+
+const data = await res.json();
+if (!res.ok) {
+  console.error('❌ parseSyllabus failed:', data);
+} else {
+  console.log('🎯 EXTRACTED SYLLABUS TEXT:', data.text.slice(0, 300));
+}
+Remove any old Busboy/browser PDF.js code—parsing now happens entirely in the Cloud Function.
+
+Verify:
+
+Drop a PDF in the UI
+
+Confirm the client console logs ✅ PDF text snippet: followed by real syllabus text.

@@ -140,9 +140,10 @@ export default function ProDashboard() {
         testFormData.append('courseId', courseId);
         testFormData.append('userId', user.uid);
         
-        const response = await fetch('https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseSyllabus', {
+        const response = await fetch('https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseStoredSyllabus', {
           method: 'POST',
-          body: testFormData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ storagePath, courseId, userId: user.uid })
         });
         
         const result = await response.json();

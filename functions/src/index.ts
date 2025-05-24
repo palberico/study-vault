@@ -106,40 +106,67 @@ export const analyzeSyllabus = functions.https.onRequest(async (req: any, res: a
   }
 });
 
-// NEW: Server-side syllabus parsing on Storage upload  
-export const parseSyllabusOnUpload = functions.storage.object().onFinalize(async (object) => {
-    if (!object.name?.startsWith('syllabi/')) return null;
+// Storage trigger removed due to deployment issues - using HTTP trigger instead
+
+// NEW: Clean, reliable PDF parsing without Busboy
+export const parseStoredSyllabus = functions.https.onRequest(async (req: any, res: any) => {
+  // Enable CORS
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).send();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).send('Only POST');
+  }
+
+  const { storagePath, courseId, userId } = req.body;
+  
+  if (!storagePath || !courseId || !userId) {
+    return res.status(400).json({ error: 'Missing storagePath, courseId or userId' });
+  }
+
+  try {
+    console.log(`🎯 Processing PDF from Storage: ${storagePath}`);
     
-    console.log(`🎯 NEW SYLLABUS UPLOADED: ${object.name}`);
-    
-    const bucket = admin.storage().bucket(object.bucket);
-    const file = bucket.file(object.name);
+    // Download PDF from Storage
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(storagePath);
     const [buffer] = await file.download();
 
-    const data = await pdfParse(buffer);
-    console.log('✅ Parsed text snippet:', data.text.slice(0, 300));
-    console.log('📄 Full text length:', data.text.length, 'characters');
+    // Parse with pdf-parse
+    const { text } = await pdfParse(buffer);
+    console.log('✅ PDF text snippet:', text.slice(0, 300));
+    console.log(`📄 Full text length: ${text.length} characters`);
 
-    // Derive courseId/userId from path: syllabi/{userId}/{courseId}/{fileName}
-    const pathParts = object.name.split('/');
-    const userId = pathParts[1];
-    const courseId = pathParts[2];
-    const fileName = pathParts[3];
-    
+    // Save to Firestore for real-time client updates
     await admin.firestore()
       .collection('parsedSyllabi')
       .add({ 
         userId, 
         courseId, 
-        fileName, 
-        text: data.text, 
-        textSnippet: data.text.slice(0, 300),
+        fileName: storagePath.split('/').pop(),
+        text, 
+        textSnippet: text.slice(0, 300),
         createdAt: admin.firestore.FieldValue.serverTimestamp() 
       });
-      
-    console.log(`📄 Saved parsed syllabus to Firestore for user ${userId}`);
-    return null;
-  });
+
+    return res.json({ 
+      success: true, 
+      text: text.slice(0, 300),
+      fullTextLength: text.length,
+      message: 'PDF parsed successfully'
+    });
+
+  } catch (e: any) {
+    console.error('❌ parseStoredSyllabus error:', e);
+    return res.status(500).json({ error: e.message });
+  }
+});
 
 export const parseSyllabus = functions.https.onRequest(async (req: any, res: any) => {
     // Enable CORS
