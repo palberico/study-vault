@@ -1,65 +1,31 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-/**
- * Real PDF text extraction using PDF.js (worker disabled for console testing)
- */
 export async function extractTextFromFile(file: File): Promise<string> {
-  console.log("🎯 REAL PDF PARSER - Extracting actual text from your syllabus");
-  console.log(`📄 File: ${file.name} (${Math.round(file.size / 1024)}KB)`);
-  
-  if (file.type !== 'application/pdf') {
-    throw new Error('Only PDF files are supported');
+  console.log('🎯 REAL PDF PARSER - Extracting actual text from your syllabus');
+  console.log(`📄 File: ${file.name} (${Math.round(file.size/1024)} KB)`);
+
+  // 1) Read raw bytes
+  const arrayBuffer = await file.arrayBuffer();
+  const data = new Uint8Array(arrayBuffer);
+
+  // 2) Load document (disable worker to avoid CDN issues)
+  const loadingTask = pdfjsLib.getDocument({ 
+    data,
+    disableWorker: true 
+  });
+  const pdf = await loadingTask.promise;
+
+  // 3) Extract text from each page
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((item: any) => item.str).join(' ') + '\n';
   }
-  
-  try {
-    // Read file as array buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    
-    // Load PDF document with worker disabled for immediate console testing
-    const loadingTask = pdfjsLib.getDocument({
-      data: uint8Array,
-      disableWorker: true
-    });
-    
-    const pdf = await loadingTask.promise;
-    console.log(`📄 PDF loaded successfully - ${pdf.numPages} pages`);
-    
-    let fullText = '';
-    
-    // Extract text from each page
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const textContent = await page.getTextContent();
-      
-      // Combine all text items from the page
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      
-      fullText += pageText + '\n';
-      console.log(`📄 Page ${pageNum}: extracted ${pageText.length} characters`);
-    }
-    
-    // Clean up the extracted text
-    const cleanText = fullText
-      .replace(/\s+/g, ' ')  // Normalize whitespace
-      .replace(/\n\s+/g, '\n')  // Clean line breaks
-      .trim();
-    
-    if (cleanText.length < 50) {
-      throw new Error('PDF contains no readable text or may be image-based');
-    }
-    
-    console.log(`✅ EXTRACTION COMPLETE: ${cleanText.length} total characters`);
-    console.log(`📄 ACTUAL PDF CONTENT:\n${cleanText.substring(0, 500)}...`);
-    
-    return cleanText;
-    
-  } catch (error) {
-    console.error('❌ PDF extraction failed:', error);
-    throw new Error(`Could not extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+
+  // 4) Log a snippet so we know it ran
+  console.log('✅ Extracted text snippet:', text.slice(0, 300));
+  return text;
 }
 
 /**

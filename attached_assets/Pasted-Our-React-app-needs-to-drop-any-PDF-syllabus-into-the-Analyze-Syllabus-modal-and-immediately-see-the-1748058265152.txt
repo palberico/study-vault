@@ -1,0 +1,87 @@
+Our React app needs to drop any PDF syllabus into the Analyze Syllabus modal and immediately see the actual extracted text in the browser console—no fake-worker errors, no placeholder data. Please implement the following changes so that every PDF is parsed client-side and its real content logged.
+
+Tasks:
+
+Install & import PDF.js
+
+bash
+Copy
+Edit
+npm install pdfjs-dist
+In file-processor.ts (at the very top), add:
+
+ts
+Copy
+Edit
+import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
+
+// Point PDF.js at our bundled worker instead of CDN
+;(pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfjsWorker;
+Implement a pure-JS extractor
+Replace your existing parsing code with this function in file-processor.ts:
+
+ts
+Copy
+Edit
+export async function extractTextFromFile(file: File): Promise<string> {
+  console.log('🎯 REAL PDF PARSER - Extracting actual text from your syllabus');
+  console.log(`📄 File: ${file.name} (${Math.round(file.size/1024)} KB)`);
+
+  // 1) Read raw bytes
+  const arrayBuffer = await file.arrayBuffer();
+  const data = new Uint8Array(arrayBuffer);
+
+  // 2) Load document
+  const loadingTask = pdfjsLib.getDocument({ data });
+  const pdf = await loadingTask.promise;
+
+  // 3) Extract text from each page
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((item: any) => item.str).join(' ') + '\n';
+  }
+
+  // 4) Log a snippet so we know it ran
+  console.log('✅ Extracted text snippet:', text.slice(0, 300));
+  return text;
+}
+Hook into your drop/upload handler
+In pro-dashboard.tsx, update the file‐drop callback to use extractTextFromFile and log the result:
+
+ts
+Copy
+Edit
+async function onFileDrop(file: File) {
+  try {
+    const text = await extractTextFromFile(file);
+    // Now you have the real syllabus text
+  } catch (err) {
+    console.error('❌ PDF extraction failed:', err);
+  }
+}
+Remove all placeholder/fallback logic
+
+Strip out any prior fake-worker CDN references.
+
+Remove hard-coded sample data, Busboy parsing, and Cloud Function calls for now.
+
+Ensure the only output is the console logs from extractTextFromFile.
+
+Verify:
+
+Open Chrome DevTools → Console.
+
+Drop a PDF syllabus.
+
+You should see:
+
+pgsql
+Copy
+Edit
+🎯 REAL PDF PARSER - Extracting actual text from your syllabus
+📄 File: Aviators in Film.pdf (1139 KB)
+✅ Extracted text snippet: WW-HUMN 340 Aviators and Aviation in Film Online Course Syllabus Worldwide …
+Once that’s working, we can layer in assignment extraction and UI cards. Thank you!
