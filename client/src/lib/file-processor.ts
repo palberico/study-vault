@@ -1,5 +1,7 @@
+import * as pdfjsLib from 'pdfjs-dist';
+
 /**
- * Browser-compatible PDF text extraction using PDF.js
+ * Real PDF text extraction using PDF.js (worker disabled for console testing)
  */
 export async function extractTextFromFile(file: File): Promise<string> {
   console.log("🎯 REAL PDF PARSER - Extracting actual text from your syllabus");
@@ -12,15 +14,15 @@ export async function extractTextFromFile(file: File): Promise<string> {
   try {
     // Read file as array buffer
     const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
     
-    // Use PDF.js with proper browser configuration
-    const pdfjsLib = await import('pdfjs-dist');
+    // Load PDF document with worker disabled for immediate console testing
+    const loadingTask = pdfjsLib.getDocument({
+      data: uint8Array,
+      disableWorker: true
+    });
     
-    // Set worker source for browser compatibility
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-    
-    // Load PDF document
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdf = await loadingTask.promise;
     console.log(`📄 PDF loaded successfully - ${pdf.numPages} pages`);
     
     let fullText = '';
