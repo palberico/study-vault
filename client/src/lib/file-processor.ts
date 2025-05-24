@@ -1,68 +1,57 @@
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+
 /**
- * Extracts text content from an uploaded PDF file
- * This is a temporary implementation that reads the file name to determine content
- * For production, this would use actual PDF parsing
+ * Extracts actual text content from PDF using PDF.js
  */
 export async function extractTextFromFile(file: File): Promise<string> {
-  console.log("--- FILE PROCESSOR DEBUG ---");
-  console.log(`Processing file: ${file.name}`);
-  console.log(`File type: ${file.type}`);
-  console.log(`File size: ${file.size} bytes`);
+  console.log("🔍 PARSING SYLLABUS - Starting real PDF text extraction");
+  console.log(`📄 File: ${file.name} (${Math.round(file.size / 1024)}KB)`);
   
-  // Read the actual file to validate it's a real PDF
-  const arrayBuffer = await file.arrayBuffer();
-  console.log(`Loaded ${arrayBuffer.byteLength} bytes from actual file`);
-  
-  // Remove all hardcoded content - read only what's actually in the PDF
-  console.log("Reading actual PDF content (no fallback data)");
-  
-  let extractedText = '';
-  
-  try {
-    // Basic text extraction from PDF buffer
-    // In a real implementation, this would use pdf-parse or similar library
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    let rawText = decoder.decode(arrayBuffer);
-    
-    // Clean up the extracted text to make it more readable
-    // Remove non-printable characters but keep structure
-    rawText = rawText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, ' ');
-    
-    // Look for actual readable content in the PDF
-    const textChunks = rawText.split(/\s+/).filter(chunk => 
-      chunk.length > 2 && 
-      /[a-zA-Z]/.test(chunk) && 
-      !chunk.match(/^[^a-zA-Z]*$/)
-    );
-    
-    if (textChunks.length > 10) {
-      // Found substantial text content
-      extractedText = textChunks.join(' ').substring(0, 5000); // Limit to first 5000 chars
-      console.log(`Successfully extracted ${textChunks.length} text chunks from PDF`);
-    } else {
-      // PDF is encoded and needs specialized parsing
-      extractedText = `PDF Content Detected: ${file.name}
-      
-File size: ${file.size} bytes
-Status: PDF requires specialized parsing library
-
-This PDF contains encoded content that cannot be extracted with basic text decoding.
-To read the actual syllabus content, we would need to implement a PDF parsing library like pdf-parse.
-
-For now, this shows that your file was uploaded successfully but the content extraction needs enhancement.`;
-    }
-  } catch (error) {
-    console.error('Error extracting PDF text:', error);
-    extractedText = `Error reading PDF: ${file.name}
-    
-The PDF file was uploaded but could not be processed.
-Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  if (file.type !== 'application/pdf') {
+    throw new Error('Only PDF files are supported for now');
   }
   
-  console.log(`Extracted text length: ${extractedText.length} characters`);
-  console.log(`Text sample (first 500 chars):\n${extractedText.substring(0, 500)}`);
-  
-  return extractedText.trim();
+  try {
+    // Load PDF using PDF.js
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    console.log(`📄 PDF loaded successfully - ${pdf.numPages} pages`);
+    
+    let fullText = '';
+    
+    // Extract text from each page
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      
+      // Combine all text items from the page
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      
+      fullText += pageText + '\n';
+      console.log(`📄 Page ${pageNum}: extracted ${pageText.length} characters`);
+    }
+    
+    // Clean up the extracted text
+    const cleanText = fullText
+      .replace(/\s+/g, ' ')  // Normalize whitespace
+      .replace(/\n\s+/g, '\n')  // Clean line breaks
+      .trim();
+    
+    console.log(`✅ EXTRACTION COMPLETE: ${cleanText.length} total characters`);
+    console.log(`📄 Text preview (first 500 chars):\n${cleanText.substring(0, 500)}`);
+    
+    return cleanText;
+    
+  } catch (error) {
+    console.error('❌ PDF parsing failed:', error);
+    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 /**
@@ -133,6 +122,139 @@ export function extractFilmAssignments(text: string): { title: string; dueDate: 
   }
   
   console.log(`🎬 Extracted ${assignments.length} assignments using deterministic parsing`);
+  return assignments;
+}
+
+/**
+ * Extracts course information from syllabus text
+ */
+export function parseCourseInfo(text: string): any {
+  console.log("🏫 Parsing course information...");
+  
+  const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  const courseInfo: any = {};
+  
+  // Look for course code patterns (e.g., "CS 101", "MATH-200", "WW-HUMN 340")
+  const codePattern = /([A-Z]{2,4}[-\s]?[A-Z]{0,4}[-\s]?\d{3,4})/;
+  const codeMatch = text.match(codePattern);
+  if (codeMatch) {
+    courseInfo.code = codeMatch[1];
+    console.log(`📖 Found course code: ${courseInfo.code}`);
+  }
+  
+  // Look for course title (usually after the course code)
+  if (courseInfo.code) {
+    const codeIndex = text.indexOf(courseInfo.code);
+    const afterCode = text.substring(codeIndex + courseInfo.code.length, codeIndex + 200);
+    const titleMatch = afterCode.match(/([A-Z][A-Za-z\s&:,-]+?)(?:\n|Course|Syllabus|Credits?|Units?)/);
+    if (titleMatch) {
+      courseInfo.name = titleMatch[1].trim();
+      console.log(`📚 Found course name: ${courseInfo.name}`);
+    }
+  }
+  
+  // Look for term/semester info
+  const termPattern = /(Fall|Spring|Summer|Winter)\s+(\d{4})|(\d{4})[-\s](Fall|Spring|Summer|Winter|01|02|03|04|05|06|07|08|09|10|11|12)/i;
+  const termMatch = text.match(termPattern);
+  if (termMatch) {
+    courseInfo.term = termMatch[0];
+    console.log(`📅 Found term: ${courseInfo.term}`);
+  }
+  
+  // Look for credit hours
+  const creditPattern = /(\d+)\s*(credit|unit|hour)s?/i;
+  const creditMatch = text.match(creditPattern);
+  if (creditMatch) {
+    courseInfo.credits = parseInt(creditMatch[1]);
+    console.log(`⭐ Found credits: ${courseInfo.credits}`);
+  }
+  
+  // Look for instructor name
+  const instructorPattern = /(?:instructor|professor|teacher)[\s:]*([A-Z][a-z]+\s+[A-Z][a-z]+)/i;
+  const instructorMatch = text.match(instructorPattern);
+  if (instructorMatch) {
+    courseInfo.instructor = instructorMatch[1];
+    console.log(`👨‍🏫 Found instructor: ${courseInfo.instructor}`);
+  }
+  
+  return courseInfo;
+}
+
+/**
+ * Extracts assignments from syllabus text
+ */
+export function parseAssignments(text: string): any[] {
+  console.log("📋 Parsing assignments...");
+  
+  const assignments: any[] = [];
+  const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  
+  // Find assignment sections
+  let inAssignmentSection = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const lowerLine = line.toLowerCase();
+    
+    // Detect assignment section headers
+    if (lowerLine.includes('assignment') || lowerLine.includes('schedule') || 
+        lowerLine.includes('coursework') || lowerLine.includes('homework')) {
+      inAssignmentSection = true;
+      console.log(`📍 Found assignment section: ${line}`);
+      continue;
+    }
+    
+    // Stop at major section headers
+    if (line === line.toUpperCase() && line.length > 5 && !line.includes('-')) {
+      if (lowerLine.includes('grading') || lowerLine.includes('policy') || 
+          lowerLine.includes('schedule') && !lowerLine.includes('assignment')) {
+        inAssignmentSection = false;
+      }
+    }
+    
+    if (!inAssignmentSection) continue;
+    
+    // Parse different assignment formats
+    
+    // Format: "MM/DD/YYYY - Assignment Title"
+    const dateAssignmentMatch = line.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4})\s*[-–—]\s*(.+)$/);
+    if (dateAssignmentMatch) {
+      assignments.push({
+        title: dateAssignmentMatch[2].trim(),
+        dueDate: parseDateToISO(dateAssignmentMatch[1]),
+        type: 'assignment'
+      });
+      continue;
+    }
+    
+    // Format: "- Assignment Title" or "• Assignment Title"
+    const bulletMatch = line.match(/^[-•*]\s*(.+)$/);
+    if (bulletMatch) {
+      assignments.push({
+        title: bulletMatch[1].trim(),
+        dueDate: null,
+        type: 'assignment'
+      });
+      continue;
+    }
+    
+    // Format: "Assignment 1:", "Homework 2:", etc.
+    const numberedMatch = line.match(/^(Assignment|Homework|Project|Quiz|Exam|Test|Paper)\s*\d*:?\s*(.*)$/i);
+    if (numberedMatch) {
+      assignments.push({
+        title: numberedMatch[0].trim(),
+        dueDate: null,
+        type: numberedMatch[1].toLowerCase()
+      });
+      continue;
+    }
+  }
+  
+  console.log(`📋 Found ${assignments.length} assignments`);
+  assignments.forEach((assignment, index) => {
+    console.log(`  ${index + 1}. ${assignment.title} ${assignment.dueDate ? `(due: ${assignment.dueDate})` : ''}`);
+  });
+  
   return assignments;
 }
 

@@ -9,8 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { type SyllabusData, type SyllabusAssignment } from "@/lib/openrouter-service";
 import { addCourse, addAssignment, type Course, type Assignment } from "@/lib/firebase";
-import { extractTextFromFile, extractFilmAssignments } from "@/lib/file-processor";
-import { PdfDebugComponent } from "@/components/pdf-debug";
+import { extractTextFromFile, parseCourseInfo, parseAssignments } from "@/lib/file-processor";
 
 // Analytics data will be fetched from the backend
 const studyTimeData: { day: string; hours: number }[] = [];

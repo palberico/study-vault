@@ -1,0 +1,26 @@
+--- PRO DASHBOARD DEBUG ---
+pro-dashboard.tsx:96 Starting syllabus processing for file: Worldwide-2025-05-May-WW-UNSY-Online-315-0003-Uncrewed-Aircraft-Systems-and-Operations.pdf
+pro-dashboard.tsx:97 File size: 174924 bytes
+pro-dashboard.tsx:98 File type: application/pdf
+pro-dashboard.tsx:101 Extracting text from PDF using client-side processor...
+file-processor.ts:7 --- FILE PROCESSOR DEBUG ---
+file-processor.ts:8 Processing file: Worldwide-2025-05-May-WW-UNSY-Online-315-0003-Uncrewed-Aircraft-Systems-and-Operations.pdf
+file-processor.ts:9 File type: application/pdf
+file-processor.ts:10 File size: 174924 bytes
+file-processor.ts:14 Loaded 174924 bytes from actual file
+file-processor.ts:17 Reading actual PDF content (no fallback data)
+file-processor.ts:41 Successfully extracted 12488 text chunks from PDF
+file-processor.ts:62 Extracted text length: 5000 characters
+file-processor.ts:63 Text sample (first 500 chars):
+%PDF-1.4 obj <</Creator (Chromium) /Producer (Skia/PDF m88) /CreationDate (D:20250520201330+00'00') /ModDate (D:20250520201330+00'00')>> endobj obj <</ca /BM /Normal>> endobj obj <</Type /XObject /Subtype /Image /Width /Height /ColorSpace /DeviceRGB /SMask /BitsPerComponent /Filter /FlateDecode /Length stream x���Il I�� �Зw�����z��n T��05 �T7jf ����[�������ڲ*�rߔ�J�R))�K E��H���`�d ��N��V �s7������a I�� Pd���g�}��37���SPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
+pro-dashboard.tsx:104 Full syllabus text length: 5000
+pro-dashboard.tsx:105 Text sample (first 500 chars): %PDF-1.4 obj <</Creator (Chromium) /Producer (Skia/PDF m88) /CreationDate (D:20250520201330+00'00') /ModDate (D:20250520201330+00'00')>> endobj obj <</ca /BM /Normal>> endobj obj <</Type /XObject /Subtype /Image /Width /Height /ColorSpace /DeviceRGB /SMask /BitsPerComponent /Filter /FlateDecode /Length stream x���Il I�� �Зw�����z��n T��05 �T7jf ����[�������ڲ*�rߔ�J�R))�K E��H���`�d ��N��V �s7������a I�� Pd���g�}��37���SPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
+pro-dashboard.tsx:112 🎬 Attempting deterministic assignment extraction...
+file-processor.ts:73 🎬 Starting deterministic assignment extraction...
+file-processor.ts:90 No assignments section found
+pro-dashboard.tsx:114 🎬 Film assignments found: Array(0)length: 0[[Prototype]]: Array(0)
+pro-dashboard.tsx:120 No assignments found with deterministic parsing, using AI fallback...
+pro-dashboard.tsx:125 📋 Sending 0 assignments to Cloud Function
+pro-dashboard.tsx:143 Cloud Function response status: 200
+pro-dashboard.tsx:152 Cloud Function returned parsed data: Object
+7course-detail.tsx:45 CourseDetailPage rendering with ID: Ah2MBKxIccbT3tNIqVPu
