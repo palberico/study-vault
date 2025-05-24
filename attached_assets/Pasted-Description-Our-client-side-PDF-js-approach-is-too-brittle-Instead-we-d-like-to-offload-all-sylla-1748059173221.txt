@@ -1,0 +1,84 @@
+Description:
+Our client-side PDF.js approach is too brittle. Instead, we’d like to offload all syllabus parsing to a Firebase Cloud Function using the pdf-parse library. The new flow will be:
+
+Client: Upload the raw PDF to Firebase Storage under a known path (e.g. syllabi/{userId}/{courseId}/{fileName}).
+
+Cloud Function (parseSyllabusOnUpload): Trigger on functions.storage.object().onFinalize() for that path. Download the file into a Buffer, call pdfParse(buffer), and extract data.text.
+
+Cloud Function: Write the extracted text (or a snippet) back to Firestore in a document (e.g. /parsedSyllabi/{uploadId} or under the course doc) and log the first 300 chars.
+
+Client: Subscribe to that Firestore document and log the real syllabus text in the console.
+
+Tasks:
+
+Add dependency
+
+bash
+Copy
+Edit
+cd functions
+npm install pdf-parse
+Create parseSyllabusOnUpload in functions/src/index.ts:
+
+ts
+Copy
+Edit
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+const pdfParse = require('pdf-parse');
+admin.initializeApp();
+
+export const parseSyllabusOnUpload = functions
+  .region('us-central1')
+  .storage.object()
+  .onFinalize(async (object) => {
+    if (!object.name?.startsWith('syllabi/')) return null;
+    const bucket = admin.storage().bucket(object.bucket);
+    const file = bucket.file(object.name);
+    const [buffer] = await file.download();
+
+    const data = await pdfParse(buffer);
+    console.log('✅ Parsed text snippet:', data.text.slice(0,300));
+
+    // Derive courseId/userId from path or metadata:
+    const [ , userId, courseId, fileName ] = object.name.split('/');
+    await admin.firestore()
+      .collection('parsedSyllabi')
+      .add({ userId, courseId, fileName, text: data.text, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    return null;
+  });
+Client upload handler in pro-dashboard.tsx:
+
+ts
+Copy
+Edit
+async function onFileDrop(file: File) {
+  const storagePath = `syllabi/${userId}/${courseId}/${file.name}`;
+  const ref = firebase.storage().ref(storagePath);
+  await ref.put(file);
+  console.log('📤 Uploaded syllabus to Storage:', storagePath);
+
+  // Listen for parsed result:
+  const parsedCol = firebase.firestore().collection('parsedSyllabi')
+    .where('userId','==',userId)
+    .where('courseId','==',courseId)
+    .orderBy('createdAt','desc')
+    .limit(1);
+  parsedCol.onSnapshot(snapshot => {
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0].data();
+      console.log('🎯 Real syllabus text:', doc.text.slice(0,300));
+    }
+  });
+}
+Remove all client-side PDF.js imports/logic and any Busboy/multipart code—parsing now lives entirely in the Cloud Function.
+
+Verify:
+
+Drop a real syllabus PDF → see parseSyllabusOnUpload log in Functions console with a real text snippet.
+
+See a new Firestore document under parsedSyllabi with full extracted text.
+
+Client console logs the same real text snippet.
+
+Please implement these changes so we get true, server-side parsing of every PDF syllabus.

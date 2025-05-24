@@ -106,6 +106,42 @@ export const analyzeSyllabus = functions.https.onRequest(async (req: any, res: a
   }
 });
 
+// NEW: Server-side syllabus parsing on Storage upload
+export const parseSyllabusOnUpload = functions
+  .region('us-central1')
+  .storage.object()
+  .onFinalize(async (object) => {
+    if (!object.name?.startsWith('syllabi/')) return null;
+    
+    console.log(`🎯 NEW SYLLABUS UPLOADED: ${object.name}`);
+    
+    const bucket = admin.storage().bucket(object.bucket);
+    const file = bucket.file(object.name);
+    const [buffer] = await file.download();
+
+    const data = await pdfParse(buffer);
+    console.log('✅ Parsed text snippet:', data.text.slice(0, 300));
+
+    // Derive courseId/userId from path: syllabi/{userId}/{courseId}/{fileName}
+    const pathParts = object.name.split('/');
+    const userId = pathParts[1];
+    const courseId = pathParts[2];
+    const fileName = pathParts[3];
+    
+    await admin.firestore()
+      .collection('parsedSyllabi')
+      .add({ 
+        userId, 
+        courseId, 
+        fileName, 
+        text: data.text, 
+        createdAt: admin.firestore.FieldValue.serverTimestamp() 
+      });
+      
+    console.log(`📄 Saved parsed syllabus to Firestore for user ${userId}`);
+    return null;
+  });
+
 export const parseSyllabus = functions.https.onRequest(async (req: any, res: any) => {
     // Enable CORS
     res.set('Access-Control-Allow-Origin', '*');

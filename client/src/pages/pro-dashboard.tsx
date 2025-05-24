@@ -86,38 +86,43 @@ export default function ProDashboard() {
     setIsProcessing(true);
     
     try {
-      console.log("🎯 SYLLABUS PARSING SANDBOX - Console Debug Mode");
-      console.log(`📄 File: ${selectedFile.name} (${Math.round(selectedFile.size / 1024)}KB)`);
+      console.log(`📤 SERVER-SIDE PARSING: Uploading syllabus: ${selectedFile.name}`);
       
-      // STEP 1: Extract text from PDF
-      const extractedText = await extractTextFromFile(selectedFile);
+      // Generate unique courseId for this syllabus upload
+      const courseId = `course_${Date.now()}`;
+      const storagePath = `syllabi/${user.uid}/${courseId}/${selectedFile.name}`;
       
-      // STEP 2: Parse course information  
-      const courseInfo = parseCourseInfo(extractedText);
-      console.log("🏫 COURSE INFO PARSED:", courseInfo);
-      
-      // STEP 3: Parse assignments
-      const assignments = parseAssignments(extractedText);
-      console.log("📋 ASSIGNMENTS PARSED:", assignments);
-      
-      // STEP 4: Complete structure for console viewing
-      const syllabusStructure = {
-        course: courseInfo,
-        assignments: assignments,
-        metadata: {
-          fileName: selectedFile.name,
-          fileSize: selectedFile.size,
-          textLength: extractedText.length,
-          parsedAt: new Date().toISOString()
+      // Upload to Firebase Storage to trigger Cloud Function
+      const storageRef = firebase.storage().ref(storagePath);
+      await storageRef.put(selectedFile);
+      console.log('📤 Uploaded syllabus to Storage:', storagePath);
+
+      // Listen for parsed result from Cloud Function
+      const parsedCol = firebase.firestore().collection('parsedSyllabi')
+        .where('userId','==', user.uid)
+        .where('courseId','==', courseId)
+        .orderBy('createdAt','desc')
+        .limit(1);
+        
+      const unsubscribe = parsedCol.onSnapshot(snapshot => {
+        if (!snapshot.empty) {
+          const doc = snapshot.docs[0].data();
+          console.log('🎯 Real syllabus text from server:', doc.text.slice(0, 300));
+          console.log('📄 Full parsed document:', doc);
+          
+          toast({
+            title: "✅ Server Parsing Complete",
+            description: `Syllabus parsed successfully. Check console for extracted text.`,
+          });
+          
+          // Clean up listener after first result
+          unsubscribe();
         }
-      };
-      
-      console.log("🎯 COMPLETE SYLLABUS STRUCTURE:");
-      console.log(syllabusStructure);
+      });
       
       toast({
-        title: "✅ Parsing Complete",
-        description: `Found ${assignments.length} assignments. Check console for details.`,
+        title: "📤 Upload Complete", 
+        description: "Processing syllabus on server... check console for results.",
       });
       
     } catch (error) {
