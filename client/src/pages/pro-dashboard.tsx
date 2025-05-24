@@ -9,10 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { type SyllabusData, type SyllabusAssignment } from "@/lib/openrouter-service";
 import { addCourse, addAssignment, type Course, type Assignment } from "@/lib/firebase";
-import { extractTextFromFile, parseCourseInfo, parseAssignments } from "@/lib/file-processor";
-import { getStorage, ref, uploadBytes } from 'firebase/storage';
-import { getFirestore, collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { app } from '@/lib/firebase';
 
 // Analytics data will be fetched from the backend
 const studyTimeData: { day: string; hours: number }[] = [];
@@ -89,74 +85,10 @@ export default function ProDashboard() {
     setIsProcessing(true);
     
     try {
-      console.log(`📤 SERVER-SIDE PARSING: Uploading syllabus: ${selectedFile.name}`);
-      
-      // Generate unique courseId for this syllabus upload
-      const courseId = `course_${Date.now()}`;
-      const storagePath = `syllabi/${user.uid}/${courseId}/${selectedFile.name}`;
-      
-      // Upload to Firebase Storage to trigger Cloud Function
-      const storage = getStorage(app);
-      const storageRef = ref(storage, storagePath);
-      await uploadBytes(storageRef, selectedFile);
-      console.log('📤 Uploaded syllabus to Storage:', storagePath);
-
-      // Listen for parsed result from Cloud Function
-      const db = getFirestore(app);
-      const parsedQuery = query(
-        collection(db, 'parsedSyllabi'),
-        where('userId', '==', user.uid),
-        where('courseId', '==', courseId),
-        orderBy('createdAt', 'desc'),
-        limit(1)
-      );
-        
-      const unsubscribe = onSnapshot(parsedQuery, (snapshot) => {
-        if (!snapshot.empty) {
-          const doc = snapshot.docs[0].data();
-          console.log('🎯 Real syllabus text from server:', doc.text.slice(0, 300));
-          console.log('📄 Full parsed document:', doc);
-          
-          toast({
-            title: "✅ Server Parsing Complete",
-            description: `Syllabus parsed successfully. Check console for extracted text.`,
-          });
-          
-          // Clean up listener after first result
-          unsubscribe();
-        }
-      });
-      
       toast({
-        title: "📤 Upload Complete", 
-        description: "Processing syllabus on server... check console for results.",
+        title: "Feature Disabled",
+        description: "Syllabus analysis feature temporarily disabled.",
       });
-      
-      // For immediate testing: call the working analyzeSyllabus function
-      console.log("🧪 IMMEDIATE TEST - Processing same file to show extracted content:");
-      try {
-        const testFormData = new FormData();
-        testFormData.append('syllabus', selectedFile);
-        testFormData.append('courseId', courseId);
-        testFormData.append('userId', user.uid);
-        
-        const response = await fetch('https://us-central1-study-vault-dd7d1.cloudfunctions.net/parseStoredSyllabus', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ storagePath, courseId, userId: user.uid })
-        });
-        
-        const result = await response.json();
-        console.log("🎯 EXTRACTED SYLLABUS DATA:", result);
-        console.log(`📚 Course: ${result.course?.name || result.course?.code}`);
-        console.log(`📋 Found ${result.assignments?.length || 0} assignments`);
-        if (result.assignments?.length > 0) {
-          console.log("📝 Sample assignments:", result.assignments.slice(0, 3));
-        }
-        
-      } catch (testError) {
-        console.log("Test extraction skipped, waiting for server results...");
-      }
       
     } catch (error) {
       console.error("❌ Parsing failed:", error);

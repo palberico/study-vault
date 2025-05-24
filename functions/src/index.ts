@@ -381,7 +381,7 @@ async function extractTextFromDocument(buffer: Buffer, fileName: string): Promis
   try {
     switch (fileExt) {
       case 'pdf':
-        const pdfData = await pdfParse.default(buffer);
+        const pdfData = await pdfParse(buffer);
         return pdfData.text;
       
       case 'docx':
