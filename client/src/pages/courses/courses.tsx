@@ -6,7 +6,7 @@ import { getUserCourses, getUserAssignments, type Course, type Assignment } from
 import CourseCard from "@/components/course/course-card";
 import CourseForm from "@/components/course/course-form";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Calendar } from "lucide-react";
+import { PlusIcon, Calendar, Bot } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
@@ -89,12 +89,25 @@ export default function CoursesPage() {
             className="pl-10"
           />
         </div>
-        <Button 
-          onClick={() => setShowCourseForm(true)}
-          className="flex items-center justify-center w-full md:w-auto"
-        >
-          <PlusIcon className="mr-2 h-4 w-4" /> Add New Course
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          {user?.isPro && (
+            <Button 
+              onClick={() => navigate("/pro-dashboard")}
+              className="flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full sm:w-auto"
+            >
+              <div className="bg-white/20 p-1 rounded mr-2">
+                <Bot className="h-4 w-4 text-white" />
+              </div>
+              Pro Dashboard
+            </Button>
+          )}
+          <Button 
+            onClick={() => setShowCourseForm(true)}
+            className="flex items-center justify-center w-full sm:w-auto"
+          >
+            <PlusIcon className="mr-2 h-4 w-4" /> Add New Course
+          </Button>
+        </div>
       </div>
       
       {isLoading ? (
