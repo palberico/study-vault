@@ -1,4 +1,5 @@
 import { toast } from "@/hooks/use-toast";
+import { jsonrepair } from "jsonrepair";
 
 interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant';
@@ -41,7 +42,7 @@ export async function processSyllabusWithAI(fileContent: string) {
   try {
     // Check if we have the API key - Vite requires the VITE_ prefix for env variables
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-    
+
     if (!apiKey) {
       console.error("API Key access issue. Available env vars:", Object.keys(import.meta.env));
       throw new Error('OpenRouter API key is missing. Please make sure it is provided in the environment variables with VITE_ prefix.');
@@ -97,8 +98,8 @@ Format your response as a clean JSON object like this:
 }
 
 Format all dates as YYYY-MM-DD.
-If you can't find exact due dates, assign dates spaced throughout the term.
-START WITH DAY 1 logic: If the syllabus mentions a specific start date, use that as reference. Otherwise, use today's date as reference and space assignments ~7 days apart.
+If you can't find exact due dates, do not make up dates, just leave the dueDate field empty.
+START WITH DAY 1 logic: If the syllabus mentions a specific start date, use that as reference. Otherwise, leave due dates empty.
 
 IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syllabus, including any hidden in text descriptions. Be extremely thorough in your search. Respond ONLY with the JSON object, no extra text.`;
 
@@ -142,64 +143,72 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
     }
 
     const data: OpenRouterResponse = await response.json();
-    
+
     if (!data.choices || data.choices.length === 0) {
       throw new Error('No response content received from AI');
     }
 
     // Extract and parse the JSON from the AI response
     const content = data.choices[0].message.content.trim();
-    
+
     // Try to parse as JSON
     try {
-      // First, try to extract JSON from the response if it's wrapped in markdown code blocks
       let jsonString = content;
-      
       // Check if the AI returned JSON wrapped in code blocks
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       if (jsonMatch && jsonMatch[1]) {
         jsonString = jsonMatch[1].trim();
       }
-      
-      console.log("Attempting to parse JSON response:", jsonString);
-      
-      const parsedData = JSON.parse(jsonString);
-      
-      // Validate the parsed data has the expected structure
-      if (!parsedData.course || !parsedData.assignments) {
-        // If the model didn't return the right structure, create a minimal valid response
-        console.warn("AI response missing expected structure, creating fallback response");
-        
-        throw new Error("Invalid response structure from AI service");
-            }
-    
-      
-      return parsedData;
+
+      // 1. Attempt regular parse
+      try {
+        console.log("Attempting to parse JSON response:", jsonString);
+        const parsedData = JSON.parse(jsonString);
+        if (parsedData.course && parsedData.assignments) {
+          return parsedData;
+        }
+      } catch (e1) {
+        // 2. If it fails, try to repair with jsonrepair
+        try {
+          const repaired = jsonrepair(jsonString);
+          const parsedData = JSON.parse(repaired);
+          console.log("JSON repaired and parsed:", parsedData);
+          if (parsedData.course && parsedData.assignments) {
+            return parsedData;
+          }
+        } catch (e2) {
+          // If jsonrepair fails, continue to fallback
+        }
+      }
+
+      // If structure is wrong, create a minimal valid response (fallback)
+      console.warn("AI response missing expected structure, creating fallback response");
+      throw new Error("Invalid response structure from AI service");
+
     } catch (e) {
       console.error('Failed to parse AI response as JSON:', content);
-      
+
       // Extract course details from the syllabus text directly
       console.log("Creating structured response from direct text extraction");
-      
       // Use specific extraction for the expected syllabus format
       console.log("--- SYLLABUS EXTRACTION DEBUG ---");
       console.log("First 200 chars of content:", fileContent.substring(0, 200));
-      
+
       // Look for course code patterns (e.g., WW-UNSY 315, MATH 101)
       const courseCodeMatch = fileContent.match(/(WW-UNSY\s+315)/i) || 
                             fileContent.match(/([A-Z]+-[A-Z]+\s+\d+)/i) ||
                             fileContent.match(/([A-Z]{2,}[A-Z]*\s+\d{3})/i);
       console.log("Course code extraction attempt:", courseCodeMatch ? courseCodeMatch[0] : "Not found");
-      
+
       // Extract the first few lines to find the course name
       const firstLines = fileContent.split('\n').slice(0, 5).join(' ');
       console.log("First few lines:", firstLines);
-      
+
       // Look for course name patterns
       const courseNameMatch = fileContent.match(/(Uncrewed Aircraft Systems and Operations)/i) ||
                             fileContent.match(/([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+\s+and\s+[A-Z][a-z]+)/i);
       console.log("Course name extraction attempt:", courseNameMatch ? courseNameMatch[0] : "Not found");
-      
+
       // If no match, try to extract from the first few lines
       if (!courseNameMatch) {
         console.log("Attempting to extract course name from first lines");
@@ -211,18 +220,16 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
         );
         console.log("Possible title line:", possibleTitleLine);
       }
-      
+
       // Find term (Worldwide 2025-05 May)
       const termMatch = fileContent.match(/(Worldwide\s+2025-05\s+May)/i) ||
                       fileContent.match(/((?:Spring|Summer|Fall|Winter)\s+\d{4}|Worldwide\s+\d{4}-\d{2}\s+\w+)/i);
       console.log("Term extraction attempt:", termMatch ? termMatch[0] : "Not found");
-      
+
       // Using a combination of extraction methods to ensure we find assignments
       // for any syllabus format
-      
       // Extract assignments using more sophisticated pattern matching
       const assignmentsList = [];
-      
       // Look for Student Learning Outcomes
       // Use simple string splitting for compatibility with all environments
       const sloSection = fileContent.indexOf("Student Learning Outcomes");
@@ -230,7 +237,7 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
         const contentAfterSLO = fileContent.substring(sloSection);
         // Find numbers with periods that likely indicate outcomes
         const numberMatches = contentAfterSLO.split(/\d+\.\s+/);
-        
+
         // Skip the first entry as it's before the first number
         for (let i = 1; i < Math.min(numberMatches.length, 20); i++) {
           // Extract text until the next number or section
@@ -239,13 +246,13 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
           if (cleanText.indexOf('\n\n') > 0) {
             cleanText = cleanText.substring(0, cleanText.indexOf('\n\n'));
           }
-          
+
           cleanText = cleanText.trim();
           if (cleanText && cleanText.length > 10) {
             // Create a due date 14 days apart for each outcome
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 14 * i);
-            
+
             assignmentsList.push({
               title: `Learning Outcome ${i}`,
               description: cleanText,
@@ -255,19 +262,19 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
           }
         }
       }
-      
+
       // Look for Weekly Modules using string search
       const moduleKeywords = ["Module", "Week", "Unit"];
-      
+
       for (const keyword of moduleKeywords) {
         for (let i = 1; i <= 15; i++) { // Check for up to 15 modules
           const searchTerm = keyword + " " + i;
           const moduleIndex = fileContent.indexOf(searchTerm);
-          
+
           if (moduleIndex !== -1) {
             // Found a module, look for common assignment types nearby
             const moduleContent = fileContent.substring(moduleIndex, moduleIndex + 500); // Look at next ~500 chars
-            
+
             // Check for assignment keywords
             const assignmentKeywords = [
               {term: "Assignment", prefix: "Assignment"},
@@ -280,18 +287,18 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
               {term: "Lab", prefix: "Lab"},
               {term: "Exercise", prefix: "Exercise"}
             ];
-            
+
             // For each module, add at least one generic assignment
             let assignmentFound = false;
-            
+
             for (const assignment of assignmentKeywords) {
               if (moduleContent.indexOf(assignment.term) !== -1) {
                 assignmentFound = true;
-                
+
                 // Create a due date based on module number
                 const dueDate = new Date();
                 dueDate.setDate(dueDate.getDate() + (i * 7) + 3); // Module week + 3 days
-                
+
                 assignmentsList.push({
                   title: `${keyword} ${i} ${assignment.prefix}`,
                   description: `Complete the ${assignment.term.toLowerCase()} for ${keyword.toLowerCase()} ${i}.`,
@@ -300,12 +307,12 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
                 });
               }
             }
-            
+
             // If no specific assignments found, add a generic one
             if (!assignmentFound) {
               const dueDate = new Date();
               dueDate.setDate(dueDate.getDate() + (i * 7) + 5); // Module week + 5 days
-              
+
               assignmentsList.push({
                 title: `${keyword} ${i} Assignment`,
                 description: `Complete all activities and assignments for ${keyword.toLowerCase()} ${i}.`,
@@ -316,14 +323,14 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
           }
         }
       }
-      
+
       // If no assignments found, create generic ones based on course structure
       if (assignmentsList.length === 0) {
         // Default to 8 modules with various assignment types
         for (let i = 1; i <= 8; i++) {
           const moduleDate = new Date();
           moduleDate.setDate(moduleDate.getDate() + (i * 7)); // Each module is a week apart
-          
+
           // Add a discussion
           assignmentsList.push({
             title: `Module ${i} Discussion`,
@@ -331,7 +338,7 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
             dueDate: new Date(moduleDate.getTime() + (2 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0], // 2 days after module start
             status: "pending"
           });
-          
+
           // Add a quiz
           assignmentsList.push({
             title: `Module ${i} Quiz`,
@@ -339,7 +346,7 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
             dueDate: new Date(moduleDate.getTime() + (5 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0], // 5 days after module start
             status: "pending"
           });
-          
+
           // Add a major assignment every other module
           if (i % 2 === 0) {
             assignmentsList.push({
@@ -350,7 +357,7 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
             });
           }
         }
-        
+
         // Add a midterm and final
         const midDate = new Date();
         midDate.setDate(midDate.getDate() + 28); // Midterm after 4 weeks
@@ -360,7 +367,7 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
           dueDate: midDate.toISOString().split('T')[0],
           status: "pending"
         });
-        
+
         const finalDate = new Date();
         finalDate.setDate(finalDate.getDate() + 56); // Final after 8 weeks
         assignmentsList.push({
@@ -370,7 +377,7 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
           status: "pending"
         });
       }
-      
+
       // Create a proper course structure
       return {
         course: {
@@ -384,14 +391,14 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
     }
   } catch (error) {
     console.error('Error processing syllabus with AI:', error);
-    
+
     // Show error toast to user
     toast({
       title: 'AI Processing Error',
       description: error instanceof Error ? error.message : 'Failed to analyze syllabus',
       variant: 'destructive',
     });
-    
+
     throw error;
   }
 }
