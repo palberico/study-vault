@@ -153,7 +153,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/login");
+      navigate("/");
     }
   }, [user, loading, navigate]);
 
