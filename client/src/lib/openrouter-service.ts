@@ -172,9 +172,7 @@ IMPORTANT: Your goal is to extract EVERY SINGLE ASSIGNMENT mentioned in the syll
         
         throw new Error("Invalid response structure from AI service");
             }
-          ]
-        };
-      }
+    
       
       return parsedData;
     } catch (e) {

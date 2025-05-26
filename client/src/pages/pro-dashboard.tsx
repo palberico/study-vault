@@ -2,15 +2,13 @@ import React, { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { Bot, Sparkles, Zap, LineChart, FileBarChart, BookOpen, Users, Flame, Upload, FileUp } from "lucide-react";
+import { Bot, Sparkles, Zap, LineChart, FileBarChart, BookOpen, Users, Flame, FileUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { type SyllabusData, type SyllabusAssignment } from "@/lib/openrouter-service";
-import { addCourse, addAssignment, type Course, type Assignment } from "@/lib/firebase";
+import SyllabusAnalyzer from "@/components/pro/SyllabusAnalyzer"; // <-- Import new component
 
-// Analytics data will be fetched from the backend
+// Dummy analytics data (replace with real backend data as needed)
 const studyTimeData: { day: string; hours: number }[] = [];
 const assignmentCompletionRate = 0;
 const totalAssignments = 0;
@@ -20,10 +18,7 @@ export default function ProDashboard() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [isSyllabusModalOpen, setSyllabusModalOpen] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSyllabusModalOpen, setSyllabusModalOpen] = useState(false); // Only state needed
 
   // Redirect non-pro users away
   React.useEffect(() => {
@@ -36,77 +31,6 @@ export default function ProDashboard() {
       navigate("/");
     }
   }, [user, navigate, toast]);
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelect(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleFileSelect = (file: File) => {
-    // Check if file is PDF or DOC/DOCX
-    const fileType = file.type;
-    if (
-      fileType === "application/pdf" || 
-      fileType === "application/msword" || 
-      fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ) {
-      setSelectedFile(file);
-    } else {
-      toast({
-        title: "Invalid File Format",
-        description: "Please upload a PDF or Word document",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileSelect(e.target.files[0]);
-    }
-  };
-
-  const processSyllabus = async () => {
-    if (!selectedFile || !user) return;
-    
-    setIsProcessing(true);
-    
-    try {
-      toast({
-        title: "Feature Disabled",
-        description: "Syllabus analysis feature temporarily disabled.",
-      });
-      
-    } catch (error) {
-      console.error("❌ Parsing failed:", error);
-      toast({
-        title: "❌ Parsing Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleSyllabusUpload = async (file: File) => {
-    if (!user) return;
-    setSelectedFile(file);
-    await processSyllabus();
-  };
 
   if (!user?.isPro) {
     return null;
@@ -163,8 +87,8 @@ export default function ProDashboard() {
             <div className="h-[100px] w-full flex items-end justify-between">
               {studyTimeData.map((day) => (
                 <div key={day.day} className="flex flex-col items-center">
-                  <div 
-                    className="bg-purple-500 w-6 rounded-t-sm" 
+                  <div
+                    className="bg-purple-500 w-6 rounded-t-sm"
                     style={{ height: `${day.hours * 15}px` }}
                   ></div>
                   <span className="text-xs mt-1">{day.day}</span>
@@ -190,7 +114,7 @@ export default function ProDashboard() {
                 <p className="text-3xl font-bold text-amber-600">{upcomingDeadlines}</p>
                 <div className="flex space-x-1">
                   {[1, 2, 3, 4, 5].map((i) => (
-                    <div 
+                    <div
                       key={i}
                       className={`h-8 w-2 rounded-full ${i <= upcomingDeadlines ? 'bg-amber-400' : 'bg-amber-200'}`}
                     ></div>
@@ -251,7 +175,7 @@ export default function ProDashboard() {
               </p>
             </CardContent>
             <CardFooter>
-              <Button 
+              <Button
                 onClick={() => setSyllabusModalOpen(true)}
                 className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
               >
@@ -259,7 +183,7 @@ export default function ProDashboard() {
               </Button>
             </CardFooter>
           </Card>
-          
+
           <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
             <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
@@ -354,118 +278,15 @@ export default function ProDashboard() {
           </li>
         </ul>
       </div>
-      
-      {/* Syllabus Upload Modal */}
-      <Dialog open={isSyllabusModalOpen} onOpenChange={setSyllabusModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center text-xl">
-              <FileUp className="h-5 w-5 mr-2 text-indigo-500" />
-              Syllabus Analyzer
-            </DialogTitle>
-            <DialogDescription>
-              Upload your course syllabus to automatically create a structured course with all assignments and deadlines.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            {isProcessing && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                <div className="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">
-                  <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <h3 className="text-xl font-semibold mb-2">Processing Your Syllabus</h3>
-                  <p className="text-gray-600 text-center max-w-md">
-                    Our AI is analyzing your syllabus to extract course details and assignments. 
-                    This may take up to 30 seconds depending on the file size.
-                  </p>
-                </div>
-              </div>
-            )}
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center ${
-                isDragging ? "border-indigo-500 bg-indigo-50" : "border-gray-300"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <FileUp className="h-10 w-10 mx-auto mb-3 text-slate-400" />
-              
-              {selectedFile ? (
-                <div>
-                  <p className="font-medium text-indigo-600">{selectedFile.name}</p>
-                  <p className="text-sm text-slate-500">
-                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => setSelectedFile(null)}
-                    disabled={isProcessing}
-                  >
-                    Change file
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <p className="font-medium">Drag and drop your syllabus here</p>
-                  <p className="text-sm text-slate-500 mt-1">Or click to browse from your computer</p>
-                  <input
-                    type="file"
-                    className="hidden"
-                    id="syllabusFileInput"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileInput}
-                    disabled={isProcessing}
-                  />
-                  <Button
-                    variant="ghost" 
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => document.getElementById('syllabusFileInput')?.click()}
-                    disabled={isProcessing}
-                  >
-                    Browse files
-                  </Button>
-                </div>
-              )}
-            </div>
-            
-            <div className="mt-3 text-sm text-slate-500">
-              <p>Supported file types: PDF, DOC, DOCX</p>
-              <p className="mt-1">Our AI will extract course details, assignments, and deadlines from your syllabus.</p>
-            </div>
-          </div>
-          
-          <DialogFooter className="flex items-center justify-between">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSyllabusModalOpen(false);
-                setSelectedFile(null);
-              }}
-              disabled={isProcessing}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={processSyllabus}
-              className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
-              disabled={!selectedFile || isProcessing}
-            >
-              {isProcessing ? (
-                <>
-                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-opacity-20 border-t-white"></span>
-                  Processing...
-                </>
-              ) : (
-                'Analyze Syllabus'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+      {/* Syllabus Analyzer Modal (now delegated to SyllabusAnalyzer component) */}
+      <SyllabusAnalyzer
+        open={isSyllabusModalOpen}
+        onOpenChange={setSyllabusModalOpen}
+        user={user}
+        // Optionally, you can add onSyllabusProcessed={() => { /* refresh logic here */ }}
+      />
     </div>
   );
 }
+
