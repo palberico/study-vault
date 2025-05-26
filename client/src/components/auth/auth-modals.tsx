@@ -62,7 +62,10 @@ export function AuthModals({
         description: "You've successfully signed in to StudyVault.",
       });
       onLoginClose();
-      navigate("/dashboard");
+      // Small delay to ensure auth state is updated before navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
     } catch (error: any) {
       toast({
         title: "Sign In Failed",
@@ -111,7 +114,10 @@ export function AuthModals({
         description: "Your account has been created successfully.",
       });
       onRegisterClose();
-      navigate("/dashboard");
+      // Small delay to ensure auth state is updated before navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
     } catch (error: any) {
       toast({
         title: "Registration Failed",
