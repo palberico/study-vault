@@ -102,7 +102,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 >
                   <div className={cn(
                     "relative flex items-center",
-                    isActive('/') && "border-b-2 border-purple-500 pb-1"
+                    (isActive('/') || isActive('/dashboard')) && "border-b-2 border-purple-500 pb-1"
                   )}>
                     <Home className={cn(
                       "w-5 h-5 text-slate-500",
@@ -260,7 +260,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                   >
                     <div className={cn(
                       "relative flex items-center",
-                      isActive('/') && "border-b-2 border-purple-500 pb-1"
+                      (isActive('/') || isActive('/dashboard')) && "border-b-2 border-purple-500 pb-1"
                     )}>
                       <Home className="w-5 h-5 mr-3 text-slate-500" />
                     </div>
