@@ -115,16 +115,28 @@ export default function DashboardPage() {
       {/* Help button removed, now accessible from user dropdown menu */}
       
       {/* Welcome Banner */}
-      <div className="mb-8 bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="relative h-48 md:h-64 bg-cover bg-center bg-[url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&h=500&q=80')]">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/80 to-indigo-600/80"></div>
+      <div className="mb-8 bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl shadow-sm overflow-hidden border border-slate-200">
+        <div className="relative h-48 md:h-64 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="absolute inset-0 flex items-center p-8">
             <div className="max-w-2xl">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
+                  <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <span className="text-3xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+                  StudyVault
+                </span>
+              </div>
               <h1 className="text-white text-2xl sm:text-3xl font-bold mb-2">
                 {user?.name ? `Welcome back, ${user.name}!` : 'Welcome back!'}
               </h1>
               <p className="text-blue-100 text-sm sm:text-base">
-                Track your academic journey and keep all your work organized in one place.
+                Your Academic Success, 
+                <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent font-semibold">
+                  {" "}Organized for Life
+                </span>
               </p>
             </div>
           </div>
@@ -156,7 +168,7 @@ export default function DashboardPage() {
       {/* Your Courses Section */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-800">Your Courses</h2>
+          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Your Courses</h2>
           <div className="flex space-x-3">
             {!user?.isPro && (
               <Button 
@@ -263,7 +275,7 @@ export default function DashboardPage() {
       {/* Recent Assignments Section */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-800">Recent Assignments</h2>
+          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Recent Assignments</h2>
           <Button 
             variant="link" 
             onClick={() => navigate("/assignments")}
@@ -314,7 +326,7 @@ export default function DashboardPage() {
       {/* Recent Files Section */}
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-800">Recent Files</h2>
+          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Recent Files</h2>
           <Button 
             variant="link" 
             onClick={() => navigate("/files")}
