@@ -122,11 +122,11 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
 
   return (
     <Card 
-      className="border border-slate-200 overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative group"
+      className="border border-slate-200 overflow-hidden hover:shadow-md hover:border-primary/30 transition-all duration-300 transform hover:-translate-y-1 relative group h-full flex flex-col"
       // Removed onClick to make card non-clickable, only "View Details" button will navigate
     >
       {/* Edit and Delete icons removed as requested */}
-      <CardContent className="p-5">
+      <CardContent className="p-5 flex-1 flex flex-col">
         <div className="flex items-start mb-3">
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className={getCourseColor()}>
@@ -162,11 +162,11 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
         </div>
         
         <h3 className="font-semibold text-lg mb-2">{assignment.title}</h3>
-        <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+        <p className="text-slate-600 text-sm mb-4 line-clamp-2 flex-1">
           {truncateDescription(assignment.description)}
         </p>
         
-        <div className="flex items-center text-xs text-slate-500">
+        <div className="flex items-center text-xs text-slate-500 mt-auto">
           <span>
             <Calendar className="inline mr-1 h-3 w-3" /> Due: {
               assignment.dueDate instanceof Date 
@@ -180,7 +180,7 @@ export default function AssignmentCard({ assignment, courses, onClick }: Assignm
         </div>
       </CardContent>
       
-      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex justify-end items-center">
+      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex justify-end items-center mt-auto">
         <div className="flex gap-2">
           <Button 
             variant="outline" 
