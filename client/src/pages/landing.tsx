@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { AuthModals } from "@/components/auth/auth-modals";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -24,6 +25,8 @@ import {
 
 export default function LandingPage() {
   const { user } = useAuth();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const features = [
     {
@@ -113,12 +116,12 @@ export default function LandingPage() {
                 </Link>
               ) : (
                 <>
-                  <Link href="/login">
-                    <Button variant="ghost">Sign In</Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button>Get Started</Button>
-                  </Link>
+                  <Button variant="ghost" onClick={() => setIsLoginOpen(true)}>
+                    Sign In
+                  </Button>
+                  <Button onClick={() => setIsRegisterOpen(true)}>
+                    Get Started
+                  </Button>
                 </>
               )}
             </div>
@@ -142,12 +145,14 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {!user && (
-                <Link href="/register">
-                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                    Start Your Journey
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  onClick={() => setIsRegisterOpen(true)}
+                >
+                  Start Your Journey
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               )}
               <Button size="lg" variant="outline">
                 Watch Demo
@@ -272,12 +277,23 @@ export default function LandingPage() {
           </div>
           
           <div className="text-center">
-            <Link href={user ? "/pro-dashboard" : "/register"}>
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
-                {user ? "Upgrade to Pro" : "Start Pro Trial"}
+            {user ? (
+              <Link href="/pro-dashboard">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+                  Upgrade to Pro
+                  <Zap className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-600 hover:bg-blue-50"
+                onClick={() => setIsRegisterOpen(true)}
+              >
+                Start Pro Trial
                 <Zap className="ml-2 h-5 w-5" />
               </Button>
-            </Link>
+            )}
           </div>
         </div>
       </section>
@@ -330,12 +346,14 @@ export default function LandingPage() {
           </p>
           {!user && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Get Started Free
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                onClick={() => setIsRegisterOpen(true)}
+              >
+                Get Started Free
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
               <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-slate-900">
                 Contact Sales
               </Button>
@@ -395,6 +413,22 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Auth Modals */}
+      <AuthModals
+        isLoginOpen={isLoginOpen}
+        isRegisterOpen={isRegisterOpen}
+        onLoginClose={() => setIsLoginOpen(false)}
+        onRegisterClose={() => setIsRegisterOpen(false)}
+        onSwitchToRegister={() => {
+          setIsLoginOpen(false);
+          setIsRegisterOpen(true);
+        }}
+        onSwitchToLogin={() => {
+          setIsRegisterOpen(false);
+          setIsLoginOpen(true);
+        }}
+      />
     </div>
   );
 }
