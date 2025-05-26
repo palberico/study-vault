@@ -2,6 +2,7 @@ import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
+import LandingPage from "@/pages/landing";
 import LoginPage from "@/pages/auth/login";
 import RegisterPage from "@/pages/auth/register";
 import DashboardPage from "@/pages/dashboard";
@@ -29,6 +30,9 @@ function Router() {
         <RegisterPage />
       </Route>
       <Route path="/">
+        <LandingPage />
+      </Route>
+      <Route path="/dashboard">
         <ProtectedRoute>
           <AppLayout>
             <DashboardPage />
