@@ -37,7 +37,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
