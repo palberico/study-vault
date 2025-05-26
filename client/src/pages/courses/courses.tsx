@@ -14,24 +14,24 @@ export default function CoursesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  
+
   const [courses, setCourses] = useState<Course[]>([]);
   const [assignments, setAssignments] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   useEffect(() => {
     async function fetchCourses() {
       if (!user) return;
-      
+
       try {
         setIsLoading(true);
         const coursesData = await getUserCourses(user.uid);
         setCourses(coursesData);
-        
+
         const assignmentsData = await getUserAssignments(user.uid);
-        
+
         // Count assignments per course
         const assignmentCounts: Record<string, number> = {};
         assignmentsData.forEach((assignment: Assignment) => {
@@ -39,7 +39,7 @@ export default function CoursesPage() {
             assignmentCounts[assignment.courseId] = (assignmentCounts[assignment.courseId] || 0) + 1;
           }
         });
-        
+
         setAssignments(assignmentCounts);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -52,16 +52,16 @@ export default function CoursesPage() {
         setIsLoading(false);
       }
     }
-    
+
     fetchCourses();
   }, [user, toast]);
-  
+
   const filteredCourses = courses.filter(course => 
     course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (course.description && course.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-  
+
   const handleAddCourse = (newCourse: Course) => {
     setCourses(prev => [newCourse, ...prev]);
     setShowCourseForm(false);
@@ -75,7 +75,7 @@ export default function CoursesPage() {
           Manage and organize all your academic courses in one place
         </p>
       </div>
-      
+
       <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
         <div className="relative w-full md:w-1/2">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -95,10 +95,9 @@ export default function CoursesPage() {
               onClick={() => navigate("/pro-dashboard")}
               className="flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full sm:w-auto"
             >
-              <div className="bg-white/20 p-1 rounded mr-2">
+              <div className="bg-white/20 p-1 rounded">
                 <Bot className="h-4 w-4 text-white" />
               </div>
-              Pro Dashboard
             </Button>
           )}
           <Button 
@@ -109,7 +108,7 @@ export default function CoursesPage() {
           </Button>
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -160,7 +159,7 @@ export default function CoursesPage() {
           ))}
         </div>
       )}
-      
+
       {showCourseForm && (
         <CourseForm 
           onClose={() => setShowCourseForm(false)}
