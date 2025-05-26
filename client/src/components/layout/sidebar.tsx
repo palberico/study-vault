@@ -8,7 +8,6 @@ import {
   ChevronRight, 
   ChevronLeft,
   Lock,
-  Lightbulb,
   Bot,
   Sparkles,
   X
@@ -104,11 +103,16 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                   )}
                   onClick={() => navigateTo("/")}
                 >
-                  <Home className={cn(
-                    "w-5 h-5",
-                    isExpanded ? "mr-3" : "",
-                    isActive('/') ? "text-white" : "text-slate-500"
-                  )} />
+                  <div className={cn(
+                    "relative",
+                    isActive('/') && "border-b-2 border-purple-500 pb-1"
+                  )}>
+                    <Home className={cn(
+                      "w-5 h-5",
+                      isExpanded ? "mr-3" : "",
+                      isActive('/') ? "text-white" : "text-slate-500"
+                    )} />
+                  </div>
                   {isExpanded && "Dashboard"}
                 </Button>
               </li>
@@ -124,11 +128,16 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                   )}
                   onClick={() => navigateTo("/courses")}
                 >
-                  <BookOpen className={cn(
-                    "w-5 h-5",
-                    isExpanded ? "mr-3" : "",
-                    isActive('/courses') ? "text-white" : "text-slate-500"
-                  )} />
+                  <div className={cn(
+                    "relative",
+                    isActive('/courses') && "border-b-2 border-purple-500 pb-1"
+                  )}>
+                    <BookOpen className={cn(
+                      "w-5 h-5",
+                      isExpanded ? "mr-3" : "",
+                      isActive('/courses') ? "text-white" : "text-slate-500"
+                    )} />
+                  </div>
                   {isExpanded && "Courses"}
                 </Button>
               </li>
@@ -144,11 +153,16 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                   )}
                   onClick={() => navigateTo("/assignments")}
                 >
-                  <FileText className={cn(
-                    "w-5 h-5",
-                    isExpanded ? "mr-3" : "",
-                    isActive('/assignments') ? "text-white" : "text-slate-500"
-                  )} />
+                  <div className={cn(
+                    "relative",
+                    isActive('/assignments') && "border-b-2 border-purple-500 pb-1"
+                  )}>
+                    <FileText className={cn(
+                      "w-5 h-5",
+                      isExpanded ? "mr-3" : "",
+                      isActive('/assignments') ? "text-white" : "text-slate-500"
+                    )} />
+                  </div>
                   {isExpanded && "Assignments"}
                 </Button>
               </li>
@@ -164,11 +178,16 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                   )}
                   onClick={() => navigateTo("/files")}
                 >
-                  <Folder className={cn(
-                    "w-5 h-5",
-                    isExpanded ? "mr-3" : "",
-                    isActive('/files') ? "text-white" : "text-slate-500"
-                  )} />
+                  <div className={cn(
+                    "relative",
+                    isActive('/files') && "border-b-2 border-purple-500 pb-1"
+                  )}>
+                    <Folder className={cn(
+                      "w-5 h-5",
+                      isExpanded ? "mr-3" : "",
+                      isActive('/files') ? "text-white" : "text-slate-500"
+                    )} />
+                  </div>
                   {isExpanded && "All Files"}
                 </Button>
               </li>
@@ -193,39 +212,30 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                     {isExpanded && "Unlock Pro"}
                   </Button>
                 ) : (
-                  <>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                        !isExpanded && "justify-center"
-                      )}
-                      onClick={() => navigateTo("/pro-dashboard")}
-                      aria-label="AI Assistant"
-                    >
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                      isActive('/pro-dashboard') 
+                        ? "bg-primary text-white" 
+                        : "text-slate-700 hover:bg-slate-100",
+                      !isExpanded && "justify-center"
+                    )}
+                    onClick={() => navigateTo("/pro-dashboard")}
+                    aria-label="AI Assistant"
+                  >
+                    <div className={cn(
+                      "relative",
+                      isActive('/pro-dashboard') && "border-b-2 border-purple-500 pb-1"
+                    )}>
                       <Bot className={cn(
                         "w-5 h-5",
                         isExpanded ? "mr-3" : "",
-                        "text-slate-500"
+                        isActive('/pro-dashboard') ? "text-white" : "text-slate-500"
                       )} />
-                      {isExpanded && "AI Assistant"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                        !isExpanded && "justify-center"
-                      )}
-                      aria-label="Smart Suggestions"
-                    >
-                      <Lightbulb className={cn(
-                        "w-5 h-5",
-                        isExpanded ? "mr-3" : "",
-                        "text-slate-500"
-                      )} />
-                      {isExpanded && "Suggestions"}
-                    </Button>
-                  </>
+                    </div>
+                    {isExpanded && "AI Assistant"}
+                  </Button>
                 )}
               </li>
             </ul>
@@ -265,47 +275,99 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <li>
                   <Button
                     variant="ghost"
-                    className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
+                    className={cn(
+                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                      isActive('/') 
+                        ? "bg-primary text-white" 
+                        : "text-slate-700 hover:bg-slate-100"
+                    )}
                     onClick={() => { navigateTo("/"); toggleSidebar(); }}
                   >
-                    <Home className="w-5 h-5 mr-3 text-slate-500" />
+                    <div className={cn(
+                      "relative",
+                      isActive('/') && "border-b-2 border-purple-500 pb-1"
+                    )}>
+                      <Home className={cn(
+                        "w-5 h-5 mr-3",
+                        isActive('/') ? "text-white" : "text-slate-500"
+                      )} />
+                    </div>
                     Dashboard
                   </Button>
                 </li>
                 <li>
                   <Button
                     variant="ghost"
-                    className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
+                    className={cn(
+                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                      isActive('/courses') 
+                        ? "bg-primary text-white" 
+                        : "text-slate-700 hover:bg-slate-100"
+                    )}
                     onClick={() => { navigateTo("/courses"); toggleSidebar(); }}
                   >
-                    <BookOpen className="w-5 h-5 mr-3 text-slate-500" />
+                    <div className={cn(
+                      "relative",
+                      isActive('/courses') && "border-b-2 border-purple-500 pb-1"
+                    )}>
+                      <BookOpen className={cn(
+                        "w-5 h-5 mr-3",
+                        isActive('/courses') ? "text-white" : "text-slate-500"
+                      )} />
+                    </div>
                     Courses
                   </Button>
                 </li>
                 <li>
                   <Button
                     variant="ghost"
-                    className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
+                    className={cn(
+                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                      isActive('/assignments') 
+                        ? "bg-primary text-white" 
+                        : "text-slate-700 hover:bg-slate-100"
+                    )}
                     onClick={() => { navigateTo("/assignments"); toggleSidebar(); }}
                   >
-                    <FileText className="w-5 h-5 mr-3 text-slate-500" />
+                    <div className={cn(
+                      "relative",
+                      isActive('/assignments') && "border-b-2 border-purple-500 pb-1"
+                    )}>
+                      <FileText className={cn(
+                        "w-5 h-5 mr-3",
+                        isActive('/assignments') ? "text-white" : "text-slate-500"
+                      )} />
+                    </div>
                     Assignments
                   </Button>
                 </li>
                 <li>
                   <Button
                     variant="ghost"
-                    className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
+                    className={cn(
+                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                      isActive('/files') 
+                        ? "bg-primary text-white" 
+                        : "text-slate-700 hover:bg-slate-100"
+                    )}
                     onClick={() => { navigateTo("/files"); toggleSidebar(); }}
                   >
-                    <Folder className="w-5 h-5 mr-3 text-slate-500" />
+                    <div className={cn(
+                      "relative",
+                      isActive('/files') && "border-b-2 border-purple-500 pb-1"
+                    )}>
+                      <Folder className={cn(
+                        "w-5 h-5 mr-3",
+                        isActive('/files') ? "text-white" : "text-slate-500"
+                      )} />
+                    </div>
                     All Files
                   </Button>
                 </li>
                 <li className="mt-2">
                   {!user?.isPro ? (
                     <Button
-                      onClick={() => setShowProInfoModal(true)}
+                      onClick={() => { setShowProInfoModal(true); toggleSidebar(); }}
                       variant="ghost"
                       className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
                       aria-label="Unlock Pro features"
@@ -314,24 +376,28 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                       Unlock Pro
                     </Button>
                   ) : (
-                    <>
-                      <Button
-                        variant="ghost"
-                        className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
-                        aria-label="AI Assistant"
-                      >
-                        <Bot className="w-5 h-5 mr-3 text-slate-500" />
-                        AI Assistant
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md"
-                        aria-label="Smart Suggestions"
-                      >
-                        <Lightbulb className="w-5 h-5 mr-3 text-slate-500" />
-                        Suggestions
-                      </Button>
-                    </>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
+                        isActive('/pro-dashboard') 
+                          ? "bg-primary text-white" 
+                          : "text-slate-700 hover:bg-slate-100"
+                      )}
+                      onClick={() => { navigateTo("/pro-dashboard"); toggleSidebar(); }}
+                      aria-label="AI Assistant"
+                    >
+                      <div className={cn(
+                        "relative",
+                        isActive('/pro-dashboard') && "border-b-2 border-purple-500 pb-1"
+                      )}>
+                        <Bot className={cn(
+                          "w-5 h-5 mr-3",
+                          isActive('/pro-dashboard') ? "text-white" : "text-slate-500"
+                        )} />
+                      </div>
+                      AI Assistant
+                    </Button>
                   )}
                 </li>
               </ul>
