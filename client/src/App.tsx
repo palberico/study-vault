@@ -3,8 +3,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import LandingPage from "@/pages/landing";
-import LoginPage from "@/pages/auth/login";
-import RegisterPage from "@/pages/auth/register";
 import DashboardPage from "@/pages/dashboard";
 import CoursesPage from "@/pages/courses/courses";
 import CourseDetailPage from "@/pages/courses/course-detail";
@@ -23,12 +21,7 @@ import { ProtectedRoute } from "@/hooks/use-auth";
 function Router() {
   return (
     <Switch>
-      <Route path="/login">
-        <LoginPage />
-      </Route>
-      <Route path="/register">
-        <RegisterPage />
-      </Route>
+
       <Route path="/">
         <LandingPage />
       </Route>
