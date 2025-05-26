@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { BookOpen, Menu, Search, Bell, LogOut, HelpCircle, User } from "lucide-react";
+import { BookOpen, Menu, Search, Bell, LogOut, HelpCircle, User, GraduationCap } from "lucide-react";
 import ProAvatar from "@/components/pro/pro-avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             onClick={() => navigate("/")}
           >
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg">
-              <BookOpen className="h-6 w-6 text-white" />
+              <GraduationCap className="h-6 w-6 text-white" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               StudyVault
