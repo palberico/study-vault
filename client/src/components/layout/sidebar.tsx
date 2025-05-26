@@ -95,10 +95,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                    isActive('/') 
-                      ? "bg-primary text-white" 
-                      : "text-slate-700 hover:bg-slate-100",
+                    "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100",
                     !isExpanded && "justify-center"
                   )}
                   onClick={() => navigateTo("/")}
@@ -108,9 +105,8 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                     isActive('/') && "border-b-2 border-purple-500 pb-1"
                   )}>
                     <Home className={cn(
-                      "w-5 h-5",
-                      isExpanded ? "mr-3" : "",
-                      isActive('/') ? "text-white" : "text-slate-500"
+                      "w-5 h-5 text-slate-500",
+                      isExpanded ? "mr-3" : ""
                     )} />
                   </div>
                   {isExpanded && "Dashboard"}
@@ -120,10 +116,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                    isActive('/courses') 
-                      ? "bg-primary text-white" 
-                      : "text-slate-700 hover:bg-slate-100",
+                    "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100",
                     !isExpanded && "justify-center"
                   )}
                   onClick={() => navigateTo("/courses")}
@@ -133,9 +126,8 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                     isActive('/courses') && "border-b-2 border-purple-500 pb-1"
                   )}>
                     <BookOpen className={cn(
-                      "w-5 h-5",
-                      isExpanded ? "mr-3" : "",
-                      isActive('/courses') ? "text-white" : "text-slate-500"
+                      "w-5 h-5 text-slate-500",
+                      isExpanded ? "mr-3" : ""
                     )} />
                   </div>
                   {isExpanded && "Courses"}
@@ -145,10 +137,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                    isActive('/assignments') 
-                      ? "bg-primary text-white" 
-                      : "text-slate-700 hover:bg-slate-100",
+                    "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100",
                     !isExpanded && "justify-center"
                   )}
                   onClick={() => navigateTo("/assignments")}
@@ -158,9 +147,8 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                     isActive('/assignments') && "border-b-2 border-purple-500 pb-1"
                   )}>
                     <FileText className={cn(
-                      "w-5 h-5",
-                      isExpanded ? "mr-3" : "",
-                      isActive('/assignments') ? "text-white" : "text-slate-500"
+                      "w-5 h-5 text-slate-500",
+                      isExpanded ? "mr-3" : ""
                     )} />
                   </div>
                   {isExpanded && "Assignments"}
@@ -170,10 +158,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                    isActive('/files') 
-                      ? "bg-primary text-white" 
-                      : "text-slate-700 hover:bg-slate-100",
+                    "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100",
                     !isExpanded && "justify-center"
                   )}
                   onClick={() => navigateTo("/files")}
@@ -183,9 +168,8 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                     isActive('/files') && "border-b-2 border-purple-500 pb-1"
                   )}>
                     <Folder className={cn(
-                      "w-5 h-5",
-                      isExpanded ? "mr-3" : "",
-                      isActive('/files') ? "text-white" : "text-slate-500"
+                      "w-5 h-5 text-slate-500",
+                      isExpanded ? "mr-3" : ""
                     )} />
                   </div>
                   {isExpanded && "All Files"}
@@ -215,10 +199,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                   <Button
                     variant="ghost"
                     className={cn(
-                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                      isActive('/pro-dashboard') 
-                        ? "bg-primary text-white" 
-                        : "text-slate-700 hover:bg-slate-100",
+                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100",
                       !isExpanded && "justify-center"
                     )}
                     onClick={() => navigateTo("/pro-dashboard")}
@@ -229,9 +210,8 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                       isActive('/pro-dashboard') && "border-b-2 border-purple-500 pb-1"
                     )}>
                       <Bot className={cn(
-                        "w-5 h-5",
-                        isExpanded ? "mr-3" : "",
-                        isActive('/pro-dashboard') ? "text-white" : "text-slate-500"
+                        "w-5 h-5 text-slate-500",
+                        isExpanded ? "mr-3" : ""
                       )} />
                     </div>
                     {isExpanded && "AI Assistant"}
@@ -275,22 +255,14 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <li>
                   <Button
                     variant="ghost"
-                    className={cn(
-                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                      isActive('/') 
-                        ? "bg-primary text-white" 
-                        : "text-slate-700 hover:bg-slate-100"
-                    )}
+                    className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100"
                     onClick={() => { navigateTo("/"); toggleSidebar(); }}
                   >
                     <div className={cn(
                       "relative",
                       isActive('/') && "border-b-2 border-purple-500 pb-1"
                     )}>
-                      <Home className={cn(
-                        "w-5 h-5 mr-3",
-                        isActive('/') ? "text-white" : "text-slate-500"
-                      )} />
+                      <Home className="w-5 h-5 mr-3 text-slate-500" />
                     </div>
                     Dashboard
                   </Button>
@@ -298,22 +270,14 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <li>
                   <Button
                     variant="ghost"
-                    className={cn(
-                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                      isActive('/courses') 
-                        ? "bg-primary text-white" 
-                        : "text-slate-700 hover:bg-slate-100"
-                    )}
+                    className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100"
                     onClick={() => { navigateTo("/courses"); toggleSidebar(); }}
                   >
                     <div className={cn(
                       "relative",
                       isActive('/courses') && "border-b-2 border-purple-500 pb-1"
                     )}>
-                      <BookOpen className={cn(
-                        "w-5 h-5 mr-3",
-                        isActive('/courses') ? "text-white" : "text-slate-500"
-                      )} />
+                      <BookOpen className="w-5 h-5 mr-3 text-slate-500" />
                     </div>
                     Courses
                   </Button>
@@ -321,22 +285,14 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <li>
                   <Button
                     variant="ghost"
-                    className={cn(
-                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                      isActive('/assignments') 
-                        ? "bg-primary text-white" 
-                        : "text-slate-700 hover:bg-slate-100"
-                    )}
+                    className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100"
                     onClick={() => { navigateTo("/assignments"); toggleSidebar(); }}
                   >
                     <div className={cn(
                       "relative",
                       isActive('/assignments') && "border-b-2 border-purple-500 pb-1"
                     )}>
-                      <FileText className={cn(
-                        "w-5 h-5 mr-3",
-                        isActive('/assignments') ? "text-white" : "text-slate-500"
-                      )} />
+                      <FileText className="w-5 h-5 mr-3 text-slate-500" />
                     </div>
                     Assignments
                   </Button>
@@ -344,22 +300,14 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                 <li>
                   <Button
                     variant="ghost"
-                    className={cn(
-                      "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                      isActive('/files') 
-                        ? "bg-primary text-white" 
-                        : "text-slate-700 hover:bg-slate-100"
-                    )}
+                    className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100"
                     onClick={() => { navigateTo("/files"); toggleSidebar(); }}
                   >
                     <div className={cn(
                       "relative",
                       isActive('/files') && "border-b-2 border-purple-500 pb-1"
                     )}>
-                      <Folder className={cn(
-                        "w-5 h-5 mr-3",
-                        isActive('/files') ? "text-white" : "text-slate-500"
-                      )} />
+                      <Folder className="w-5 h-5 mr-3 text-slate-500" />
                     </div>
                     All Files
                   </Button>
@@ -378,12 +326,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                   ) : (
                     <Button
                       variant="ghost"
-                      className={cn(
-                        "w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md",
-                        isActive('/pro-dashboard') 
-                          ? "bg-primary text-white" 
-                          : "text-slate-700 hover:bg-slate-100"
-                      )}
+                      className="w-full flex items-center justify-start px-2 py-2 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-100"
                       onClick={() => { navigateTo("/pro-dashboard"); toggleSidebar(); }}
                       aria-label="AI Assistant"
                     >
@@ -391,10 +334,7 @@ export default function Sidebar({ courses, isExpanded, toggleSidebar }: SidebarP
                         "relative",
                         isActive('/pro-dashboard') && "border-b-2 border-purple-500 pb-1"
                       )}>
-                        <Bot className={cn(
-                          "w-5 h-5 mr-3",
-                          isActive('/pro-dashboard') ? "text-white" : "text-slate-500"
-                        )} />
+                        <Bot className="w-5 h-5 mr-3 text-slate-500" />
                       </div>
                       AI Assistant
                     </Button>
