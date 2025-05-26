@@ -95,7 +95,7 @@ export default function CoursesPage() {
               onClick={() => navigate("/pro-dashboard")}
               className="flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full sm:w-auto"
             >
-              <Bot className="h-5 w-5 text-white" />
+              <Bot className="h-6 w-6 text-white" />
             </Button>
           )}
           <Button 

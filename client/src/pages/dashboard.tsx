@@ -14,7 +14,7 @@ import CourseCard from "@/components/course/course-card";
 import AssignmentCard from "@/components/assignment/assignment-card";
 import FileItem from "@/components/file/file-item";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Calendar, FileText, Sparkles } from "lucide-react";
+import { PlusIcon, Calendar, FileText, Sparkles, Bot } from "lucide-react";
 import CourseForm from "@/components/course/course-form";
 import { formatDistanceToNow } from "date-fns";
 import OnboardingController from "@/components/onboarding/onboarding-controller";
@@ -165,6 +165,14 @@ export default function DashboardPage() {
                 className="px-4 py-2 border border-yellow-400 text-yellow-500 hover:bg-yellow-50 rounded-lg text-sm font-medium flex items-center"
               >
                 <Sparkles className="mr-2 h-4 w-4 text-yellow-400" /> Try Pro
+              </Button>
+            )}
+            {user?.isPro && (
+              <Button 
+                onClick={() => navigate("/pro-dashboard")}
+                className="flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+              >
+                <Bot className="h-6 w-6 text-white" />
               </Button>
             )}
             <Button 
