@@ -492,5 +492,85 @@ export const deleteFile = async (fileId: string, filePath: string) => {
   }
 };
 
+// Summary types and functions
+export interface Summary {
+  id?: string;
+  userId: string;
+  courseId: string;
+  assignmentId?: string;
+  title: string;
+  overview: string;
+  mainPoints: string[];
+  keyTerms: string[];
+  originalDocumentUrl?: string;
+  originalDocumentName?: string;
+  createdAt: any;
+}
+
+export const saveSummary = async (summaryData: Omit<Summary, 'id' | 'createdAt'>) => {
+  try {
+    const docRef = await addDoc(collection(db, "summaries"), {
+      ...summaryData,
+      createdAt: new Date()
+    });
+    
+    return {
+      id: docRef.id,
+      ...summaryData,
+      createdAt: new Date()
+    } as Summary;
+  } catch (error) {
+    console.error("Error saving summary:", error);
+    throw error;
+  }
+};
+
+export const getUserSummaries = async (userId: string) => {
+  try {
+    const q = query(
+      collection(db, "summaries"),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Summary[];
+  } catch (error) {
+    console.error("Error fetching summaries:", error);
+    return [];
+  }
+};
+
+export const getSummary = async (summaryId: string) => {
+  try {
+    const docRef = doc(db, "summaries", summaryId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return {
+        id: docSnap.id,
+        ...docSnap.data()
+      } as Summary;
+    } else {
+      throw new Error("Summary not found");
+    }
+  } catch (error) {
+    console.error("Error fetching summary:", error);
+    throw error;
+  }
+};
+
+export const deleteSummary = async (summaryId: string) => {
+  try {
+    await deleteDoc(doc(db, "summaries", summaryId));
+  } catch (error) {
+    console.error("Error deleting summary:", error);
+    throw error;
+  }
+};
+
 export { app, auth, db, storage, onAuthStateChanged };
 export type { FirebaseUser as User };

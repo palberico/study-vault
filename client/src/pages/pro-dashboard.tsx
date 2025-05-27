@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SyllabusAnalyzer from "@/components/pro/SyllabusAnalyzer"; // <-- Import new component
-import SmartSummarizer from "@/components/pro/SmartSummarizer";
+import SmartSummarizerEnhanced from "@/components/pro/SmartSummarizerEnhanced";
 
 // Dummy analytics data (replace with real backend data as needed)
 const studyTimeData: { day: string; hours: number }[] = [];
@@ -292,7 +292,7 @@ export default function ProDashboard() {
       />
 
       {/* Smart Summarizer Modal */}
-      <SmartSummarizer
+      <SmartSummarizerEnhanced
         isOpen={isSmartSummarizerOpen}
         onClose={() => setSmartSummarizerOpen(false)}
       />
