@@ -1,0 +1,50 @@
+Project: You are working on StudyVault, a modern web app for college students to organize their coursework and leverage AI tools. The app already includes a syllabus analyzer that extracts assignments using OpenRouter and is built with React, Tailwind CSS, and Firebase.
+
+Task: Build a “Smart Summarizer” feature that allows users to upload or paste their notes/readings and receive concise, student-friendly summaries.
+Requirements:
+1. User Interface
+	•	Use the “Smart Summarizer” card in the Pro Dashboard.
+	•	When clicked, open a modal or dedicated component.
+	•	Let users:
+	◦	Paste notes in a large text area or
+	◦	Upload a PDF, DOC, or DOCX file (extract the text using existing extraction logic).
+	•	Display a summary result in a styled output container (matching existing dashboard modals/alerts).
+2. AI Summarization Logic
+	•	Use the Mistral Small model on OpenRouter (mistralai/mistral-small-3.1-24b-instruct:free).
+	•	Send a prompt instructing the AI to:
+	◦	Write a 1-paragraph summary in clear student language.
+	◦	List the top 5 main points as bullet points.
+	◦	Highlight any important dates, key terms, or concepts in bold.
+	•	Handle model responses wrapped in code blocks or with minor JSON formatting issues (reuse any jsonrepair/fallback logic from syllabus analyzer).
+	•	Show error messages in a user-friendly way.
+3. UX Details
+	•	Show a loading spinner (with countdown) during summarization.
+	•	On completion, display the summary, allow the user to copy or save the summary to their notes, or analyze another document.
+	•	If AI fails, show an informative modal.
+4. Code & Structure
+	•	Keep code modular: Move all summarizer logic/UI into /src/components/pro/SmartSummarizer.tsx.
+	•	Re-use existing hooks (useAuth, useToast) and text extraction code.
+	•	Maintain app’s styling: Tailwind for layout, ShadCN UI for components, consistent look with other Pro features.
+	•	Only add necessary new code—do not break existing syllabus or dashboard logic.
+	•	Provide placeholder/boilerplate code for new backend functions if needed.
+5. Example AI Prompt
+Summarize the following text for a college student. 
+- Write a clear one-paragraph overview.
+- Then, list the top 5 main ideas as bullet points.
+- Highlight key dates, terms, or concepts in bold. 
+- Be thorough and accurate, but keep language simple and easy to understand.
+
+TEXT:
+[User’s pasted or extracted notes]
+
+Deliverables:
+	•	New SmartSummarizer component and all required backend/frontend code.
+	•	Integration into the Pro Dashboard with a button or card.
+	•	Feature must be fully functional and styled to match the app.
+	•	Clear instructions or comments on how to test.
+
+Notes for Replit:
+	•	Use the current OpenRouter API integration pattern as in SyllabusAnalyzer.
+	•	If possible, use the same text extraction method for DOC/PDF.
+	•	Make sure to handle edge cases, such as files with no readable text or empty submissions.
+	•	Ask clarifying questions if anything is ambiguous.

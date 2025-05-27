@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SyllabusAnalyzer from "@/components/pro/SyllabusAnalyzer"; // <-- Import new component
+import SmartSummarizer from "@/components/pro/SmartSummarizer";
 
 // Dummy analytics data (replace with real backend data as needed)
 const studyTimeData: { day: string; hours: number }[] = [];
@@ -19,6 +20,7 @@ export default function ProDashboard() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isSyllabusModalOpen, setSyllabusModalOpen] = useState(false); // Only state needed
+  const [isSmartSummarizerOpen, setSmartSummarizerOpen] = useState(false);
 
   // Redirect non-pro users away
   React.useEffect(() => {
@@ -200,7 +202,10 @@ export default function ProDashboard() {
               </p>
             </CardContent>
             <CardFooter className="mt-auto">
-              <Button className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700">
+              <Button 
+                onClick={() => setSmartSummarizerOpen(true)}
+                className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700"
+              >
                 Summarize
               </Button>
             </CardFooter>
@@ -283,8 +288,13 @@ export default function ProDashboard() {
       <SyllabusAnalyzer
         open={isSyllabusModalOpen}
         onOpenChange={setSyllabusModalOpen}
-        user={user}
         // Optionally, you can add onSyllabusProcessed={() => { /* refresh logic here */ }}
+      />
+
+      {/* Smart Summarizer Modal */}
+      <SmartSummarizer
+        isOpen={isSmartSummarizerOpen}
+        onClose={() => setSmartSummarizerOpen(false)}
       />
     </div>
   );
