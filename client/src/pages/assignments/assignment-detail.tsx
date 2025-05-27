@@ -117,7 +117,13 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
         // Fetch summaries related to this assignment
         try {
           const allSummaries = await getUserSummaries(user.uid);
-          const assignmentSummaries = allSummaries.filter(summary => summary.assignmentId === id);
+          console.log("All summaries:", allSummaries);
+          console.log("Looking for assignment ID:", id);
+          const assignmentSummaries = allSummaries.filter(summary => {
+            console.log("Summary assignmentId:", summary.assignmentId, "Assignment ID:", id);
+            return summary.assignmentId === id;
+          });
+          console.log("Filtered assignment summaries:", assignmentSummaries);
           setSummaries(assignmentSummaries);
         } catch (summariesError) {
           console.error("Error fetching summaries:", summariesError);
