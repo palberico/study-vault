@@ -8,9 +8,11 @@ import {
   getAssignmentFiles,
   deleteAssignment,
   updateAssignment,
+  getUserSummaries,
   type Assignment,
   type Course,
-  type FileItem as FirebaseFileItem
+  type FileItem as FirebaseFileItem,
+  type Summary
 } from "@/lib/firebase";
 import FileUploader from "@/components/file/file-uploader";
 import { Button } from "@/components/ui/button";
@@ -50,6 +52,7 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
   const [files, setFiles] = useState<FirebaseFileItem[]>([]);
+  const [summaries, setSummaries] = useState<Summary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -109,6 +112,16 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
           console.error("Error fetching files:", filesError);
           // Continue even if files fetch fails
           setFiles([]);
+        }
+
+        // Fetch summaries related to this assignment
+        try {
+          const allSummaries = await getUserSummaries(user.uid);
+          const assignmentSummaries = allSummaries.filter(summary => summary.assignmentId === id);
+          setSummaries(assignmentSummaries);
+        } catch (summariesError) {
+          console.error("Error fetching summaries:", summariesError);
+          setSummaries([]);
         }
         
       } catch (error) {
@@ -371,9 +384,26 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
           <div className="flex flex-col sm:flex-row justify-between text-sm text-slate-500 mt-4 pt-4 border-t border-slate-100">
             <div>
               <Calendar className="inline-block h-4 w-4 mr-1" /> 
-              Due: {assignment.dueDate instanceof Date 
-                ? format(assignment.dueDate, 'MMM dd, yyyy') 
-                : format(new Date(assignment.dueDate), 'MMM dd, yyyy')}
+              Due: {(() => {
+                try {
+                  if (!assignment.dueDate) return 'No due date';
+                  
+                  let date;
+                  if (assignment.dueDate instanceof Date) {
+                    date = assignment.dueDate;
+                  } else if (typeof assignment.dueDate === 'object' && assignment.dueDate !== null && 'toDate' in assignment.dueDate) {
+                    date = (assignment.dueDate as any).toDate();
+                  } else {
+                    date = new Date(assignment.dueDate);
+                  }
+                  
+                  if (isNaN(date.getTime())) return 'Invalid date';
+                  return format(date, 'MMM dd, yyyy');
+                } catch (error) {
+                  console.error('Date formatting error:', error);
+                  return 'Invalid date';
+                }
+              })()}
             </div>
             {/* Removed "Date Added" information as requested */}
           </div>
@@ -476,6 +506,78 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
                             <TrashIcon className="h-4 w-4" />
                           </Button>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Summaries Section */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-slate-800">AI Summaries</h2>
+        </div>
+        
+        <Card>
+          <CardContent className="p-6">
+            {summaries.length === 0 ? (
+              <div className="text-center py-6">
+                <FileText className="mx-auto h-12 w-12 text-slate-400 mb-3" />
+                <h3 className="text-lg font-medium text-slate-900 mb-1">No summaries created yet</h3>
+                <p className="text-slate-500 mb-4">Create AI-powered summaries for this assignment using the Smart Summarizer</p>
+                {user?.isPro && (
+                  <Button 
+                    onClick={() => navigate("/pro-dashboard")}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    Create Summary
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {summaries.map((summary) => (
+                  <div 
+                    key={summary.id} 
+                    className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer bg-white"
+                    onClick={() => navigate(`/summaries/${summary.id}`)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-slate-900 mb-2 hover:text-blue-600 transition-colors">
+                          {summary.title}
+                        </h4>
+                        <p className="text-sm text-slate-600 mb-3 line-clamp-2">
+                          {summary.overview.length > 150 
+                            ? `${summary.overview.substring(0, 150)}...` 
+                            : summary.overview}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-slate-500">
+                          <span>📖 {summary.mainPoints.length} main points</span>
+                          <span>🔑 {summary.keyTerms.length} key terms</span>
+                          {summary.originalDocumentName && (
+                            <span>📄 {summary.originalDocumentName}</span>
+                          )}
+                          <span>
+                            {(() => {
+                              try {
+                                const date = summary.createdAt?.toDate ? summary.createdAt.toDate() : new Date(summary.createdAt);
+                                return `Created ${format(date, 'MMM dd, yyyy')}`;
+                              } catch (error) {
+                                return 'Recently created';
+                              }
+                            })()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ml-4 flex items-center">
+                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                          View Summary →
+                        </Button>
                       </div>
                     </div>
                   </div>

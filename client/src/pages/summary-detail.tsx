@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { getSummary, getUserCourses, type Summary, type Course } from "@/lib/firebase";
+import { getSummary, getUserCourses, getAssignment, type Summary, type Course, type Assignment } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ export default function SummaryDetail() {
   
   const [summary, setSummary] = useState<Summary | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
+  const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
