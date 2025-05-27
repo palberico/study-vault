@@ -160,12 +160,12 @@ export default function ProDashboard() {
           </Card>
 
           <Card className="border-none shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
-            <CardHeader className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-t-lg">
+            <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
                 <FileUp className="w-5 h-5 mr-2" />
                 Syllabus Analyzer
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-emerald-100">
                 Instantly create courses from syllabi
               </CardDescription>
             </CardHeader>
@@ -177,7 +177,7 @@ export default function ProDashboard() {
             <CardFooter className="mt-auto">
               <Button
                 onClick={() => setSyllabusModalOpen(true)}
-                className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
               >
                 Upload Syllabus
               </Button>
@@ -185,12 +185,12 @@ export default function ProDashboard() {
           </Card>
 
           <Card className="border-none shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
-            <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-t-lg">
+            <CardHeader className="bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
                 <Zap className="w-5 h-5 mr-2" />
                 Smart Summaries
               </CardTitle>
-              <CardDescription className="text-purple-100">
+              <CardDescription className="text-violet-100">
                 Save time with AI-powered notes
               </CardDescription>
             </CardHeader>
@@ -200,7 +200,7 @@ export default function ProDashboard() {
               </p>
             </CardContent>
             <CardFooter className="mt-auto">
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700">
+              <Button className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700">
                 Summarize
               </Button>
             </CardFooter>
@@ -229,12 +229,12 @@ export default function ProDashboard() {
           </Card>
 
           <Card className="border-none shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
-            <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
+            <CardHeader className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
                 <Users className="w-5 h-5 mr-2" />
                 Study Groups
               </CardTitle>
-              <CardDescription className="text-green-100">
+              <CardDescription className="text-cyan-100">
                 Connect with other students
               </CardDescription>
             </CardHeader>
@@ -244,7 +244,7 @@ export default function ProDashboard() {
               </p>
             </CardContent>
             <CardFooter className="mt-auto">
-              <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
+              <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700">
                 Find Groups
               </Button>
             </CardFooter>
