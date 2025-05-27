@@ -14,6 +14,7 @@ import FilesPage from "@/pages/files/files";
 import FileUploadPage from "@/pages/files/upload";
 import MyAccountPage from "@/pages/my-account";
 import ProDashboard from "@/pages/pro-dashboard";
+import SummaryDetail from "@/pages/summary-detail";
 import NotFound from "@/pages/not-found";
 import AppLayout from "@/components/layout/app-layout";
 import { ProtectedRoute } from "@/hooks/use-auth";
@@ -109,6 +110,15 @@ function Router() {
             <ProDashboard />
           </AppLayout>
         </ProtectedRoute>
+      </Route>
+      <Route path="/summaries/:id">
+        {(params) => (
+          <ProtectedRoute>
+            <AppLayout>
+              <SummaryDetail />
+            </AppLayout>
+          </ProtectedRoute>
+        )}
       </Route>
       <Route>
         <NotFound />
