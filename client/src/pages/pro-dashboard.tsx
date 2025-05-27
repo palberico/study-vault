@@ -137,7 +137,7 @@ export default function ProDashboard() {
           Pro Features
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
+          <Card className="border-none shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
             <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
                 <Bot className="w-5 h-5 mr-2" />
@@ -147,19 +147,19 @@ export default function ProDashboard() {
                 Study smarter with personalized help
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-1">
               <p className="text-slate-600">
                 Get intelligent answers to your questions and receive guided explanations for complex topics.
               </p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="mt-auto">
               <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700">
                 Start Chatting
               </Button>
             </CardFooter>
           </Card>
 
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
+          <Card className="border-none shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
             <CardHeader className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
                 <FileUp className="w-5 h-5 mr-2" />
@@ -169,12 +169,12 @@ export default function ProDashboard() {
                 Instantly create courses from syllabi
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-1">
               <p className="text-slate-600">
                 Upload your course syllabus and we'll automatically extract deadlines, assignments, and create a complete course structure.
               </p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="mt-auto">
               <Button
                 onClick={() => setSyllabusModalOpen(true)}
                 className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
@@ -184,7 +184,7 @@ export default function ProDashboard() {
             </CardFooter>
           </Card>
 
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
+          <Card className="border-none shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
             <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
                 <Zap className="w-5 h-5 mr-2" />
@@ -194,19 +194,19 @@ export default function ProDashboard() {
                 Save time with AI-powered notes
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-1">
               <p className="text-slate-600">
                 Automatically generate concise summaries from your lecture notes, readings, and study materials.
               </p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="mt-auto">
               <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700">
                 Summarize
               </Button>
             </CardFooter>
           </Card>
 
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
+          <Card className="border-none shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
             <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
                 <BookOpen className="w-5 h-5 mr-2" />
@@ -216,19 +216,19 @@ export default function ProDashboard() {
                 Visualize your academic progress
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-1">
               <p className="text-slate-600">
                 Track your performance across all courses with detailed analytics and personalized insights.
               </p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="mt-auto">
               <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700">
                 View Analytics
               </Button>
             </CardFooter>
           </Card>
 
-          <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
+          <Card className="border-none shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
             <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center">
                 <Users className="w-5 h-5 mr-2" />
@@ -238,12 +238,12 @@ export default function ProDashboard() {
                 Connect with other students
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-1">
               <p className="text-slate-600">
                 Create or join virtual study groups with students taking the same courses for collaborative learning.
               </p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="mt-auto">
               <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
                 Find Groups
               </Button>
