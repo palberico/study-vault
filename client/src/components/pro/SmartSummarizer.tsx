@@ -9,6 +9,7 @@ import { FileText, Upload, Loader2, Copy, RotateCcw, Sparkles } from "lucide-rea
 import { Input } from "@/components/ui/input";
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
+import { jsonrepair } from "jsonrepair";
 
 interface SmartSummarizerProps {
   isOpen: boolean;
@@ -24,145 +25,122 @@ interface SummaryResult {
 export default function SmartSummarizer({ isOpen, onClose }: SmartSummarizerProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [inputText, setInputText] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [summaryResult, setSummaryResult] = useState<SummaryResult | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  // Extract text from uploaded file with proper parsing for different file types
+  // Extract text from uploaded file (PDF, DOCX, TXT)
   const extractTextFromFile = async (file: File): Promise<string> => {
     const fileName = file.name.toLowerCase();
     const fileExtension = fileName.split('.').pop();
 
-    try {
-      // Handle TXT files with FileReader
-      if (fileExtension === 'txt') {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const text = e.target?.result as string;
-            resolve(text);
-          };
-          reader.onerror = () => reject(new Error("Failed to read text file"));
-          reader.readAsText(file);
-        });
-      }
-
-      // Handle PDF files with pdfjs-dist
-      if (fileExtension === 'pdf') {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = async (e) => {
-            try {
-              const arrayBuffer = e.target?.result as ArrayBuffer;
-              
-              // Set up PDF.js worker - use a more reliable CDN
-              pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
-              
-              const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-              let fullText = '';
-              
-              // Extract text from all pages
-              for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                const page = await pdf.getPage(pageNum);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items
-                  .map((item: any) => item.str)
-                  .join(' ');
-                fullText += pageText + '\n';
-              }
-              
-              if (!fullText.trim()) {
-                throw new Error("No text content found in PDF");
-              }
-              
-              resolve(fullText);
-            } catch (error) {
-              reject(new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`));
-            }
-          };
-          reader.onerror = () => reject(new Error("Failed to read PDF file"));
-          reader.readAsArrayBuffer(file);
-        });
-      }
-
-      // Handle DOCX files with mammoth
-      if (fileExtension === 'docx') {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = async (e) => {
-            try {
-              const arrayBuffer = e.target?.result as ArrayBuffer;
-              const result = await mammoth.extractRawText({ arrayBuffer });
-              
-              if (!result.value.trim()) {
-                throw new Error("No text content found in DOCX file");
-              }
-              
-              resolve(result.value);
-            } catch (error) {
-              reject(new Error(`Failed to parse DOCX: ${error instanceof Error ? error.message : 'Unknown error'}`));
-            }
-          };
-          reader.onerror = () => reject(new Error("Failed to read DOCX file"));
-          reader.readAsArrayBuffer(file);
-        });
-      }
-
-      // Handle legacy DOC files (attempt as text, but warn user)
-      if (fileExtension === 'doc') {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            try {
-              const text = e.target?.result as string;
-              // DOC files may not parse well as plain text
-              if (!text || text.length < 10) {
-                throw new Error("Legacy DOC format detected - please convert to DOCX for better results");
-              }
-              resolve(text);
-            } catch (error) {
-              reject(new Error("Legacy DOC files are not fully supported. Please convert to DOCX format."));
-            }
-          };
-          reader.onerror = () => reject(new Error("Failed to read DOC file"));
-          reader.readAsText(file);
-        });
-      }
-
-      // Unsupported file type
-      throw new Error(`Unsupported file type: ${fileExtension}. Please use TXT, PDF, or DOCX files.`);
-
-    } catch (error) {
-      throw new Error(`File processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // TXT
+    if (fileExtension === 'txt') {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = () => reject(new Error("Failed to read TXT file"));
+        reader.readAsText(file);
+      });
     }
+
+    // PDF
+    if (fileExtension === 'pdf') {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const arrayBuffer = e.target?.result as ArrayBuffer;
+            // Do NOT set workerSrc!
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              const page = await pdf.getPage(pageNum);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items
+                .map((item: any) => item.str)
+                .join(' ');
+              fullText += pageText + '\n';
+            }
+            if (!fullText.trim()) {
+              throw new Error("No text content found in PDF");
+            }
+            resolve(fullText);
+          } catch (error) {
+            reject(new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`));
+          }
+        };
+        reader.onerror = () => reject(new Error("Failed to read PDF file"));
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    // DOCX
+    if (fileExtension === 'docx') {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const arrayBuffer = e.target?.result as ArrayBuffer;
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            if (!result.value.trim()) {
+              throw new Error("No text content found in DOCX file");
+            }
+            resolve(result.value);
+          } catch (error) {
+            reject(new Error(`Failed to parse DOCX: ${error instanceof Error ? error.message : 'Unknown error'}`));
+          }
+        };
+        reader.onerror = () => reject(new Error("Failed to read DOCX file"));
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    // Legacy DOC (try as text, warn user)
+    if (fileExtension === 'doc') {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const text = e.target?.result as string;
+            if (!text || text.length < 10) {
+              throw new Error("Legacy DOC format detected - please convert to DOCX for better results");
+            }
+            resolve(text);
+          } catch (error) {
+            reject(new Error("Legacy DOC files are not fully supported. Please convert to DOCX format."));
+          }
+        };
+        reader.onerror = () => reject(new Error("Failed to read DOC file"));
+        reader.readAsText(file);
+      });
+    }
+
+    throw new Error(`Unsupported file type: ${fileExtension}. Please use TXT, PDF, or DOCX files.`);
   };
 
-  // Call OpenRouter API for summarization
   const summarizeWithAI = async (text: string): Promise<SummaryResult> => {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-    
-    if (!apiKey) {
-      throw new Error('OpenRouter API key is missing. Please check your environment variables.');
-    }
+    if (!apiKey) throw new Error('OpenRouter API key is missing. Please check your environment variables.');
 
     const prompt = `Summarize the following text for a college student. 
-- Write a clear one-paragraph overview.
-- Then, list the top 5 main ideas as bullet points.
-- Highlight key dates, terms, or concepts in bold. 
-- Be thorough and accurate, but keep language simple and easy to understand.
+  - Write a clear one-paragraph overview.
+  - Then, list the top 5 main ideas as bullet points.
+  - Highlight key dates, terms, or concepts in bold. 
+  - Be thorough and accurate, but keep language simple and easy to understand.
 
-Return your response in this JSON format:
-{
-  "overview": "one paragraph summary here",
-  "mainPoints": ["point 1", "point 2", "point 3", "point 4", "point 5"],
-  "keyTerms": ["important term 1", "important term 2", "important term 3"]
-}
+  Return your response in this JSON format:
+  {
+    "overview": "one paragraph summary here",
+    "mainPoints": ["point 1", "point 2", "point 3", "point 4", "point 5"],
+    "keyTerms": ["important term 1", "important term 2", "important term 3"]
+  }
 
-TEXT:
-${text.substring(0, 4000)}`;
+  TEXT:
+  ${text.substring(0, 4000)}`;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -188,16 +166,29 @@ ${text.substring(0, 4000)}`;
 
     const data = await response.json();
     const content = data.choices[0]?.message?.content;
-    
-    if (!content) {
-      throw new Error('No summary content received from AI');
+    if (!content) throw new Error('No summary content received from AI');
+
+    // Try robust parsing
+    let jsonString = content.trim();
+
+    // If markdown code block, extract JSON
+    const codeBlockMatch = jsonString.match(/```(?:json)?\s*([\s\S]+?)\s*```/);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      jsonString = codeBlockMatch[1].trim();
     }
 
+    // Try direct JSON.parse
     try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      // Fallback parsing for malformed JSON
-      throw new Error('Failed to parse AI response');
+      return JSON.parse(jsonString);
+    } catch (err1) {
+      // Try to repair malformed JSON
+      try {
+        const repaired = jsonrepair(jsonString);
+        return JSON.parse(repaired);
+      } catch (err2) {
+        console.error("Failed to parse or repair AI response:", content);
+        throw new Error('Failed to parse AI response');
+      }
     }
   };
 
@@ -218,7 +209,6 @@ ${text.substring(0, 4000)}`;
     }
 
     setUploadedFile(file);
-    
     try {
       const extractedText = await extractTextFromFile(file);
       setInputText(extractedText);
@@ -229,13 +219,13 @@ ${text.substring(0, 4000)}`;
     } catch (error) {
       toast({
         title: "File extraction failed",
-        description: "Could not extract text from the uploaded file.",
+        description: error instanceof Error ? error.message : "Could not extract text from the uploaded file.",
         variant: "destructive"
       });
     }
   };
 
-  // Start countdown timer
+  // Countdown logic
   const startCountdown = () => {
     setCountdown(30);
     const timer = setInterval(() => {
@@ -262,7 +252,6 @@ ${text.substring(0, 4000)}`;
 
     setIsProcessing(true);
     startCountdown();
-    
     try {
       const result = await summarizeWithAI(inputText);
       setSummaryResult(result);
@@ -286,9 +275,7 @@ ${text.substring(0, 4000)}`;
   // Copy summary to clipboard
   const copySummary = () => {
     if (!summaryResult) return;
-    
     const formattedSummary = `SUMMARY:\n${summaryResult.overview}\n\nMAIN POINTS:\n${summaryResult.mainPoints.map((point, i) => `${i + 1}. ${point}`).join('\n')}\n\nKEY TERMS:\n${summaryResult.keyTerms.join(', ')}`;
-    
     navigator.clipboard.writeText(formattedSummary);
     toast({
       title: "Summary copied!",
@@ -325,7 +312,7 @@ ${text.substring(0, 4000)}`;
             </Button>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-6 space-y-6">
           {!summaryResult ? (
             <>
@@ -335,7 +322,7 @@ ${text.substring(0, 4000)}`;
                   <Upload className="w-5 h-5 mr-2 text-blue-600" />
                   Upload Document or Paste Text
                 </h3>
-                
+
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center">
                   <Input
                     type="file"
@@ -372,12 +359,12 @@ ${text.substring(0, 4000)}`;
                   onChange={(e) => setInputText(e.target.value)}
                   className="min-h-[200px] resize-none"
                 />
-                
+
                 <div className="flex justify-between items-center">
                   <p className="text-sm text-slate-500">
                     {inputText.length > 0 ? `${inputText.length} characters` : "No content yet"}
                   </p>
-                  
+
                   <div className="flex gap-2">
                     <Button variant="outline" onClick={resetForm}>
                       <RotateCcw className="w-4 h-4 mr-2" />
