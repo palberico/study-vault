@@ -58,8 +58,8 @@ export default function SmartSummarizer({ isOpen, onClose }: SmartSummarizerProp
             try {
               const arrayBuffer = e.target?.result as ArrayBuffer;
               
-              // Set up PDF.js worker
-              pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+              // Set up PDF.js worker - use a more reliable CDN
+              pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
               
               const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
               let fullText = '';
