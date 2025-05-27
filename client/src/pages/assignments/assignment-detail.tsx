@@ -117,13 +117,25 @@ export default function AssignmentDetailPage({ id }: { id: string }) {
         // Fetch summaries related to this assignment
         try {
           const allSummaries = await getUserSummaries(user.uid);
-          console.log("All summaries:", allSummaries);
-          console.log("Looking for assignment ID:", id);
+          console.log("All summaries fetched:", allSummaries.length);
+          console.log("Assignment ID we're looking for:", id);
+          
+          // Filter summaries for this specific assignment
           const assignmentSummaries = allSummaries.filter(summary => {
-            console.log("Summary assignmentId:", summary.assignmentId, "Assignment ID:", id);
+            console.log("Checking summary:", summary.title, "assignmentId:", summary.assignmentId, "against:", id);
             return summary.assignmentId === id;
           });
-          console.log("Filtered assignment summaries:", assignmentSummaries);
+          
+          // Also check summaries for this course if no assignment-specific ones found
+          if (assignmentSummaries.length === 0 && assignmentData.courseId) {
+            console.log("No assignment-specific summaries found, checking course summaries...");
+            const courseSummaries = allSummaries.filter(summary => 
+              summary.courseId === assignmentData.courseId && !summary.assignmentId
+            );
+            console.log("Course summaries found:", courseSummaries.length);
+          }
+          
+          console.log("Final filtered summaries:", assignmentSummaries.length);
           setSummaries(assignmentSummaries);
         } catch (summariesError) {
           console.error("Error fetching summaries:", summariesError);

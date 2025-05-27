@@ -429,8 +429,8 @@ ${text.substring(0, 1000)}`;
             selectedAssignmentId || "unassigned",
             selectedCourseId
           );
-          documentUrl = uploadResult.url;
-          documentName = uploadResult.name;
+          documentUrl = uploadResult.downloadURL || uploadResult.url || "";
+          documentName = uploadResult.fileName || uploadResult.name || uploadedFile.name;
         } catch (uploadError) {
           console.warn("File upload failed, saving summary without document:", uploadError);
         }
