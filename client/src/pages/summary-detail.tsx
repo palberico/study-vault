@@ -52,6 +52,16 @@ export default function SummaryDetail() {
       const courses = await getUserCourses(user.uid);
       const summaryCourse = courses.find(c => c.id === summaryData.courseId);
       setCourse(summaryCourse || null);
+
+      // Load assignment information if available
+      if (summaryData.assignmentId) {
+        try {
+          const assignmentData = await getAssignment(summaryData.assignmentId);
+          setAssignment(assignmentData);
+        } catch (assignmentError) {
+          console.error("Error fetching assignment:", assignmentError);
+        }
+      }
       
     } catch (error) {
       console.error("Error loading summary:", error);
@@ -146,6 +156,18 @@ export default function SummaryDetail() {
                 <div className="flex items-center">
                   <BookOpen className="w-4 h-4 mr-1" />
                   <span>{course.code} - {course.name}</span>
+                </div>
+              )}
+              {assignment && (
+                <div className="flex items-center">
+                  <span>→</span>
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto text-sm text-blue-600 hover:text-blue-700"
+                    onClick={() => navigate(`/assignments/${assignment.id}`)}
+                  >
+                    {assignment.title}
+                  </Button>
                 </div>
               )}
               <div className="flex items-center">
