@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Upload, Loader2, Copy, RotateCcw, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import * as pdfjsLib from 'pdfjs-dist';
+import mammoth from 'mammoth';
 
 interface SmartSummarizerProps {
   isOpen: boolean;
@@ -29,17 +31,113 @@ export default function SmartSummarizer({ isOpen, onClose }: SmartSummarizerProp
   const [summaryResult, setSummaryResult] = useState<SummaryResult | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  // Extract text from uploaded file
+  // Extract text from uploaded file with proper parsing for different file types
   const extractTextFromFile = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        resolve(text);
-      };
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsText(file);
-    });
+    const fileName = file.name.toLowerCase();
+    const fileExtension = fileName.split('.').pop();
+
+    try {
+      // Handle TXT files with FileReader
+      if (fileExtension === 'txt') {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const text = e.target?.result as string;
+            resolve(text);
+          };
+          reader.onerror = () => reject(new Error("Failed to read text file"));
+          reader.readAsText(file);
+        });
+      }
+
+      // Handle PDF files with pdfjs-dist
+      if (fileExtension === 'pdf') {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            try {
+              const arrayBuffer = e.target?.result as ArrayBuffer;
+              
+              // Set up PDF.js worker
+              pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+              
+              const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+              let fullText = '';
+              
+              // Extract text from all pages
+              for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                  .map((item: any) => item.str)
+                  .join(' ');
+                fullText += pageText + '\n';
+              }
+              
+              if (!fullText.trim()) {
+                throw new Error("No text content found in PDF");
+              }
+              
+              resolve(fullText);
+            } catch (error) {
+              reject(new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`));
+            }
+          };
+          reader.onerror = () => reject(new Error("Failed to read PDF file"));
+          reader.readAsArrayBuffer(file);
+        });
+      }
+
+      // Handle DOCX files with mammoth
+      if (fileExtension === 'docx') {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            try {
+              const arrayBuffer = e.target?.result as ArrayBuffer;
+              const result = await mammoth.extractRawText({ arrayBuffer });
+              
+              if (!result.value.trim()) {
+                throw new Error("No text content found in DOCX file");
+              }
+              
+              resolve(result.value);
+            } catch (error) {
+              reject(new Error(`Failed to parse DOCX: ${error instanceof Error ? error.message : 'Unknown error'}`));
+            }
+          };
+          reader.onerror = () => reject(new Error("Failed to read DOCX file"));
+          reader.readAsArrayBuffer(file);
+        });
+      }
+
+      // Handle legacy DOC files (attempt as text, but warn user)
+      if (fileExtension === 'doc') {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const text = e.target?.result as string;
+              // DOC files may not parse well as plain text
+              if (!text || text.length < 10) {
+                throw new Error("Legacy DOC format detected - please convert to DOCX for better results");
+              }
+              resolve(text);
+            } catch (error) {
+              reject(new Error("Legacy DOC files are not fully supported. Please convert to DOCX format."));
+            }
+          };
+          reader.onerror = () => reject(new Error("Failed to read DOC file"));
+          reader.readAsText(file);
+        });
+      }
+
+      // Unsupported file type
+      throw new Error(`Unsupported file type: ${fileExtension}. Please use TXT, PDF, or DOCX files.`);
+
+    } catch (error) {
+      throw new Error(`File processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   // Call OpenRouter API for summarization

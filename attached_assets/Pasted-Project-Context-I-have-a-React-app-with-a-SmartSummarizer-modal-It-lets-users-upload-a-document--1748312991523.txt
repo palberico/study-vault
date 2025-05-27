@@ -1,0 +1,78 @@
+Project Context
+I have a React app with a “SmartSummarizer” modal. It lets users upload a document (TXT, PDF, DOC, DOCX) or paste in text, and then sends that text to an OpenRouter LLM for summarization.
+
+Problem
+When users upload a PDF, the current code reads the file using FileReader.readAsText(file). This only works for plain text files.
+For PDFs or DOC/DOCX files, this method returns either unreadable binary or fails, resulting in garbage text sent to the LLM and a summary error.
+
+What Needs to Change
+For TXT files: Keep reading with FileReader.readAsText(file).
+
+For PDF files: Use a PDF parser (like pdfjs-dist) to extract actual text from the PDF pages.
+
+For DOC or DOCX files: Use mammoth to extract text from docx, or fallback to plain text for doc.
+
+After extracting the plain text, send it to the LLM for summarization (as my code currently does).
+
+Update the “SmartSummarizer” to use this logic so that the summary always works with readable content.
+
+Extra context
+The main problem is that binary PDF/DOCX data is being sent to the LLM—this should never happen.
+
+I want all file types to “just work”—the user should be able to upload any of the supported types and always get a readable summary.
+
+Code Reference
+Here’s my current SmartSummarizer.tsx logic for file upload and text extraction:
+
+js
+Copy
+Edit
+// ...[rest of my code from above]...
+const extractTextFromFile = async (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      resolve(text);
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsText(file);
+  });
+};
+What I want you to do:
+Refactor extractTextFromFile so it:
+
+Uses FileReader.readAsText() only for .txt and (if possible) .doc.
+
+Uses pdfjs-dist for PDFs (extract all text pages into a single string).
+
+Uses mammoth for .docx files (returns plain text).
+
+Update all places in the component that call extractTextFromFile to use this logic, and ensure the user never receives garbage or unreadable output from the LLM.
+
+If an unsupported or broken file is uploaded, show a clear toast error.
+
+Ensure all packages needed are installed:
+
+npm install pdfjs-dist mammoth
+
+Do not change the UI/styling or summary logic—just fix the file extraction workflow!
+
+Acceptance Criteria
+User uploads a TXT file → Text extracted, summary works.
+
+User uploads a PDF → PDF text extracted, summary works.
+
+User uploads a DOCX file → Mammoth extracts text, summary works.
+
+User uploads a DOC (legacy Word) file → Try to read as text, or show a friendly error if not supported.
+
+All errors are handled with a toast.
+
+Packages
+pdfjs-dist
+
+mammoth
+
+Please update my SmartSummarizer.tsx as described. Make sure your solution works for all cases and is copy-paste ready!
+
